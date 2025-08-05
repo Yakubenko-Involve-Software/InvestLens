@@ -32,30 +32,55 @@ const templates = {
     `,
     'routes': `
         <h2 class="text-2xl font-bold mb-6">Routes</h2>
-        <div class="flex flex-col h-full">
-            <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style="height: 50vh;">
-                <div id="routes-map" class="w-full h-full bg-white shadow rounded-lg lg:col-span-2"></div>
-                <div id="routes-sidebar" class="bg-white shadow rounded-lg p-6 flex flex-col" style="height: 50vh;">
-                    <div id="routes-kpis" class="space-y-6 flex-grow">
-                        <!-- KPIs will be injected here -->
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Active Routes</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">24</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Total Distance</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">792 km</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Avg Efficiency</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">89%</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Cost Savings</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">€2,340</p>
+            </div>
+        </div>
+        
+        <div class="flex gap-6" style="height: calc(100vh - 300px);">
+            <!-- Left side - Map -->
+            <div class="flex-1">
+                <div id="routes-map" class="w-full h-full bg-gray-200 shadow rounded-lg"></div>
+            </div>
+            
+            <!-- Right side - Table -->
+            <div class="w-96">
+                <div class="bg-white shadow rounded-lg overflow-hidden h-full flex flex-col">
+                    <div class="bg-gray-50 px-4 py-3 border-b flex-shrink-0">
+                        <h3 class="text-lg font-semibold text-gray-800">Routes List</h3>
+                    </div>
+                    <div class="overflow-y-auto flex-1">
+                        <table id="routes-table" class="min-w-full">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr class="text-sm">
+                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="id">ID</th>
+                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="name">Name</th>
+                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops</th>
+                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="km">Km</th>
+                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                 <!-- Route data will be injected here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
-            <div class="bg-white shadow rounded-lg overflow-y-auto" style="height: calc(50vh - 120px);">
-                <table id="routes-table" class="min-w-full">
-                    <thead class="bg-gray-50 sticky top-0">
-                        <tr>
-                            <th class="py-3 px-4 text-left cursor-pointer hover:text-gray-800" data-sort-key="id">ID<i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                            <th class="py-3 px-4 text-left cursor-pointer hover:text-gray-800" data-sort-key="name">Name<i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                            <th class="py-3 px-4 text-left cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops<i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                            <th class="py-3 px-4 text-left cursor-pointer hover:text-gray-800" data-sort-key="km">Km<i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                            <th class="py-3 px-4 text-left cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk<i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                         <!-- Route data will be injected here -->
-                    </tbody>
-                </table>
             </div>
         </div>
     `,
