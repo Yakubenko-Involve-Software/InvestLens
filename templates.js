@@ -33,7 +33,7 @@ const templates = {
     'routes': `
         <h2 class="text-2xl font-bold mb-6">Routes</h2>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                 <p class="text-sm font-medium text-gray-600">Active Routes</p>
                 <p class="text-3xl font-bold text-gray-900 mt-1">24</p>
@@ -41,6 +41,10 @@ const templates = {
             <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                 <p class="text-sm font-medium text-gray-600">Total Distance</p>
                 <p class="text-3xl font-bold text-gray-900 mt-1">792 km</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Avg Delivery Time</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">45 m</p>
             </div>
             <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                 <p class="text-sm font-medium text-gray-600">Avg Efficiency</p>
@@ -64,7 +68,7 @@ const templates = {
             </div>
             
             <!-- Right side - Table -->
-            <div class="w-1/3">
+            <div class="w-2/5">
                 <div class="bg-white shadow rounded-lg overflow-hidden h-full flex flex-col">
                     <div class="bg-gray-50 px-4 py-3 border-b flex-shrink-0">
                         <h3 class="text-lg font-semibold text-gray-800">Routes List</h3>
