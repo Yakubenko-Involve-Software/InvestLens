@@ -3,16 +3,29 @@ let routeLayers = [];
 let activeRoute = null;
 
 function initRoutesMap(allRoutesData) {
+    console.log('=== initRoutesMap called ===');
+    console.log('allRoutesData:', allRoutesData);
+    
     if (routesMap) {
+        console.log('Removing existing map');
         routesMap.remove();
         routesMap = null;
     }
 
     const mapElement = document.getElementById('routes-map');
+    console.log('Map element:', mapElement);
+    
     if (!mapElement) {
         console.error('Map element #routes-map not found.');
         return;
     }
+    
+    console.log('Map element dimensions:', {
+        width: mapElement.offsetWidth,
+        height: mapElement.offsetHeight,
+        clientWidth: mapElement.clientWidth,
+        clientHeight: mapElement.clientHeight
+    });
     
     if (mapElement.offsetHeight === 0) {
         console.warn('Map container has zero height. Waiting for layout...');
@@ -20,7 +33,14 @@ function initRoutesMap(allRoutesData) {
         return;
     }
 
-    routesMap = L.map(mapElement).setView([38.736946, -9.142685], 12);
+    console.log('Creating Leaflet map...');
+    try {
+        routesMap = L.map(mapElement).setView([38.736946, -9.142685], 12);
+        console.log('Map created successfully:', routesMap);
+    } catch (error) {
+        console.error('Error creating map:', error);
+        return;
+    }
     
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -29,8 +49,28 @@ function initRoutesMap(allRoutesData) {
 
     addRoutesToRoutesMap(allRoutesData);
 
-    // Final check to ensure map is sized correctly
-    setTimeout(() => routesMap.invalidateSize(), 100);
+    // Multiple checks to ensure map is sized correctly
+    setTimeout(() => {
+        if (routesMap) {
+            routesMap.invalidateSize();
+        }
+    }, 100);
+    
+    setTimeout(() => {
+        if (routesMap) {
+            routesMap.invalidateSize();
+        }
+    }, 500);
+    
+    // Add ResizeObserver to handle dynamic resizing
+    if (window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+            if (routesMap) {
+                routesMap.invalidateSize();
+            }
+        });
+        resizeObserver.observe(mapElement);
+    }
 }
 
 function addRoutesToRoutesMap(allRoutesData) {
@@ -273,6 +313,23 @@ function generateRoutesData(allRoutesData) {
 }
 window.initRoutesMap = initRoutesMap;
 window.updateRoutesKpis = updateRoutesKpis;
+window.refreshRoutesMap = function() {
+    if (routesMap) {
+        setTimeout(() => {
+            routesMap.invalidateSize();
+        }, 100);
+    }
+};
+
+// Force map initialization
+window.forceInitRoutesMap = function() {
+    console.log('🚀 FORCE INIT ROUTES MAP');
+    if (typeof allRoutesData !== 'undefined') {
+        initRoutesMap(allRoutesData);
+    } else {
+        console.error('allRoutesData not available');
+    }
+};
 
 // Add test function to manually trigger map initialization
 window.testRoutesMap = function() {

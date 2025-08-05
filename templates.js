@@ -165,9 +165,11 @@ const templates = {
     `,
     'ai-widget': `
         <div class="flex flex-col h-full">
-            <div class="flex-none mb-4"><h2 class="text-2xl font-bold">AI Route Optimizer</h2></div>
+            <div class="flex-none mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">AI Route Optimizer</h2>
+            </div>
             
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                 <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                     <p class="text-sm font-medium text-gray-600">Distance</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">120</p>
@@ -188,47 +190,30 @@ const templates = {
                     <p class="text-sm font-medium text-gray-600">Cold-Chain Compliance</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">96.3 %</p>
                 </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm font-medium text-gray-600">Window Accuracy</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">93.4 %</p>
+                </div>
             </div>
-            <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6" style="height: calc(100vh - 250px);">
                 <div class="lg:col-span-2 flex flex-col gap-4">
-                    <div class="bg-white shadow rounded-lg p-4 flex-1 flex flex-col">
-                        <div id="map" class="flex-grow bg-gray-200 rounded-lg min-h-[200px]"></div>
+                    <div class="bg-white shadow rounded-lg p-4 flex-1 flex flex-col" style="min-height: 650px;">
+                        <div id="map" class="flex-grow bg-gray-200 rounded-lg min-h-[600px]"></div>
                     </div>
-                    <div class="bg-white shadow rounded-lg flex flex-col">
+                    <div class="bg-white shadow rounded-lg flex flex-col" style="max-height: 200px;">
                         <div class="p-4 border-b">
                             <h3 class="text-lg font-semibold text-gray-800">Routes List</h3>
                         </div>
-                        <div class="p-4 border-b flex items-center gap-2 flex-wrap">
-                            <div class="relative flex-grow min-w-[150px]">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3"><i class="ri-search-line text-gray-400"></i></span>
-                                <input type="text" id="ai-search-filter" placeholder="Search..." class="pl-10 pr-4 py-1.5 border rounded-lg w-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            </div>
-                            <div class="flex-shrink-0">
-                                <select id="ai-risk-filter" class="border rounded-lg py-1.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-full">
-                                    <option value="All">All Risks</option>
-                                    <option value="High">High</option>
-                                    <option value="Med">Medium</option>
-                                    <option value="Low">Low</option>
-                                </select>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <select id="ai-window-filter" class="border rounded-lg py-1.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-full">
-                                    <option>All Windows</option>
-                                    <option>08:00-12:00</option>
-                                    <option>12:00-16:00</option>
-                                    <option>16:00-20:00</option>
-                                </select>
-                            </div>
-                        </div>
+
                         <div class="overflow-y-auto flex-grow">
                             <table id="route-list" class="min-w-full">
                                 <thead class="bg-gray-50 sticky top-0">
                                     <tr>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="id">ID</th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="name">Courier</th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="stops">Stops</th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="km">KM</th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="risk">Risk</th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="id">ID <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="name">Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="km">KM <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -236,10 +221,61 @@ const templates = {
                         </div>
                     </div>
                 </div>
-                <div class="bg-white shadow rounded-lg p-4 flex flex-col space-y-4">
-                    <div id="kpi-snap" class="grid grid-cols-2 gap-4"></div>
-                    <div id="timeline-drawer" class="flex-grow bg-gray-50 rounded-lg p-4 overflow-y-auto"><h3 class="font-bold mb-2">Timeline</h3><ul id="timeline-list"></ul></div>
-                    <div class="flex-none"><button id="back-to-overview" class="w-full py-2 px-4 bg-gray-200 rounded hover:bg-gray-300">Back to Overview</button></div>
+                <div class="bg-white shadow rounded-lg p-4 flex flex-col">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Optimization Results</h3>
+                    
+                    <div class="flex bg-gray-100 rounded-lg p-1 mb-4">
+                        <button class="flex-1 py-2 px-3 text-sm font-medium rounded-md bg-blue-600 text-white transition-colors">
+                            Tomorrow
+                        </button>
+                        <button class="flex-1 py-2 px-3 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800 transition-colors">
+                            Today
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Routes Optimised</p>
+                            <p class="text-2xl font-bold text-blue-600 mt-1">15 %</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Stops Merged</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">7</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Calls Scheduled</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">2</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Time Saved</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">42 min</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Success Rate</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">+7.2 %</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Spoilage Risk</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">-0.8 %</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Efficiency Gain</p>
+                            <p class="text-2xl font-bold text-blue-600 mt-1">15 %</p>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p class="text-sm font-medium text-gray-600">Cost Reduction</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">€2,340</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                            Optimize
+                        </button>
+                        <button class="w-full border border-blue-600 text-blue-600 px-4 py-3 rounded-lg font-normal hover:bg-blue-50 transition">
+                            Timeline
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

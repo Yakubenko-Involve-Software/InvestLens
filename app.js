@@ -25,14 +25,25 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (page === 'orders') {
                 await loadOrders();
             } else if (page === 'routes') {
+                console.log('=== Loading Routes page ===');
                 setTimeout(() => {
+                    console.log('Loading routes data...');
                     loadRoutes();
+                    console.log('Checking for initRoutesMap function...');
                     if (typeof initRoutesMap === 'function') {
+                        console.log('Calling initRoutesMap with data:', allRoutesData);
                         initRoutesMap(allRoutesData);
+                        // Additional refresh after a longer delay
+                        setTimeout(() => {
+                            console.log('Calling refreshRoutesMap...');
+                            if (typeof window.refreshRoutesMap === 'function') {
+                                window.refreshRoutesMap();
+                            }
+                        }, 300);
                     } else {
                         console.error('initRoutesMap function not found');
                     }
-                }, 50); // Small delay to ensure DOM is ready
+                }, 100); // Small delay to ensure DOM is ready
             } else if (page === 'live-map') {
                 if (typeof initLiveMap === 'function') {
                     initLiveMap();
