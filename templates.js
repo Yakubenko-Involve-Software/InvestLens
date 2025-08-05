@@ -33,7 +33,7 @@ const templates = {
     'routes': `
         <h2 class="text-2xl font-bold mb-6">Routes</h2>
         
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                 <p class="text-sm font-medium text-gray-600">Active Routes</p>
                 <p class="text-3xl font-bold text-gray-900 mt-1">24</p>
@@ -46,20 +46,25 @@ const templates = {
                 <p class="text-sm font-medium text-gray-600">Avg Efficiency</p>
                 <p class="text-3xl font-bold text-gray-900 mt-1">89%</p>
             </div>
-            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <p class="text-sm font-medium text-gray-600">Cost Savings</p>
-                <p class="text-3xl font-bold text-gray-900 mt-1">€2,340</p>
-            </div>
         </div>
         
         <div class="flex gap-6" style="height: calc(100vh - 300px);">
             <!-- Left side - Map -->
-            <div class="flex-1">
-                <div id="routes-map" class="w-full h-full bg-gray-200 shadow rounded-lg"></div>
+            <div class="flex-1 bg-gray-200 shadow rounded-lg relative">
+                <div id="routes-map" class="w-full h-full"></div>
+                <!-- Map Legend -->
+                <div class="absolute top-4 right-4 bg-white shadow-lg rounded-lg p-3 border border-gray-200" style="z-index: 401;">
+                    <h4 class="text-sm font-semibold text-gray-800 mb-2">Route Risk</h4>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex items-center"><div class="w-3 h-3 mr-2" style="background-color: #DC3545;"></div>High</div>
+                        <div class="flex items-center"><div class="w-3 h-3 mr-2" style="background-color: #FFC107;"></div>Medium</div>
+                        <div class="flex items-center"><div class="w-3 h-3 mr-2" style="background-color: #28A745;"></div>Low</div>
+                    </div>
+                </div>
             </div>
             
             <!-- Right side - Table -->
-            <div class="w-96">
+            <div class="w-1/3">
                 <div class="bg-white shadow rounded-lg overflow-hidden h-full flex flex-col">
                     <div class="bg-gray-50 px-4 py-3 border-b flex-shrink-0">
                         <h3 class="text-lg font-semibold text-gray-800">Routes List</h3>
@@ -67,12 +72,12 @@ const templates = {
                     <div class="overflow-y-auto flex-1">
                         <table id="routes-table" class="min-w-full">
                             <thead class="bg-gray-50 sticky top-0">
-                                <tr class="text-sm">
-                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="id">ID</th>
-                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="name">Name</th>
-                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops</th>
-                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="km">Km</th>
-                                    <th class="py-2 px-3 text-left cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk</th>
+                                <tr class="text-sm text-gray-600">
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="name">Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="km">Distance km <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="eta_last">ETA last <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm">
@@ -87,15 +92,25 @@ const templates = {
     'live-map': `
         <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 h-full">
             <div id="live-map-container" class="w-full h-full bg-white shadow rounded-lg lg:col-span-5 min-h-[400px] lg:min-h-0"></div>
-            <div id="live-map-sidebar" class="bg-white shadow rounded-lg p-4 flex flex-col lg:col-span-1">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Route Details</h3>
-                <div id="live-map-kpis" class="space-y-4">
-                    <!-- KPIs will be injected here -->
+            <div id="live-map-sidebar" class="bg-white shadow rounded-lg flex flex-col lg:col-span-1 overflow-hidden">
+                <div class="p-4 border-b">
+                    <h3 class="text-lg font-bold text-gray-800">Live Fleet</h3>
+                    <p class="text-sm text-gray-500">24 active vehicles</p>
                 </div>
-                <div class="flex-grow"></div>
-                <button id="show-timeline-btn" class="w-full mt-4 py-2 px-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition text-sm">
-                    Show Timeline
-                </button>
+                <div class="flex-grow overflow-y-auto">
+                    <table id="live-map-table" class="min-w-full">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr class="text-xs text-left text-gray-500">
+                                <th class="p-2 font-semibold">ID</th>
+                                <th class="p-2 font-semibold">Courier</th>
+                                <th class="p-2 font-semibold">Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-gray-700">
+                            <!-- Vehicle data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     `,

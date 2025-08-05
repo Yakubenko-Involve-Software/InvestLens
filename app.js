@@ -25,16 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (page === 'orders') {
                 await loadOrders();
             } else if (page === 'routes') {
-                loadRoutes();
-                // Add delay to ensure DOM is ready for map initialization
                 setTimeout(() => {
+                    loadRoutes();
                     if (typeof initRoutesMap === 'function') {
-                        console.log('Calling initRoutesMap with data:', allRoutesData);
                         initRoutesMap(allRoutesData);
                     } else {
                         console.error('initRoutesMap function not found');
                     }
-                }, 500);
+                }, 50); // Small delay to ensure DOM is ready
             } else if (page === 'live-map') {
                 if (typeof initLiveMap === 'function') {
                     initLiveMap();
@@ -194,23 +192,35 @@ function loadRoutes() {
     const tbody = document.querySelector('#routes-table tbody');
     if (!tbody) return;
 
-    let currentSort = { key: 'id', asc: true };
+    const routesWithEta = routes.map(route => {
+        const stops = stopsDataAll[route.id];
+        const eta_last = stops ? stops[stops.length - 1].eta : 'N/A';
+        return { ...route, eta_last };
+    });
+
+    let state = {
+        sortKey: 'name',
+        sortAsc: true
+    };
 
     const renderRoutesTable = () => {
-        const sortedRoutes = [...routes].sort((a, b) => {
-            const valA = a[currentSort.key];
-            const valB = b[currentSort.key];
-            if (valA < valB) return currentSort.asc ? -1 : 1;
-            if (valA > valB) return currentSort.asc ? 1 : -1;
-            return 0;
+        const sortedRoutes = [...routesWithEta].sort((a, b) => {
+            const valA = a[state.sortKey];
+            const valB = b[state.sortKey];
+
+            if (typeof valA === 'string') {
+                return state.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            } else {
+                return state.sortAsc ? valA - valB : valB - valA;
+            }
         });
 
         tbody.innerHTML = sortedRoutes.map(route => `
-            <tr class="hover:bg-gray-50">
-                <td class="py-2 px-4">${route.id}</td>
+            <tr class="hover:bg-gray-50 cursor-pointer" onclick="highlightRouteOnMap('${route.id}')">
                 <td class="py-2 px-4">${route.name}</td>
                 <td class="py-2 px-4">${route.stops}</td>
                 <td class="py-2 px-4">${route.km}</td>
+                <td class="py-2 px-4">${route.eta_last}</td>
                 <td class="py-2 px-4">
                     <span class="px-2 py-1 text-xs font-semibold rounded-full ${getRiskClass(route.risk)}">
                         ${route.risk}
@@ -220,31 +230,35 @@ function loadRoutes() {
         `).join('');
     };
 
+    const updateSortIcons = () => {
+        document.querySelectorAll('#routes-table th[data-sort-key]').forEach(header => {
+            const icon = header.querySelector('i');
+            if (header.dataset.sortKey === state.sortKey) {
+                icon.className = state.sortAsc 
+                    ? 'ri-arrow-up-line ml-1 align-middle text-gray-800' 
+                    : 'ri-arrow-down-line ml-1 align-middle text-gray-800';
+            } else {
+                icon.className = 'ri-arrow-up-down-line ml-1 align-middle text-gray-400';
+            }
+        });
+    };
+
     document.querySelectorAll('#routes-table th[data-sort-key]').forEach(th => {
         th.addEventListener('click', () => {
             const sortKey = th.dataset.sortKey;
-            if (currentSort.key === sortKey) {
-                currentSort.asc = !currentSort.asc;
+            if (state.sortKey === sortKey) {
+                state.sortAsc = !state.sortAsc;
             } else {
-                currentSort.key = sortKey;
-                currentSort.asc = true;
+                state.sortKey = sortKey;
+                state.sortAsc = true;
             }
-
-            document.querySelectorAll('#routes-table th[data-sort-key] i').forEach(icon => {
-                icon.className = 'ri-arrow-up-down-line ml-1 align-middle text-gray-400';
-            });
-            const activeIcon = th.querySelector('i');
-            if (activeIcon) {
-                activeIcon.className = currentSort.asc 
-                    ? 'ri-arrow-up-line ml-1 align-middle text-gray-800' 
-                    : 'ri-arrow-down-line ml-1 align-middle text-gray-800';
-            }
-
             renderRoutesTable();
+            updateSortIcons();
         });
     });
 
     renderRoutesTable();
+    updateSortIcons();
 }
 
 function getRiskClass(risk) {
@@ -253,5 +267,29 @@ function getRiskClass(risk) {
         case 'Med': return 'bg-yellow-100 text-yellow-800';
         case 'Low': return 'bg-green-100 text-green-800';
         default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function highlightRouteOnMap(routeId) {
+    console.log('Highlighting route on map:', routeId);
+    if (typeof window.selectRoute === 'function') {
+        window.selectRoute(routeId);
+    } else {
+        console.warn('selectRoute function not available yet');
+    }
+    
+    // Also highlight the row in the table
+    const rows = document.querySelectorAll('#routes-table tbody tr');
+    rows.forEach(row => {
+        row.classList.remove('bg-blue-50', 'border-blue-200');
+    });
+    
+    const targetRow = Array.from(rows).find(row => {
+        const firstCell = row.querySelector('td:first-child');
+        return firstCell && firstCell.textContent.trim() === routeId;
+    });
+    
+    if (targetRow) {
+        targetRow.classList.add('bg-blue-50', 'border-blue-200');
     }
 }

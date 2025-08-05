@@ -16,6 +16,25 @@
         .nav-link:hover {
             background-color: rgb(219 234 254) !important; /* bg-blue-100 */
         }
+        
+        /* Ensure Leaflet map container has proper styling */
+        #routes-map {
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 500px !important;
+        }
+        
+        /* Ensure Leaflet map tiles load properly */
+        .leaflet-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* Fix any potential z-index issues */
+        .leaflet-control-container {
+            z-index: 1000;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">

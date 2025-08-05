@@ -3,87 +3,34 @@ let routeLayers = [];
 let activeRoute = null;
 
 function initRoutesMap(allRoutesData) {
-    console.log('initRoutesMap called with data:', allRoutesData);
-    
-    // Check if Leaflet is loaded
-    if (typeof L === 'undefined') {
-        console.error('Leaflet library not loaded!');
-        const mapElement = document.getElementById('routes-map');
-        if (mapElement) {
-            mapElement.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background: #f9f9f9; border-radius: 8px; margin: 20px;">Map library is loading... Please wait or refresh the page.</div>';
-        }
-        // Try to wait a bit longer for Leaflet to load
-        setTimeout(() => initRoutesMap(allRoutesData), 1000);
-        return;
-    }
-    console.log('Leaflet library found:', L);
-    
     if (routesMap) {
-        console.log('Removing existing map...');
         routesMap.remove();
         routesMap = null;
-        routeLayers = [];
     }
 
     const mapElement = document.getElementById('routes-map');
-    console.log('Map element found:', mapElement);
     if (!mapElement) {
-        console.error('Routes map element not found');
+        console.error('Map element #routes-map not found.');
         return;
     }
     
-    // Show loading indicator
-    mapElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 16px; background: #f0f0f0;"><div>Loading map...</div></div>';
-    
-    console.log('Map element dimensions:', {
-        width: mapElement.offsetWidth,
-        height: mapElement.offsetHeight
-    });
-
-    console.log('Creating Leaflet map...');
-    // Clear the loading indicator
-    mapElement.innerHTML = '';
-    
-    try {
-        routesMap = L.map(mapElement).setView([38.736946, -9.142685], 13);
-        console.log('Map created successfully:', routesMap);
-
-        console.log('Adding tile layer...');
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(routesMap);
-        console.log('Tile layer added successfully');
-        
-        // Force map to invalidate size immediately after creation
-        setTimeout(() => {
-            routesMap.invalidateSize();
-            console.log('Map size invalidated');
-        }, 100);
-        
-        // Add ResizeObserver to handle container size changes
-        const resizeObserver = new ResizeObserver(() => {
-            routesMap.invalidateSize();
-            console.log('Map size invalidated due to resize');
-        });
-        resizeObserver.observe(mapElement);
-        
-    } catch (error) {
-        console.error('Error creating map:', error);
-        // Try a simple fallback
-        mapElement.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Map loading... Please refresh if not visible.</div>';
+    if (mapElement.offsetHeight === 0) {
+        console.warn('Map container has zero height. Waiting for layout...');
+        setTimeout(() => initRoutesMap(allRoutesData), 200); // Retry after a short delay
         return;
     }
 
-    // Add routes with delay like in AI Optimizer
-    setTimeout(() => {
-        console.log('Adding routes to map...');
-        if (allRoutesData && allRoutesData.length > 0) {
-            addRoutesToRoutesMap(allRoutesData);
-        } else {
-            console.error('No routes data available');
-        }
-    }, 500);
+    routesMap = L.map(mapElement).setView([38.736946, -9.142685], 12);
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        maxZoom: 19
+    }).addTo(routesMap);
+
+    addRoutesToRoutesMap(allRoutesData);
+
+    // Final check to ensure map is sized correctly
+    setTimeout(() => routesMap.invalidateSize(), 100);
 }
 
 function addRoutesToRoutesMap(allRoutesData) {
@@ -236,31 +183,39 @@ function generateRoutesData(allRoutesData) {
     const routes = [];
     const clusters = [
         { lat: 38.715, lng: -9.16 }, // Estrela area for Red routes (High risk)
-        { lat: 38.74, lng: -9.12 },   // Beato area for Yellow routes (Med risk)
-        { lat: 38.75, lng: -9.17 }  // Benfica area for Green routes (Low risk)
+        { lat: 38.74, lng: -9.12 },   // Beato area for Yellow routes (Med risk)  
+        { lat: 38.75, lng: -9.17 },   // Benfica area for Green routes (Low risk)
+        { lat: 38.72, lng: -9.13 },   // Alfama area (additional cluster)
+        { lat: 38.73, lng: -9.15 },   // Campo de Ourique area (additional cluster)
+        { lat: 38.76, lng: -9.14 }    // Alvalade area (additional cluster)
     ];
-    const shapes = ['diamond', 'rectangle', 'triangle'];
+    const shapes = ['diamond', 'rectangle', 'triangle', 'circle', 'hexagon'];
 
-    // Get 3 routes for each risk category
-    const highRiskRoutes = allRoutesData.filter(r => r.risk === 'High').slice(0, 3);
-    const medRiskRoutes = allRoutesData.filter(r => r.risk === 'Med').slice(0, 3);
-    const lowRiskRoutes = allRoutesData.filter(r => r.risk === 'Low').slice(0, 3);
-
-    const routesToDisplay = [...highRiskRoutes, ...medRiskRoutes, ...lowRiskRoutes];
-
-    routesToDisplay.forEach((routeInfo, i) => {
+    // Display all routes, distribute them across clusters
+    allRoutesData.forEach((routeInfo, i) => {
         if (!routeInfo) return;
 
-        const clusterIndex = routeInfo.risk === 'High' ? 0 : routeInfo.risk === 'Med' ? 1 : 2;
+        // Determine cluster based on risk and index for better distribution
+        let clusterIndex;
+        if (routeInfo.risk === 'High') {
+            clusterIndex = i % 2; // Use first 2 clusters for high risk
+        } else if (routeInfo.risk === 'Med') {
+            clusterIndex = 2 + (i % 2); // Use clusters 2-3 for medium risk
+        } else {
+            clusterIndex = 4 + (i % 2); // Use clusters 4-5 for low risk
+        }
+        
         const cluster = clusters[clusterIndex];
         const path = [];
-        const shape = shapes[i % 3];
+        const shape = shapes[i % shapes.length];
 
-        const centerLat = cluster.lat + (Math.random() - 0.5) * 0.01;
-        const centerLng = cluster.lng + (Math.random() - 0.5) * 0.01;
-        const latRadius = 0.002 + Math.random() * 0.003;
-        const lngRadius = 0.002 + Math.random() * 0.003;
+        // Add some randomness to avoid overlapping
+        const centerLat = cluster.lat + (Math.random() - 0.5) * 0.015;
+        const centerLng = cluster.lng + (Math.random() - 0.5) * 0.015;
+        const latRadius = 0.002 + Math.random() * 0.004;
+        const lngRadius = 0.002 + Math.random() * 0.004;
 
+        // Generate different shapes for variety
         if (shape === 'diamond') {
             path.push([centerLat + latRadius, centerLng]);
             path.push([centerLat, centerLng - lngRadius]);
@@ -273,35 +228,101 @@ function generateRoutesData(allRoutesData) {
             path.push([centerLat - latRadius, centerLng + lngRadius]);
             path.push([centerLat - latRadius, centerLng - lngRadius]);
             path.push([centerLat + latRadius, centerLng - lngRadius]);
-        } else { // triangle
+        } else if (shape === 'triangle') {
             path.push([centerLat + latRadius, centerLng]);
             path.push([centerLat - latRadius, centerLng - lngRadius]);
             path.push([centerLat - latRadius, centerLng + lngRadius]);
             path.push([centerLat + latRadius, centerLng]);
+        } else if (shape === 'circle') {
+            // Generate circular path
+            const numPoints = 8;
+            for (let j = 0; j <= numPoints; j++) {
+                const angle = (j / numPoints) * 2 * Math.PI;
+                const lat = centerLat + latRadius * Math.cos(angle);
+                const lng = centerLng + lngRadius * Math.sin(angle);
+                path.push([lat, lng]);
+            }
+        } else { // hexagon
+            const numPoints = 6;
+            for (let j = 0; j <= numPoints; j++) {
+                const angle = (j / numPoints) * 2 * Math.PI;
+                const lat = centerLat + latRadius * Math.cos(angle);
+                const lng = centerLng + lngRadius * Math.sin(angle);
+                path.push([lat, lng]);
+            }
+        }
+
+        // Assign colors based on risk level
+        let color;
+        if (routeInfo.risk === 'High') {
+            color = '#DC3545'; // Red
+        } else if (routeInfo.risk === 'Med') {
+            color = '#FFC107'; // Yellow
+        } else {
+            color = '#28A745'; // Green
         }
 
         routes.push({
             ...routeInfo,
             path: path,
-            color: routeInfo.risk === 'High' ? '#F44336' : routeInfo.risk === 'Med' ? '#FFC107' : '#4CAF50' // Red, Yellow, Green
+            color: color
         });
     });
 
     return routes;
 }
 window.initRoutesMap = initRoutesMap;
+window.updateRoutesKpis = updateRoutesKpis;
 
 // Add test function to manually trigger map initialization
 window.testRoutesMap = function() {
-    console.log('Manual test of routes map...');
+    console.log('=== MANUAL MAP TEST ===');
     const mapElement = document.getElementById('routes-map');
-    if (mapElement) {
-        console.log('Map element found, dimensions:', {
-            width: mapElement.offsetWidth,
-            height: mapElement.offsetHeight
-        });
-        initRoutesMap(allRoutesData);
-    } else {
-        console.error('Map element not found');
+    
+    if (!mapElement) {
+        console.error('❌ Map element not found!');
+        alert('Map element not found! Check if you are on Routes page.');
+        return;
     }
+    
+    console.log('✅ Map element found');
+    console.log('📏 Container dimensions:', {
+        offsetWidth: mapElement.offsetWidth,
+        offsetHeight: mapElement.offsetHeight,
+        clientWidth: mapElement.clientWidth,
+        clientHeight: mapElement.clientHeight,
+        scrollWidth: mapElement.scrollWidth,
+        scrollHeight: mapElement.scrollHeight
+    });
+    
+    console.log('🎨 Container styles:', {
+        display: window.getComputedStyle(mapElement).display,
+        position: window.getComputedStyle(mapElement).position,
+        width: window.getComputedStyle(mapElement).width,
+        height: window.getComputedStyle(mapElement).height,
+        visibility: window.getComputedStyle(mapElement).visibility
+    });
+    
+    console.log('📊 Available data:', allRoutesData ? allRoutesData.length + ' routes' : 'No data');
+    console.log('🔧 Leaflet available:', typeof L !== 'undefined');
+    
+    if (routesMap) {
+        console.log('⚠️ Existing map found, removing...');
+        routesMap.remove();
+        routesMap = null;
+        routeLayers = [];
+    }
+    
+    console.log('🚀 Initializing map...');
+    initRoutesMap(allRoutesData);
+    
+    setTimeout(() => {
+        if (routesMap) {
+            console.log('✅ Map initialized successfully!');
+            alert('Map test completed! Check console for details.');
+        } else {
+            console.error('❌ Map initialization failed!');
+            alert('Map initialization failed! Check console for errors.');
+        }
+    }, 2000);
 };
