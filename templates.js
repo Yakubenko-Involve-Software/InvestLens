@@ -206,22 +206,104 @@ const templates = {
                         </div>
 
                         <div class="overflow-y-auto flex-grow">
-                            <table id="route-list" class="min-w-full">
+                            <table id="route-list" class="w-full table-fixed">
                                 <thead class="bg-gray-50 sticky top-0">
                                     <tr>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="id">ID <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="name">Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="km">KM <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="w-12 py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="id">ID <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="w-32 py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="name">Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="w-16 py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="w-16 py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="km">KM <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                        <th class="flex-1 py-2 px-3 text-left font-semibold text-sm text-gray-600 cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">A</td>
+                                        <td class="py-2 px-3 text-sm">Miguel Silva</td>
+                                        <td class="py-2 px-3 text-sm">11</td>
+                                        <td class="py-2 px-3 text-sm">35</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">B</td>
+                                        <td class="py-2 px-3 text-sm">Inês Ramos</td>
+                                        <td class="py-2 px-3 text-sm">10</td>
+                                        <td class="py-2 px-3 text-sm">32</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Low</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">C</td>
+                                        <td class="py-2 px-3 text-sm">João Costa</td>
+                                        <td class="py-2 px-3 text-sm">12</td>
+                                        <td class="py-2 px-3 text-sm">38</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Med</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">D</td>
+                                        <td class="py-2 px-3 text-sm">Ana Pereira</td>
+                                        <td class="py-2 px-3 text-sm">9</td>
+                                        <td class="py-2 px-3 text-sm">28</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Low</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">E</td>
+                                        <td class="py-2 px-3 text-sm">Rui Almeida</td>
+                                        <td class="py-2 px-3 text-sm">14</td>
+                                        <td class="py-2 px-3 text-sm">45</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">F</td>
+                                        <td class="py-2 px-3 text-sm">Sofia Santos</td>
+                                        <td class="py-2 px-3 text-sm">11</td>
+                                        <td class="py-2 px-3 text-sm">36</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Med</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">G</td>
+                                        <td class="py-2 px-3 text-sm">Pedro Ferreira</td>
+                                        <td class="py-2 px-3 text-sm">13</td>
+                                        <td class="py-2 px-3 text-sm">41</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                                        <td class="py-2 px-3 text-sm">H</td>
+                                        <td class="py-2 px-3 text-sm">Catarina Martins</td>
+                                        <td class="py-2 px-3 text-sm">10</td>
+                                        <td class="py-2 px-3 text-sm">31</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Low</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 cursor-pointer">
+                                        <td class="py-2 px-3 text-sm">I</td>
+                                        <td class="py-2 px-3 text-sm">André Sousa</td>
+                                        <td class="py-2 px-3 text-sm">12</td>
+                                        <td class="py-2 px-3 text-sm">39</td>
+                                        <td class="py-2 px-3 text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Med</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white shadow rounded-lg p-4 flex flex-col">
+                <div class="bg-white shadow rounded-lg p-4 flex flex-col" style="height: 650px;">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Optimization Results</h3>
                     
                     <div class="flex bg-gray-100 rounded-lg p-1 mb-4">
