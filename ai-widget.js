@@ -1,32 +1,24 @@
 // State
 let allRoutes = [];
 let filteredRoutes = [];
-let summaryData = {};
 let stopsData = {};
 let currentSort = { key: 'id', asc: true };
 let activeFilters = { search: '', risk: 'All' };
 
 // DOM Elements
 let map;
-let routeList, kpiSnap, timelineList, summaryCards, modal;
-let modalTitle, modalList, modalClose, timelineView;
+let routeList, timelineList;
 let searchFilter, riskFilter;
 let routeLayers = [];
 
 async function initAI() {
     // DOM elements initialization
     routeList = document.getElementById('route-list')?.querySelector('tbody');
-    kpiSnap = document.getElementById('kpi-snap');
-    timelineView = document.getElementById('timeline-view');
-    summaryCards = document.getElementById('summary-cards');
-    modal = document.getElementById('summary-modal');
-    modalTitle = document.getElementById('modal-title');
-    modalList = document.getElementById('modal-list');
-    modalClose = document.getElementById('modal-close');
+    timelineList = document.getElementById('timeline-list');
     searchFilter = document.getElementById('ai-search-filter');
     riskFilter = document.getElementById('ai-risk-filter');
 
-    if (!routeList || !kpiSnap || !timelineList || !summaryCards || !modal || !searchFilter || !riskFilter) {
+    if (!routeList || !timelineList || !searchFilter || !riskFilter) {
         console.error('One or more AI widget elements are missing.');
         return;
     }
@@ -36,7 +28,6 @@ async function initAI() {
 
     // Event Listeners
     document.getElementById('back-to-overview')?.addEventListener('click', backToOverview);
-    modalClose?.addEventListener('click', () => modal.classList.add('hidden'));
     searchFilter.addEventListener('input', () => {
         activeFilters.search = searchFilter.value;
         applyFiltersAndRender();
@@ -48,14 +39,11 @@ async function initAI() {
     
     // Load data
     allRoutes = allRoutesData;
-    summaryData = summaryBaseData;
     stopsData = stopsDataAll;
     
     // Initialize
     initAISorting();
     applyFiltersAndRender();
-    renderSummaryCards();
-    updateKPIs();
 }
 
 function applyFiltersAndRender() {
@@ -244,17 +232,14 @@ function initAISorting() {
 
 function backToOverview() {
     renderOverview();
-    updateKPIs();
-    
     // Reset all routes to default style
     routeLayers.forEach(layer => {
         layer.polyline.setStyle({ weight: 2, opacity: 0.7 });
         layer.markers.forEach(marker => {
-            marker.setStyle({ opacity: 1 });
+            marker.setStyle({ opacity: 1, fillOpacity: 1 });
         });
     });
-    
-    document.getElementById('timeline-drawer').classList.remove('hidden'); // Should be visible again
+    timelineList.innerHTML = '';
 }
 
 async function setFocus(routeId) {
@@ -262,19 +247,9 @@ async function setFocus(routeId) {
     
     // Highlight route on map
     highlightRouteOnMap(routeId);
-    
-    // Show timeline view and hide summary
-    summaryCards.classList.add('hidden');
-    timelineView.classList.remove('hidden');
 
     // Render timeline
     renderTimeline(routeId);
-
-    // Update KPIs for the selected courier
-    const courier = allRoutes.find(r => r.id === routeId);
-    if (courier) {
-        updateKPIs(courier);
-    }
 }
 
 function highlightRouteOnMap(routeId) {
@@ -316,188 +291,8 @@ function renderTimeline(routeId) {
     `).join('');
 }
 
-function updateKPIs(courier = null) {
-    let kpiHtml = '';
-    if (courier) {
-        const avgKm = (courier.km / courier.stops).toFixed(1);
-        kpiHtml = `
-            <div class="bg-white p-3 rounded shadow w-full">
-                <p class="text-sm text-gray-500">Distance</p>
-                <p class="text-lg font-bold">${courier.km} km</p>
-            </div>
-            <div class="bg-white p-3 rounded shadow w-full">
-                <p class="text-sm text-gray-500">km/Stop</p>
-                <p class="text-lg font-bold">${avgKm}</p>
-            </div>
-            <div class="bg-white p-3 rounded shadow w-full">
-                <p class="text-sm text-gray-500">Success % (sim)</p>
-                <p class="text-lg font-bold">96.5%</p> <!-- Placeholder -->
-            </div>
-        `;
-    } else {
-        // Totals
-        const totalKm = allRoutes.reduce((sum, r) => sum + r.km, 0);
-        const totalStops = allRoutes.reduce((sum, r) => sum + r.stops, 0);
-        const avgKmTotal = (totalKm / totalStops).toFixed(1);
-
-        kpiHtml = `
-            <div class="bg-white p-3 rounded shadow w-full">
-                <p class="text-sm text-gray-500">Total Distance</p>
-                <p class="text-lg font-bold">${totalKm} km</p>
-            </div>
-            <div class="bg-white p-3 rounded shadow w-full">
-                <p class="text-sm text-gray-500">Avg km/Stop</p>
-                <p class="text-lg font-bold">${avgKmTotal}</p>
-            </div>
-            <div class="bg-white p-3 rounded shadow w-full">
-                <p class="text-sm text-gray-500">Overall Success %</p>
-                <p class="text-lg font-bold">92.0%</p>
-            </div>
-            <div class="bg-white p-3 rounded shadow w-full">
-                <p class="text-sm text-gray-500">Cost Savings</p>
-                <p class="text-lg font-bold">€2,340</p>
-            </div>
-        `;
-    }
-    kpiSnap.innerHTML = kpiHtml;
-}
-
-function renderSummaryCards() {
-    summaryCards.innerHTML = `
-        <div class="bg-white p-3 rounded shadow">
-            <p class="text-sm text-gray-500">Routes Optimised</p>
-            <p class="text-2xl font-bold">${summaryData.routesOptimised}</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow">
-            <p class="text-sm text-gray-500">Stops Merged</p>
-            <p class="text-2xl font-bold">${summaryData.stopsMerged}</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow">
-            <p class="text-sm text-gray-500">Calls Scheduled</p>
-            <p class="text-2xl font-bold">${summaryData.callsScheduled}</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow w-full">
-            <p class="text-sm text-gray-500">Time Saved</p>
-            <p class="text-2xl font-bold">${summaryData.timeSavedMin} min</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow w-full">
-            <p class="text-sm text-gray-500">Success Delta</p>
-            <p class="text-2xl font-bold text-green-500">+${summaryData.successDelta}%</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow w-full">
-            <p class="text-sm text-gray-500">Spoilage Delta</p>
-            <p class="text-2xl font-bold text-red-500">${summaryData.spoilageDelta}%</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow w-full">
-            <p class="text-sm text-gray-500">Efficiency Gain</p>
-            <p class="text-2xl font-bold text-green-500">${summaryData.effGainPct}%</p>
-        </div>
-    `;
-}
-
-function showSummaryDetail(key) {
-    let title = '';
-    let addresses = [];
-    
-    const stopsA = stopsData['A'];
-
-    switch(key) {
-        case 'routesOptimised':
-            title = 'Optimised Routes';
-            addresses = stopsA.filter(s => s.ai === 'Optimised').map(s => s.addr);
-            break;
-        case 'stopsMerged':
-            title = 'Merged Stops';
-            addresses = [stopsA[2].addr, stopsA[4].addr]; // Mock
-            break;
-        case 'callsScheduled':
-            title = 'Scheduled Calls';
-            addresses = stopsA.filter(s => s.warning && s.warning.includes('Call')).map(s => s.addr);
-            break;
-    }
-
-    modalTitle.textContent = title;
-    modalList.innerHTML = addresses.map(addr => `<li>${addr}</li>`).join('');
-    modal.classList.remove('hidden');
-}
-
-function runAI() {
-    // Simulate AI running and updating KPIs
-    const totalKm = allRoutes.reduce((sum, r) => sum + r.km, 0);
-    const totalStops = allRoutes.reduce((sum, r) => sum + r.stops, 0);
-
-    const newKm = 90;
-    const newAvgKm = (newKm / (totalStops - 3)).toFixed(1); //-3 for removed stops
-    const newSuccess = "99.2%";
-
-    kpiSnap.innerHTML = `
-        <div class="bg-white p-3 rounded shadow kpi-glow">
-            <p class="text-sm text-gray-500">Total Distance</p>
-            <p class="text-lg font-bold">${newKm} km</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow kpi-glow">
-            <p class="text-sm text-gray-500">Avg km/Stop</p>
-            <p class="text-lg font-bold">${newAvgKm}</p>
-        </div>
-        <div class="bg-gray-100 p-2 rounded kpi-glow">
-            <p class="text-sm text-gray-500">Overall Success %</p>
-            <p class="text-lg font-bold">${newSuccess}</p>
-        </div>
-         <div class="col-span-2">
-            <button class="w-full py-2 px-4 bg-gray-400 text-white rounded cursor-not-allowed">AI Run Complete</button>
-        </div>
-    `;
-    
-    // Animate KPI cards
-    const kpiCards = kpiSnap.querySelectorAll('.kpi-glow');
-    kpiCards.forEach(card => {
-        card.style.animation = 'glow .8s ease-in-out';
-        setTimeout(() => {
-            card.style.animation = '';
-        }, 800);
-    });
-
-    // Handle warnings and update summary
-    handleWarnings();
-}
-
-function handleWarnings() {
-    // This is a simulation based on stops_A.json
-    const stopsA = stopsData['A'];
-    if (!stopsA) return;
-
-    let callsScheduled = summaryData.callsScheduled;
-    
-    stopsA.forEach(stop => {
-        if (stop.warning) {
-            if (stop.warning.includes("Call before delivery")) {
-                callsScheduled++;
-                // In a real app, you'd update the timeline item badge here
-                console.log(`Call scheduled for: ${stop.addr}`);
-            }
-            if (stop.warning.includes("Traffic jam risk")) {
-                console.log(`Stop moved to tomorrow for: ${stop.addr}`);
-                // Modify data and re-render
-            }
-            if (stop.warning.includes("Better to deliver evening")) {
-                 console.log(`Stop moved to evening for: ${stop.addr}`);
-                // Modify data and re-render
-            }
-        }
-    });
-
-    summaryData.callsScheduled = callsScheduled;
-    
-    // Animate and re-render summary cards
-    renderSummaryCards();
-    const callCard = summaryCards.children[2]; // brittle selector
-    if (callCard) {
-        callCard.classList.add('kpi-glow');
-         setTimeout(() => {
-            callCard.classList.remove('kpi-glow');
-        }, 800);
-    }
-}
+// Functions related to KPIs, summary cards, and AI simulation have been removed
+// since we now use static KPI cards in the template
 
 // Add the glow animation style to the document head
 const style = document.createElement('style');
