@@ -165,12 +165,7 @@ const templates = {
     `,
     'ai-widget': `
         <div class="flex flex-col h-full">
-            <div class="flex-none mb-4">
-                <h2 class="text-2xl font-bold">AI Route Optimizer</h2>
-            </div>
-            <div class="flex-none mb-4">
-                <div id="summary-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4"></div>
-            </div>
+            <div class="flex-none mb-4"><h2 class="text-2xl font-bold">AI Route Optimizer</h2></div>
             <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 flex flex-col gap-4">
                     <div class="bg-white shadow rounded-lg p-4 flex-1 flex flex-col">
@@ -226,6 +221,7 @@ const templates = {
 <<<<<<< HEAD
 =======
             </div>
+            <div class="flex-none mt-4"><div id="summary-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4"></div></div>
         </div>
         <div id="summary-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
