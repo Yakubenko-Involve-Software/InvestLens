@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshCity Logistics CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        /* Hover color for selected (active) nav item matching the \"New Order\" button */
+        .nav-link.bg-blue-600:hover {
+            background-color: rgb(29 78 216) !important; /* bg-blue-700 */
+        }
+        /* Hover color for non-selected nav items */
+        .nav-link:hover {
+            background-color: rgb(219 234 254) !important; /* bg-blue-100 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex flex-col h-screen">
+        <!-- Top bar -->
+        <header class="bg-white shadow-sm flex items-center justify-between p-3 px-6 z-10 flex-shrink-0">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <i class="ri-truck-line text-2xl text-blue-600 mr-2"></i>
+                <h1 class="text-xl font-bold text-gray-800">FreshCity</h1>
+            </div>
+
+            <!-- Search -->
+            <div class="relative w-full max-w-md mx-4">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="ri-search-line text-gray-400"></i>
+                </span>
+                <input type="text" placeholder="Search orders, routes, customers..." class="pl-10 pr-4 py-2 border rounded-lg w-full bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            </div>
+
+            <!-- Right side icons -->
+            <div class="flex items-center space-x-5">
+                <button class="text-gray-500 hover:text-gray-800 relative">
+                    <i class="ri-notification-3-line ri-lg"></i>
+                    <span class="absolute top-0 right-0 -mt-1 -mr-1 flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                </button>
+                <button>
+                    <img src="https://i.pravatar.cc/32?u=a042581f4e29026704d" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
+                </button>
+            </div>
+        </header>
+
+        <div class="flex flex-grow overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white text-black flex flex-col flex-shrink-0 border-r border-gray-200">
+                <nav class="flex-1 p-2 mt-4">
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-blue-100 nav-link" data-page="orders">
+                        <i class="ri-shopping-cart-line mr-3"></i> Orders
+                    </a>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-blue-100 nav-link" data-page="routes">
+                        <i class="ri-route-line mr-3"></i> Routes
+                    </a>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-blue-100 nav-link" data-page="ai-widget">
+                        <i class="ri-robot-line mr-3"></i> AI Optimizer
+                    </a>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-blue-100 nav-link" data-page="live-map">
+                        <i class="ri-map-pin-line mr-3"></i> Live Map
+                    </a>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-blue-100 nav-link" data-page="cold-chain">
+                        <i class="ri-temp-cold-line mr-3"></i> Cold Chain
+                    </a>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-blue-100 nav-link" data-page="reports">
+                        <i class="ri-file-chart-line mr-3"></i> Reports
+                    </a>
+                </nav>
+                <div class="p-2 border-t border-gray-200">
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-blue-100 nav-link" data-page="settings">
+                        <i class="ri-settings-3-line mr-3"></i> Settings
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main id="content" class="flex-1 p-6 overflow-y-auto bg-gray-100">
+                <!-- Content will be loaded here -->
+            </main>
+        </div>
+    </div>
+    
+    <script src="data.js"></script>
+    <script src="templates.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="app.js"></script>
+    <script src="ai-widget.js"></script>
+    <script src="live-map.js"></script>
+    <script src="routes-map.js"></script>
+</body>
+</html>
