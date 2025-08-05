@@ -169,13 +169,56 @@ const templates = {
                 <h2 class="text-2xl font-bold">AI Route Optimizer</h2>
             </div>
             <div class="flex-none mb-4">
+                <div id="kpi-snap" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+            </div>
+            <div class="flex-none mb-4">
                 <div id="summary-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4"></div>
             </div>
             <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white shadow rounded-lg p-4 flex flex-col">
-                    <div id="map" class="flex-grow bg-gray-200 rounded-lg min-h-[300px] lg:min-h-0"></div>
-                    <div class="mt-4 overflow-y-auto max-h-60">
-                        <table id="route-list" class="min-w-full"><thead class="bg-gray-50"><tr><th class="py-2 px-3 text-left">Courier</th><th class="py-2 px-3 text-left">Stops</th><th class="py-2 px-3 text-left">KM</th><th class="py-2 px-3 text-left">Risk</th></tr></thead><tbody></tbody></table>
+                <div class="lg:col-span-2 flex flex-col gap-4">
+                    <div class="bg-white shadow rounded-lg p-4 flex-1 flex flex-col">
+                        <div id="map" class="flex-grow bg-gray-200 rounded-lg min-h-[200px]"></div>
+                    </div>
+                    <div class="bg-white shadow rounded-lg flex flex-col">
+                        <div class="p-4 border-b">
+                            <h3 class="text-lg font-semibold text-gray-800">Routes List</h3>
+                        </div>
+                        <div class="p-4 border-b flex items-center gap-2 flex-wrap">
+                            <div class="relative flex-grow min-w-[150px]">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3"><i class="ri-search-line text-gray-400"></i></span>
+                                <input type="text" id="ai-search-filter" placeholder="Search..." class="pl-10 pr-4 py-1.5 border rounded-lg w-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="flex-shrink-0">
+                                <select id="ai-risk-filter" class="border rounded-lg py-1.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-full">
+                                    <option value="All">All Risks</option>
+                                    <option value="High">High</option>
+                                    <option value="Med">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <select id="ai-window-filter" class="border rounded-lg py-1.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-full">
+                                    <option>All Windows</option>
+                                    <option>08:00-12:00</option>
+                                    <option>12:00-16:00</option>
+                                    <option>16:00-20:00</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto flex-grow">
+                            <table id="route-list" class="min-w-full">
+                                <thead class="bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="id">ID</th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="name">Courier</th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="stops">Stops</th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="km">KM</th>
+                                        <th class="py-2 px-3 text-left font-semibold text-sm text-gray-600" data-sort-key="risk">Risk</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-white shadow rounded-lg p-4 flex flex-col space-y-4">
@@ -183,7 +226,6 @@ const templates = {
                     <div id="timeline-drawer" class="flex-grow bg-gray-50 rounded-lg p-4 overflow-y-auto"><h3 class="font-bold mb-2">Timeline</h3><ul id="timeline-list"></ul></div>
                     <div class="flex-none"><button id="back-to-overview" class="w-full py-2 px-4 bg-gray-200 rounded hover:bg-gray-300">Back to Overview</button></div>
                 </div>
-            </div>
         </div>
         <div id="summary-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">

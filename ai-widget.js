@@ -1,28 +1,32 @@
 // State
 let allRoutes = [];
-let allOrders = [];
+let filteredRoutes = [];
 let summaryData = {};
 let stopsData = {};
 let currentSort = { key: 'id', asc: true };
+let activeFilters = { search: '', risk: 'All' };
 
 // DOM Elements
 let map;
 let routeList, kpiSnap, timelineList, summaryCards, modal;
-let modalTitle, modalList, modalClose;
+let modalTitle, modalList, modalClose, timelineView;
+let searchFilter, riskFilter;
 let routeLayers = [];
 
 async function initAI() {
     // DOM elements initialization
     routeList = document.getElementById('route-list')?.querySelector('tbody');
     kpiSnap = document.getElementById('kpi-snap');
-    timelineList = document.getElementById('timeline-list');
+    timelineView = document.getElementById('timeline-view');
     summaryCards = document.getElementById('summary-cards');
     modal = document.getElementById('summary-modal');
     modalTitle = document.getElementById('modal-title');
     modalList = document.getElementById('modal-list');
     modalClose = document.getElementById('modal-close');
+    searchFilter = document.getElementById('ai-search-filter');
+    riskFilter = document.getElementById('ai-risk-filter');
 
-    if (!routeList || !kpiSnap || !timelineList || !summaryCards || !modal) {
+    if (!routeList || !kpiSnap || !timelineList || !summaryCards || !modal || !searchFilter || !riskFilter) {
         console.error('One or more AI widget elements are missing.');
         return;
     }
@@ -33,20 +37,44 @@ async function initAI() {
     // Event Listeners
     document.getElementById('back-to-overview')?.addEventListener('click', backToOverview);
     modalClose?.addEventListener('click', () => modal.classList.add('hidden'));
+    searchFilter.addEventListener('input', () => {
+        activeFilters.search = searchFilter.value;
+        applyFiltersAndRender();
+    });
+    riskFilter.addEventListener('change', () => {
+        activeFilters.risk = riskFilter.value;
+        applyFiltersAndRender();
+    });
     
-    // Load data directly
+    // Load data
     allRoutes = allRoutesData;
-    allOrders = allOrdersData;
     summaryData = summaryBaseData;
     stopsData = stopsDataAll;
     
-    // Initialize sorting
+    // Initialize
     initAISorting();
-    
-    // Initial Render
-    renderOverview();
+    applyFiltersAndRender();
     renderSummaryCards();
-    updateKPIs(); // For total KPIs
+    updateKPIs();
+}
+
+function applyFiltersAndRender() {
+    let tempRoutes = [...allRoutes];
+
+    // Filter by risk
+    if (activeFilters.risk !== 'All') {
+        tempRoutes = tempRoutes.filter(r => r.risk === activeFilters.risk);
+    }
+
+    // Filter by search term (name)
+    if (activeFilters.search) {
+        const searchTerm = activeFilters.search.toLowerCase();
+        tempRoutes = tempRoutes.filter(r => r.name.toLowerCase().includes(searchTerm));
+    }
+
+    filteredRoutes = tempRoutes;
+    renderRouteTable();
+    addRoutesToAIMap();
 }
 
 function initAIMap() {
@@ -77,117 +105,96 @@ function initAIMap() {
 }
 
 function addRoutesToAIMap() {
+    // Clear existing layers
+    routeLayers.forEach(layer => {
+        map.removeLayer(layer.polyline);
+        layer.markers.forEach(marker => map.removeLayer(marker));
+    });
+    routeLayers = [];
+
     const clusters = [
-        { lat: 38.715, lng: -9.16 }, // Red routes (High risk)
-        { lat: 38.74, lng: -9.12 },   // Yellow routes (Med risk)
-        { lat: 38.75, lng: -9.17 }  // Green routes (Low risk)
+        { lat: 38.715, lng: -9.16 }, { lat: 38.74, lng: -9.12 }, { lat: 38.75, lng: -9.17 },
+        { lat: 38.72, lng: -9.13 }, { lat: 38.73, lng: -9.15 }, { lat: 38.76, lng: -9.14 }
     ];
-    const shapes = ['diamond', 'rectangle', 'triangle'];
+    const shapes = ['diamond', 'rectangle', 'triangle', 'circle', 'hexagon'];
 
-    // Get 3 routes for each risk category
-    const highRiskRoutes = allRoutesData.filter(r => r.risk === 'High').slice(0, 3);
-    const medRiskRoutes = allRoutesData.filter(r => r.risk === 'Med').slice(0, 3);
-    const lowRiskRoutes = allRoutesData.filter(r => r.risk === 'Low').slice(0, 3);
-
-    const routesToDisplay = [...highRiskRoutes, ...medRiskRoutes, ...lowRiskRoutes];
-
-    routesToDisplay.forEach((routeInfo, i) => {
+    filteredRoutes.forEach((routeInfo, i) => {
         if (!routeInfo) return;
 
-        const clusterIndex = routeInfo.risk === 'High' ? 0 : routeInfo.risk === 'Med' ? 1 : 2;
+        let clusterIndex = 0;
+        if (routeInfo.risk === 'High') clusterIndex = i % 2;
+        else if (routeInfo.risk === 'Med') clusterIndex = 2 + (i % 2);
+        else clusterIndex = 4 + (i % 2);
+        
         const cluster = clusters[clusterIndex];
         const path = [];
-        const shape = shapes[i % 3];
+        const shape = shapes[i % shapes.length];
 
-        const centerLat = cluster.lat + (Math.random() - 0.5) * 0.01;
-        const centerLng = cluster.lng + (Math.random() - 0.5) * 0.01;
-        const latRadius = 0.002 + Math.random() * 0.003;
-        const lngRadius = 0.002 + Math.random() * 0.003;
+        const centerLat = cluster.lat + (Math.random() - 0.5) * 0.015;
+        const centerLng = cluster.lng + (Math.random() - 0.5) * 0.015;
+        const latRadius = 0.002 + Math.random() * 0.004;
+        const lngRadius = 0.002 + Math.random() * 0.004;
 
         if (shape === 'diamond') {
-            path.push([centerLat + latRadius, centerLng]);
-            path.push([centerLat, centerLng - lngRadius]);
-            path.push([centerLat - latRadius, centerLng]);
-            path.push([centerLat, centerLng + lngRadius]);
-            path.push([centerLat + latRadius, centerLng]);
+            path.push([centerLat + latRadius, centerLng], [centerLat, centerLng - lngRadius], [centerLat - latRadius, centerLng], [centerLat, centerLng + lngRadius], [centerLat + latRadius, centerLng]);
         } else if (shape === 'rectangle') {
-            path.push([centerLat + latRadius, centerLng - lngRadius]);
-            path.push([centerLat + latRadius, centerLng + lngRadius]);
-            path.push([centerLat - latRadius, centerLng + lngRadius]);
-            path.push([centerLat - latRadius, centerLng - lngRadius]);
-            path.push([centerLat + latRadius, centerLng - lngRadius]);
-        } else { // triangle
-            path.push([centerLat + latRadius, centerLng]);
-            path.push([centerLat - latRadius, centerLng - lngRadius]);
-            path.push([centerLat - latRadius, centerLng + lngRadius]);
-            path.push([centerLat + latRadius, centerLng]);
+            path.push([centerLat + latRadius, centerLng - lngRadius], [centerLat + latRadius, centerLng + lngRadius], [centerLat - latRadius, centerLng + lngRadius], [centerLat - latRadius, centerLng - lngRadius], [centerLat + latRadius, centerLng - lngRadius]);
+        } else {
+            const numPoints = shape === 'circle' ? 8 : 6;
+            for (let j = 0; j <= numPoints; j++) {
+                const angle = (j / numPoints) * 2 * Math.PI;
+                path.push([centerLat + latRadius * Math.cos(angle), centerLng + lngRadius * Math.sin(angle)]);
+            }
         }
 
-        const color = routeInfo.risk === 'High' ? '#F44336' : routeInfo.risk === 'Med' ? '#FFC107' : '#4CAF50';
+        const color = routeInfo.risk === 'High' ? '#DC3545' : routeInfo.risk === 'Med' ? '#FFC107' : '#28A745';
         
-        const polyline = L.polyline(path, { 
-            color: color,
-            weight: 2,
-            opacity: 0.7
-        }).addTo(map);
+        const polyline = L.polyline(path, { color: color, weight: 2, opacity: 0.7 });
+        polyline.addTo(map);
 
-        const markers = [];
-        // Add markers
-        path.forEach((point, pIndex) => {
+        const markers = path.map((point, pIndex) => {
             const isEndPoint = pIndex === path.length - 1;
-            const marker = L.circleMarker(point, {
+            return L.circleMarker(point, {
                 radius: isEndPoint ? 6 : 4,
                 color: color,
                 weight: 2,
                 fillColor: isEndPoint ? color : '#FFFFFF',
                 fillOpacity: 1
             }).addTo(map);
-            markers.push(marker);
         });
 
-        // Store route layer data
-        routeLayers.push({
-            polyline: polyline,
-            markers: markers,
-            id: routeInfo.id,
-            routeData: routeInfo
-        });
+        routeLayers.push({ polyline: polyline, markers: markers, id: routeInfo.id });
     });
 
-    // Invalidate size to ensure proper rendering
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100);
+    setTimeout(() => map.invalidateSize(), 100);
 }
 
 function renderOverview() {
     renderRouteTable();
-
-    // Reset map view (pseudo-code)
-    console.log("Rendering map with all routes (thin polylines)");
-
-    // Hide timeline
-    document.getElementById('timeline-drawer').classList.add('hidden');
+    summaryCards.classList.remove('hidden');
+    timelineView.classList.add('hidden');
 }
 
 function renderRouteTable() {
     // Sort routes
-    const sortedRoutes = [...allRoutes].sort((a, b) => {
+    const sortedRoutes = [...filteredRoutes].sort((a, b) => {
         const valA = a[currentSort.key];
         const valB = b[currentSort.key];
-        if (valA < valB) return currentSort.asc ? -1 : 1;
-        if (valA > valB) return currentSort.asc ? 1 : -1;
-        return 0;
+        if (typeof valA === 'string') {
+            return currentSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+            return currentSort.asc ? valA - valB : valB - valA;
+        }
     });
 
     // Render route list
     routeList.innerHTML = sortedRoutes.map(route => `
-        <tr class="border-b border-gray-200 hover:bg-gray-50 cursor-pointer" onclick="setFocus('${route.id}')">
-            <td class="py-3 px-4 font-semibold">${route.id}</td>
-            <td class="py-3 px-4">${route.name}</td>
-            <td class="py-3 px-4">${route.stops}</td>
-            <td class="py-3 px-4">${route.km}</td>
-            <td class="py-3 px-4">
+        <tr class="border-b border-gray-200 hover:bg-blue-50 cursor-pointer" onclick="setFocus('${route.id}')">
+            <td class="py-2 px-3 text-sm">${route.id}</td>
+            <td class="py-2 px-3 text-sm">${route.name}</td>
+            <td class="py-2 px-3 text-sm">${route.stops}</td>
+            <td class="py-2 px-3 text-sm">${route.km}</td>
+            <td class="py-2 px-3 text-sm">
                 <span class="px-2 py-1 text-xs font-semibold rounded-full ${getRiskClass(route.risk)}">
                     ${route.risk}
                 </span>
@@ -256,8 +263,9 @@ async function setFocus(routeId) {
     // Highlight route on map
     highlightRouteOnMap(routeId);
     
-    // Show timeline
-    document.getElementById('timeline-drawer').classList.remove('hidden');
+    // Show timeline view and hide summary
+    summaryCards.classList.add('hidden');
+    timelineView.classList.remove('hidden');
 
     // Render timeline
     renderTimeline(routeId);
@@ -345,8 +353,9 @@ function updateKPIs(courier = null) {
                 <p class="text-sm text-gray-500">Overall Success %</p>
                 <p class="text-lg font-bold">92.0%</p>
             </div>
-             <div class="col-span-2">
-                <button onclick="runAI()" class="w-full py-2 px-4 bg-green-500 text-white rounded hover:bg-green-600">Run AI</button>
+            <div class="bg-white p-3 rounded shadow w-full">
+                <p class="text-sm text-gray-500">Cost Savings</p>
+                <p class="text-lg font-bold">€2,340</p>
             </div>
         `;
     }
