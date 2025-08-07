@@ -10,6 +10,9 @@ let map;
 let routeList, timelineList;
 let routeLayers = [];
 
+// Make map available globally
+window.aiMap = null;
+
 async function initAI() {
     // DOM elements initialization
     routeList = document.getElementById('route-list')?.querySelector('tbody');
@@ -25,6 +28,7 @@ async function initAI() {
 
     // Event Listeners
     document.getElementById('back-to-overview')?.addEventListener('click', backToOverview);
+    initToggleButtons();
     
     // Load data
     allRoutes = allRoutesData;
@@ -66,16 +70,22 @@ function renderRouteTable() {
 }
 
 function initAIMap() {
+    console.log('Initializing AI map...');
     const mapElement = document.getElementById('map');
     if (!mapElement) {
         console.error('Map element not found');
         return;
     }
+    
+    console.log('Map element found, dimensions:', mapElement.offsetWidth, 'x', mapElement.offsetHeight);
 
     // Initialize Leaflet map
     map = L.map(mapElement, {
         zoomControl: false
     }).setView([38.736946, -9.142685], 13);
+    
+    // Make map available globally
+    window.aiMap = map;
 
     // Add tile layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -84,10 +94,19 @@ function initAIMap() {
         maxZoom: 19
     }).addTo(map);
 
+    // Force size recalculation
+    setTimeout(() => {
+        map.invalidateSize();
+        console.log('Map size invalidated');
+    }, 100);
+
     // Add some sample routes (similar to routes-map.js)
     setTimeout(() => {
         if (allRoutesData && allRoutesData.length > 0) {
+            console.log('Adding routes to AI map...');
             addRoutesToAIMap();
+        } else {
+            console.warn('No routes data available for AI map');
         }
     }, 500);
 }
@@ -344,6 +363,98 @@ function renderTimeline(routeId) {
 
 // Functions related to KPIs, summary cards, and AI simulation have been removed
 // since we now use static KPI cards in the template
+
+function initToggleButtons() {
+    const tomorrowBtn = document.getElementById('toggle-tomorrow');
+    const todayBtn = document.getElementById('toggle-today');
+    const optimizeBtn = document.getElementById('optimize-btn');
+
+    if (!tomorrowBtn || !todayBtn || !optimizeBtn) {
+        console.error('Toggle buttons or optimize button not found');
+        return;
+    }
+
+    // Default data for Tomorrow
+    const tomorrowData = {
+        'routes-optimised': '15 %',
+        'stops-merged': '7',
+        'calls-scheduled': '2',
+        'time-saved': '42 min',
+        'success-rate': '+7.2 %',
+        'spoilage-risk': '-0.8 %',
+        'efficiency-gain': '15 %',
+        'cost-reduction': '€2,340'
+    };
+
+    // Empty data for Today
+    const todayData = {
+        'routes-optimised': '0 %',
+        'stops-merged': '0',
+        'calls-scheduled': '0',
+        'time-saved': '0 min',
+        'success-rate': '0 %',
+        'spoilage-risk': '0 %',
+        'efficiency-gain': '0 %',
+        'cost-reduction': '€0'
+    };
+
+    function updateToggleState(activeBtn, inactiveBtn) {
+        // Update button styles
+        activeBtn.className = 'flex-1 py-2 px-3 text-sm font-medium rounded-md bg-blue-600 text-white transition-colors';
+        inactiveBtn.className = 'flex-1 py-2 px-3 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800 transition-colors';
+    }
+
+    function updateOptimizationData(data) {
+        Object.entries(data).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+                
+                // Update colors based on value
+                element.className = element.className.replace(/text-(blue|green|red|gray)-\d+/, '');
+                if (value === '0' || value === '0 %' || value === '0 min' || value === '€0') {
+                    element.className += ' text-gray-400';
+                } else if (id === 'routes-optimised' || id === 'efficiency-gain') {
+                    element.className += ' text-blue-600';
+                } else if (id === 'time-saved' || id === 'success-rate' || id === 'spoilage-risk' || id === 'cost-reduction') {
+                    element.className += ' text-green-600';
+                } else {
+                    element.className += ' text-gray-900';
+                }
+            }
+        });
+    }
+
+    function updateOptimizeButton(isDefault) {
+        if (isDefault) {
+            // Default state - Tomorrow selected
+            optimizeBtn.className = 'w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors';
+            optimizeBtn.style.opacity = '1';
+        } else {
+            // Active state - Today selected, data cleared
+            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors animate-pulse';
+            optimizeBtn.style.opacity = '1';
+        }
+    }
+
+    // Event listeners
+    tomorrowBtn.addEventListener('click', () => {
+        updateToggleState(tomorrowBtn, todayBtn);
+        updateOptimizationData(tomorrowData);
+        updateOptimizeButton(true); // Default state
+    });
+
+    todayBtn.addEventListener('click', () => {
+        updateToggleState(todayBtn, tomorrowBtn);
+        updateOptimizationData(todayData);
+        updateOptimizeButton(false); // Active state
+    });
+
+    // Initialize with Tomorrow selected (default)
+    updateToggleState(tomorrowBtn, todayBtn);
+    updateOptimizationData(tomorrowData);
+    updateOptimizeButton(true);
+}
 
 // Add the glow animation style to the document head
 const style = document.createElement('style');

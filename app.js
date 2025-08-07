@@ -17,11 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
             content.innerHTML = html;
 
             if (page === 'ai-widget') {
-                if (typeof initAI === 'function') {
-                    initAI();
-                } else {
-                    console.error('initAI function not found');
-                }
+                console.log('=== Loading AI Widget page ===');
+                setTimeout(() => {
+                    console.log('Loading AI widget...');
+                    if (typeof initAI === 'function') {
+                        initAI();
+                        // Additional refresh after a longer delay
+                        setTimeout(() => {
+                            if (window.aiMap && typeof window.aiMap.invalidateSize === 'function') {
+                                console.log('Refreshing AI map size...');
+                                window.aiMap.invalidateSize();
+                            }
+                        }, 300);
+                    } else {
+                        console.error('initAI function not found');
+                    }
+                }, 100); // Small delay to ensure DOM is ready
             } else if (page === 'orders') {
                 await loadOrders();
             } else if (page === 'routes') {
