@@ -94,26 +94,43 @@ const templates = {
         </div>
     `,
     'live-map': `
-        <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 h-full">
-            <div id="live-map-container" class="w-full h-full bg-white shadow rounded-lg lg:col-span-5 min-h-[400px] lg:min-h-0"></div>
-            <div id="live-map-sidebar" class="bg-white shadow rounded-lg flex flex-col lg:col-span-1 overflow-hidden">
-                <div class="p-4 border-b">
-                    <h3 class="text-lg font-bold text-gray-800">Live Fleet</h3>
-                    <p class="text-sm text-gray-500">24 active vehicles</p>
-                </div>
-                <div class="flex-grow overflow-y-auto">
-                    <table id="live-map-table" class="min-w-full">
-                        <thead class="bg-gray-50 sticky top-0">
-                            <tr class="text-xs text-left text-gray-500">
-                                <th class="p-2 font-semibold">ID</th>
-                                <th class="p-2 font-semibold">Courier</th>
-                                <th class="p-2 font-semibold">Risk</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm text-gray-700">
-                            <!-- Vehicle data will be injected here -->
-                        </tbody>
-                    </table>
+        <div class="flex flex-col h-full" style="height: calc(100vh - 120px);">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Live Map</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
+                <div id="live-map-container" class="w-full h-full bg-white shadow rounded-lg lg:col-span-3"></div>
+                <div class="lg:col-span-1 flex flex-col gap-4 h-full">
+                    <div id="delay-banner" class="bg-orange-100 border border-orange-300 rounded-lg p-4 shadow flex-shrink-0">
+                        <div class="flex items-center">
+                            <i class="ri-time-line text-orange-600 mr-2"></i>
+                            <span class="text-sm font-semibold text-orange-800">Courier L delayed 18 min</span>
+                        </div>
+                    </div>
+                    <div id="live-map-sidebar" class="bg-white shadow rounded-lg flex flex-col flex-grow overflow-hidden">
+                    <div class="p-4 border-b flex-shrink-0">
+                        <h3 class="text-lg font-bold text-gray-800">Live Fleet</h3>
+                        <p class="text-sm text-gray-500">24 active vehicles</p>
+                    </div>
+                    <div class="flex-grow overflow-y-auto" style="max-height: calc(100vh - 340px);">
+                        <table id="live-map-table" class="min-w-full">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr class="text-xs text-left text-gray-500">
+                                    <th class="p-2 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="id">
+                                        ID <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i>
+                                    </th>
+                                    <th class="p-2 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="name">
+                                        Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i>
+                                    </th>
+                                    <th class="p-2 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="risk">
+                                        Risk <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm text-gray-700">
+                                <!-- Vehicle data will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>
