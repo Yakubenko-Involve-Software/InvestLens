@@ -26,6 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('Loading AI widget...');
                     if (typeof initAI === 'function') {
                         initAI();
+                        
+                        // Check for toggle elements after initialization
+                        setTimeout(() => {
+                            const toggleElements = {
+                                tomorrowBtn: document.getElementById('toggle-tomorrow'),
+                                todayBtn: document.getElementById('toggle-today'),
+                                optimizeBtn: document.getElementById('optimize-btn')
+                            };
+                            console.log('Toggle elements after AI init:', toggleElements);
+                            
+                            // Test functionality availability
+                            if (typeof window.testToggleFunctionality === 'function') {
+                                console.log('Running toggle functionality test...');
+                                window.testToggleFunctionality();
+                            }
+                        }, 1000);
+                        
                         // Additional refresh after a longer delay
                         setTimeout(() => {
                             if (window.aiMap && typeof window.aiMap.invalidateSize === 'function') {

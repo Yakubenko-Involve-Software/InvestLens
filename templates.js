@@ -696,7 +696,10 @@ const templates = {
 
                 </div>
                 <div class="bg-white shadow rounded-lg p-4 flex flex-col h-full">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Optimization Results</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Optimization Results</h3>
+                        <div id="toggle-status" class="text-xs text-gray-400">Loading...</div>
+                    </div>
                     
                     <div class="flex bg-gray-100 rounded-lg p-1 mb-4">
                         <button id="toggle-tomorrow" class="flex-1 py-2 px-3 text-sm font-medium rounded-md bg-blue-600 text-white transition-colors">

@@ -28,7 +28,11 @@ async function initAI() {
 
     // Event Listeners
     document.getElementById('back-to-overview')?.addEventListener('click', backToOverview);
-    initToggleButtons();
+    
+    // Initialize toggle buttons with small delay to ensure DOM is ready
+    setTimeout(() => {
+        initToggleButtons();
+    }, 200);
     
     // Load data
     allRoutes = allRoutesData;
@@ -366,21 +370,60 @@ function renderTimeline(routeId) {
 
 function initToggleButtons() {
     console.log('Initializing toggle buttons...');
-    const tomorrowBtn = document.getElementById('toggle-tomorrow');
-    const todayBtn = document.getElementById('toggle-today');
-    const optimizeBtn = document.getElementById('optimize-btn');
+    
+    // Try multiple times to find elements (DOM might still be loading)
+    let attempts = 0;
+    const maxAttempts = 5;
+    
+    function tryInit() {
+        attempts++;
+        console.log(`Attempt ${attempts} to find toggle elements...`);
+        
+        const tomorrowBtn = document.getElementById('toggle-tomorrow');
+        const todayBtn = document.getElementById('toggle-today');
+        const optimizeBtn = document.getElementById('optimize-btn');
 
-    if (!tomorrowBtn || !todayBtn || !optimizeBtn) {
-        console.error('Toggle buttons or optimize button not found');
-        console.log('Available elements:', {
-            tomorrowBtn: !!tomorrowBtn,
-            todayBtn: !!todayBtn, 
-            optimizeBtn: !!optimizeBtn
-        });
-        return;
+        if (!tomorrowBtn || !todayBtn || !optimizeBtn) {
+            console.log('Some elements not found:', {
+                tomorrowBtn: !!tomorrowBtn,
+                todayBtn: !!todayBtn, 
+                optimizeBtn: !!optimizeBtn
+            });
+            
+            if (attempts < maxAttempts) {
+                console.log(`Retrying in 500ms... (attempt ${attempts + 1}/${maxAttempts})`);
+                setTimeout(tryInit, 500);
+                return;
+            } else {
+                console.error('Could not find toggle buttons after', maxAttempts, 'attempts');
+                
+                // Update status indicator to show error
+                const statusElement = document.getElementById('toggle-status');
+                if (statusElement) {
+                    statusElement.textContent = '❌ Error';
+                    statusElement.className = 'text-xs text-red-600';
+                }
+                
+                return;
+            }
+        }
+        
+        console.log('All toggle buttons found successfully on attempt', attempts);
+        
+        // Update status indicator
+        const statusElement = document.getElementById('toggle-status');
+        if (statusElement) {
+            statusElement.textContent = '✅ Active';
+            statusElement.className = 'text-xs text-green-600';
+        }
+        
+        setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn);
     }
     
-    console.log('All toggle buttons found successfully');
+    tryInit();
+}
+
+function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
 
     // Default data for Tomorrow
     const tomorrowData = {
@@ -521,3 +564,56 @@ style.innerHTML = `
 }
 `;
 document.head.appendChild(style);
+
+// Global function for testing toggle functionality from browser console
+window.testToggleFunctionality = function() {
+    console.log('=== Testing Toggle Functionality ===');
+    
+    const tomorrowBtn = document.getElementById('toggle-tomorrow');
+    const todayBtn = document.getElementById('toggle-today');
+    const optimizeBtn = document.getElementById('optimize-btn');
+    
+    console.log('Elements found:', {
+        tomorrowBtn: !!tomorrowBtn,
+        todayBtn: !!todayBtn,
+        optimizeBtn: !!optimizeBtn
+    });
+    
+    if (tomorrowBtn && todayBtn && optimizeBtn) {
+        console.log('✅ All elements found');
+        
+        // Test Tomorrow click
+        console.log('Testing Tomorrow click...');
+        tomorrowBtn.click();
+        setTimeout(() => {
+            console.log('Tomorrow state:', {
+                buttonText: optimizeBtn.textContent,
+                buttonClass: optimizeBtn.className,
+                routesOptimised: document.getElementById('routes-optimised')?.textContent
+            });
+            
+            // Test Today click
+            console.log('Testing Today click...');
+            todayBtn.click();
+            setTimeout(() => {
+                console.log('Today state:', {
+                    buttonText: optimizeBtn.textContent,
+                    buttonClass: optimizeBtn.className,
+                    routesOptimised: document.getElementById('routes-optimised')?.textContent
+                });
+            }, 100);
+        }, 100);
+    } else {
+        console.log('❌ Some elements missing');
+    }
+};
+
+// Auto-test when AI widget is loaded (for debugging)
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        if (document.getElementById('toggle-tomorrow')) {
+            console.log('🔄 AI Widget toggle elements detected, running auto-test...');
+            window.testToggleFunctionality();
+        }
+    }, 2000);
+});
