@@ -144,127 +144,344 @@ const templates = {
                     <span class="text-sm font-semibold text-red-800">Critical Alert: Vehicle L - High Spoilage Risk (12.4%)</span>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle A</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle A</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">2°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 45%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.8%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">2°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 45%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 0.8%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle B</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle B</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">3°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 42%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.2%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">3°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 42%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 1.2%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle C</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle C</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Warning</span>
                     </div>
-                    <p class="text-2xl mt-2">6°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 52%</p>
-                    <p class="text-xs text-orange-600 mt-1">Spoilage Risk: 3.1%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">6°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 52%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 3.1%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle D</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle D</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">1°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 40%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.6%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">1°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 40%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 0.6%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle E</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle E</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">4°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 47%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.5%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">4°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 47%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 1.5%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle F</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle F</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Warning</span>
                     </div>
-                    <p class="text-2xl mt-2">7°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 55%</p>
-                    <p class="text-xs text-orange-600 mt-1">Spoilage Risk: 4.2%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">7°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 55%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 4.2%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle G</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle G</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">2°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 43%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.9%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">2°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 43%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 0.9%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle H</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle H</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">3°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 46%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.0%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">3°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 46%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 1.0%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle I</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle I</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">4°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 44%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.3%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">4°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 44%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 1.3%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle J</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle J</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
                     </div>
-                    <p class="text-2xl mt-2">1°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 41%</p>
-                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.7%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">1°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 41%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 0.7%</p>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold">Vehicle K</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle K</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Warning</span>
                     </div>
-                    <p class="text-2xl mt-2">5°C</p>
-                    <p class="text-sm text-gray-500">Humidity: 51%</p>
-                    <p class="text-xs text-orange-600 mt-1">Spoilage Risk: 2.8%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">5°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 51%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 2.8%</p>
                 </div>
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-red-800">Vehicle L</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium text-gray-600">Vehicle L</p>
                         <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-800">Critical</span>
                     </div>
-                    <p class="text-2xl mt-2 text-red-700">12°C</p>
-                    <p class="text-sm text-red-600">Humidity: 68%</p>
-                    <p class="text-xs text-red-700 font-semibold mt-1">Spoilage Risk: 12.4%</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">12°C</p>
+                    <p class="text-xs text-gray-500 mt-1">Humidity: 68%</p>
+                    <p class="text-xs text-gray-400 mt-1">Spoilage Risk: 12.4%</p>
                 </div>
             </div>
         </div>
     `,
     'reports': `
-        <h2 class="text-2xl font-bold mb-4">Reports</h2>
-        <div class="bg-white shadow rounded-lg p-6">
-            <p>This section will contain various reports.</p>
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-gray-50 rounded-lg p-4"><h3 class="font-bold">Driver Performance</h3><p class="text-sm text-gray-500">Weekly and monthly driver performance metrics.</p><button class="mt-2 text-sm text-blue-500 hover:underline">View Report</button></div>
-                <div class="bg-gray-50 rounded-lg p-4"><h3 class="font-bold">Delivery Success Rate</h3><p class="text-sm text-gray-500">Analysis of on-time and successful deliveries.</p><button class="mt-2 text-sm text-blue-500 hover:underline">View Report</button></div>
-                <div class="bg-gray-50 rounded-lg p-4"><h3 class="font-bold">Fuel Consumption</h3><p class="text-sm text-gray-500">Vehicle fuel efficiency and cost analysis.</p><button class="mt-2 text-sm text-blue-500 hover:underline">View Report</button></div>
-                <div class="bg-gray-50 rounded-lg p-4"><h3 class="font-bold">Customer Satisfaction</h3><p class="text-sm text-gray-500">Summary of customer feedback and ratings.</p><button class="mt-2 text-sm text-blue-500 hover:underline">View Report</button></div>
+        <div class="flex flex-col h-full" style="height: calc(100vh - 120px);">
+            <h2 class="text-2xl font-bold mb-6">Reports</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 flex-shrink-0">
+            <!-- Orders/hour Chart -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Orders/Hour</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">18.7</p>
+                <p class="text-xs text-gray-400 mt-1">Peak: 24</p>
+            </div>
+
+            <!-- First-Attempt Success -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">First-Attempt Success</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">92.4%</p>
+                <p class="text-xs text-gray-400 mt-1">Target: 95%</p>
+            </div>
+
+            <!-- Spoilage Rate -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Spoilage Rate</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">1.6%</p>
+                <p class="text-xs text-gray-400 mt-1">Threshold: 2%</p>
+            </div>
+
+            <!-- Avg Delivery Time -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Avg Delivery Time</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">42 m</p>
+                <p class="text-xs text-gray-400 mt-1">Target: 45m</p>
+            </div>
+        </div>
+
+            <!-- Top 20 Missed Table -->
+            <div class="bg-white shadow rounded-lg overflow-hidden flex flex-col flex-grow">
+                <div class="p-6 border-b flex-shrink-0">
+                    <h3 class="text-lg font-semibold text-gray-800">Top 20 Missed Deliveries</h3>
+                </div>
+                <div class="overflow-y-auto flex-grow">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr class="text-sm text-left text-gray-500">
+                            <th class="py-3 px-4 font-semibold">Order ID</th>
+                            <th class="py-3 px-4 font-semibold">Customer</th>
+                            <th class="py-3 px-4 font-semibold">Courier</th>
+                            <th class="py-3 px-4 font-semibold">Scheduled</th>
+                            <th class="py-3 px-4 font-semibold">Missed By</th>
+                            <th class="py-3 px-4 font-semibold">Reason</th>
+                            <th class="py-3 px-4 font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700">
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12847</td>
+                            <td class="py-3 px-4">Maria Santos</td>
+                            <td class="py-3 px-4">Miguel Silva</td>
+                            <td class="py-3 px-4">14:30</td>
+                            <td class="py-3 px-4 text-red-600">2h 15m</td>
+                            <td class="py-3 px-4">Traffic delay</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12843</td>
+                            <td class="py-3 px-4">João Pereira</td>
+                            <td class="py-3 px-4">Ana Pereira</td>
+                            <td class="py-3 px-4">11:00</td>
+                            <td class="py-3 px-4 text-red-600">1h 45m</td>
+                            <td class="py-3 px-4">Customer unavailable</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12839</td>
+                            <td class="py-3 px-4">Carlos Silva</td>
+                            <td class="py-3 px-4">Sofia Santos</td>
+                            <td class="py-3 px-4">16:15</td>
+                            <td class="py-3 px-4 text-red-600">1h 32m</td>
+                            <td class="py-3 px-4">Vehicle breakdown</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Reassigned</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12835</td>
+                            <td class="py-3 px-4">Patricia Costa</td>
+                            <td class="py-3 px-4">Pedro Ferreira</td>
+                            <td class="py-3 px-4">09:45</td>
+                            <td class="py-3 px-4 text-red-600">1h 20m</td>
+                            <td class="py-3 px-4">Wrong address</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12831</td>
+                            <td class="py-3 px-4">Roberto Lima</td>
+                            <td class="py-3 px-4">Inês Ramos</td>
+                            <td class="py-3 px-4">13:20</td>
+                            <td class="py-3 px-4 text-red-600">1h 18m</td>
+                            <td class="py-3 px-4">GPS malfunction</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12828</td>
+                            <td class="py-3 px-4">Luisa Fernandes</td>
+                            <td class="py-3 px-4">Rui Almeida</td>
+                            <td class="py-3 px-4">15:40</td>
+                            <td class="py-3 px-4 text-red-600">1h 12m</td>
+                            <td class="py-3 px-4">Temperature issue</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12824</td>
+                            <td class="py-3 px-4">Fernando Gomes</td>
+                            <td class="py-3 px-4">João Costa</td>
+                            <td class="py-3 px-4">10:30</td>
+                            <td class="py-3 px-4 text-red-600">1h 08m</td>
+                            <td class="py-3 px-4">Road closure</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12820</td>
+                            <td class="py-3 px-4">Sandra Oliveira</td>
+                            <td class="py-3 px-4">Catarina Martins</td>
+                            <td class="py-3 px-4">12:15</td>
+                            <td class="py-3 px-4 text-red-600">1h 05m</td>
+                            <td class="py-3 px-4">Package damage</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12816</td>
+                            <td class="py-3 px-4">Miguel Torres</td>
+                            <td class="py-3 px-4">André Sousa</td>
+                            <td class="py-3 px-4">17:20</td>
+                            <td class="py-3 px-4 text-red-600">58m</td>
+                            <td class="py-3 px-4">Customer not home</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12812</td>
+                            <td class="py-3 px-4">Ana Barbosa</td>
+                            <td class="py-3 px-4">Mariana Rodrigues</td>
+                            <td class="py-3 px-4">14:45</td>
+                            <td class="py-3 px-4 text-red-600">55m</td>
+                            <td class="py-3 px-4">Parking issues</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12808</td>
+                            <td class="py-3 px-4">Ricardo Mendes</td>
+                            <td class="py-3 px-4">Tiago Gonçalves</td>
+                            <td class="py-3 px-4">11:30</td>
+                            <td class="py-3 px-4 text-red-600">52m</td>
+                            <td class="py-3 px-4">Building access</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12804</td>
+                            <td class="py-3 px-4">Teresa Silva</td>
+                            <td class="py-3 px-4">Beatriz Lopes</td>
+                            <td class="py-3 px-4">16:00</td>
+                            <td class="py-3 px-4 text-red-600">48m</td>
+                            <td class="py-3 px-4">Weather delay</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12800</td>
+                            <td class="py-3 px-4">Paulo Rodrigues</td>
+                            <td class="py-3 px-4">Diogo Mendes</td>
+                            <td class="py-3 px-4">08:15</td>
+                            <td class="py-3 px-4 text-red-600">45m</td>
+                            <td class="py-3 px-4">System error</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12796</td>
+                            <td class="py-3 px-4">Isabel Costa</td>
+                            <td class="py-3 px-4">Carolina Jesus</td>
+                            <td class="py-3 px-4">13:50</td>
+                            <td class="py-3 px-4 text-red-600">42m</td>
+                            <td class="py-3 px-4">Fuel shortage</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Reassigned</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12792</td>
+                            <td class="py-3 px-4">Mário Lopes</td>
+                            <td class="py-3 px-4">Vasco Pinto</td>
+                            <td class="py-3 px-4">15:25</td>
+                            <td class="py-3 px-4 text-red-600">40m</td>
+                            <td class="py-3 px-4">Late departure</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12788</td>
+                            <td class="py-3 px-4">Helena Martins</td>
+                            <td class="py-3 px-4">Daniela Correia</td>
+                            <td class="py-3 px-4">10:45</td>
+                            <td class="py-3 px-4 text-red-600">38m</td>
+                            <td class="py-3 px-4">Order mix-up</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12784</td>
+                            <td class="py-3 px-4">José Ferreira</td>
+                            <td class="py-3 px-4">Bruno Fernandes</td>
+                            <td class="py-3 px-4">12:30</td>
+                            <td class="py-3 px-4 text-red-600">35m</td>
+                            <td class="py-3 px-4">Equipment failure</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12780</td>
+                            <td class="py-3 px-4">Cristina Alves</td>
+                            <td class="py-3 px-4">Joana Ribeiro</td>
+                            <td class="py-3 px-4">09:20</td>
+                            <td class="py-3 px-4 text-red-600">32m</td>
+                            <td class="py-3 px-4">Communication issue</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-4 font-semibold text-blue-600">#12776</td>
+                            <td class="py-3 px-4">Vítor Santos</td>
+                            <td class="py-3 px-4">Ricardo Neves</td>
+                            <td class="py-3 px-4">14:10</td>
+                            <td class="py-3 px-4 text-red-600">30m</td>
+                            <td class="py-3 px-4">Route optimization</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
             </div>
         </div>
     `,
