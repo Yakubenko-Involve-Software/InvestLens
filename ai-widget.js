@@ -365,14 +365,22 @@ function renderTimeline(routeId) {
 // since we now use static KPI cards in the template
 
 function initToggleButtons() {
+    console.log('Initializing toggle buttons...');
     const tomorrowBtn = document.getElementById('toggle-tomorrow');
     const todayBtn = document.getElementById('toggle-today');
     const optimizeBtn = document.getElementById('optimize-btn');
 
     if (!tomorrowBtn || !todayBtn || !optimizeBtn) {
         console.error('Toggle buttons or optimize button not found');
+        console.log('Available elements:', {
+            tomorrowBtn: !!tomorrowBtn,
+            todayBtn: !!todayBtn, 
+            optimizeBtn: !!optimizeBtn
+        });
         return;
     }
+    
+    console.log('All toggle buttons found successfully');
 
     // Default data for Tomorrow
     const tomorrowData = {
@@ -386,16 +394,16 @@ function initToggleButtons() {
         'cost-reduction': '€2,340'
     };
 
-    // Empty data for Today
+    // Current data for Today (shows current state, needs optimization)
     const todayData = {
-        'routes-optimised': '0 %',
-        'stops-merged': '0',
+        'routes-optimised': '5 %',
+        'stops-merged': '2',
         'calls-scheduled': '0',
-        'time-saved': '0 min',
-        'success-rate': '0 %',
-        'spoilage-risk': '0 %',
-        'efficiency-gain': '0 %',
-        'cost-reduction': '€0'
+        'time-saved': '8 min',
+        'success-rate': '+2.1 %',
+        'spoilage-risk': '+1.2 %',
+        'efficiency-gain': '3 %',
+        'cost-reduction': '€480'
     };
 
     function updateToggleState(activeBtn, inactiveBtn) {
@@ -410,13 +418,20 @@ function initToggleButtons() {
             if (element) {
                 element.textContent = value;
                 
-                // Update colors based on value
+                // Update colors based on value and context
                 element.className = element.className.replace(/text-(blue|green|red|gray)-\d+/, '');
                 if (value === '0' || value === '0 %' || value === '0 min' || value === '€0') {
                     element.className += ' text-gray-400';
                 } else if (id === 'routes-optimised' || id === 'efficiency-gain') {
                     element.className += ' text-blue-600';
-                } else if (id === 'time-saved' || id === 'success-rate' || id === 'spoilage-risk' || id === 'cost-reduction') {
+                } else if (id === 'spoilage-risk') {
+                    // Spoilage risk: negative is good (green), positive is bad (red)
+                    if (value.startsWith('-')) {
+                        element.className += ' text-green-600';
+                    } else {
+                        element.className += ' text-red-600';
+                    }
+                } else if (id === 'time-saved' || id === 'success-rate' || id === 'cost-reduction') {
                     element.className += ' text-green-600';
                 } else {
                     element.className += ' text-gray-900';
@@ -427,33 +442,70 @@ function initToggleButtons() {
 
     function updateOptimizeButton(isDefault) {
         if (isDefault) {
-            // Default state - Tomorrow selected
+            // Default state - Tomorrow selected (normal appearance)
             optimizeBtn.className = 'w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors';
             optimizeBtn.style.opacity = '1';
+            optimizeBtn.disabled = false;
+            optimizeBtn.textContent = 'Optimize';
         } else {
-            // Active state - Today selected, data cleared
-            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors animate-pulse';
+            // Active state - Today selected, needs optimization (highlighted)
+            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors animate-pulse shadow-lg';
             optimizeBtn.style.opacity = '1';
+            optimizeBtn.disabled = false;
+            optimizeBtn.textContent = 'Optimize Now!';
         }
     }
 
     // Event listeners
     tomorrowBtn.addEventListener('click', () => {
+        console.log('Tomorrow button clicked');
         updateToggleState(tomorrowBtn, todayBtn);
         updateOptimizationData(tomorrowData);
         updateOptimizeButton(true); // Default state
     });
 
     todayBtn.addEventListener('click', () => {
+        console.log('Today button clicked');
         updateToggleState(todayBtn, tomorrowBtn);
         updateOptimizationData(todayData);
         updateOptimizeButton(false); // Active state
     });
 
     // Initialize with Tomorrow selected (default)
+    console.log('Initializing with Tomorrow data...');
     updateToggleState(tomorrowBtn, todayBtn);
     updateOptimizationData(tomorrowData);
     updateOptimizeButton(true);
+    
+    // Add click handler for optimize button
+    optimizeBtn.addEventListener('click', () => {
+        console.log('Optimize button clicked');
+        
+        // Show feedback
+        const originalText = optimizeBtn.textContent;
+        optimizeBtn.textContent = 'Optimizing...';
+        optimizeBtn.disabled = true;
+        optimizeBtn.className = 'w-full py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed transition-colors';
+        
+        // Simulate optimization process
+        setTimeout(() => {
+            optimizeBtn.textContent = 'Optimization Complete!';
+            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg transition-colors';
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                optimizeBtn.textContent = originalText;
+                optimizeBtn.disabled = false;
+                if (tomorrowBtn.classList.contains('bg-blue-600')) {
+                    updateOptimizeButton(true);
+                } else {
+                    updateOptimizeButton(false);
+                }
+            }, 2000);
+        }, 1500);
+    });
+    
+    console.log('Toggle buttons initialization complete');
 }
 
 // Add the glow animation style to the document head
