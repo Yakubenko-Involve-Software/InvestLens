@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadPage = async (page) => {
         try {
+            console.log(`=== Loading page: ${page} ===`);
+            
             navLinks.forEach(link => link.classList.remove('bg-blue-600', 'text-white'));
             const activeLink = document.querySelector(`a[data-page='${page}']`);
             if (activeLink) {
@@ -14,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!html) {
                 throw new Error(`Template not found for page: ${page}`);
             }
+            
+            console.log(`Template found for ${page}, length: ${html.length}`);
             content.innerHTML = html;
 
             if (page === 'ai-widget') {
@@ -61,6 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     console.error('initLiveMap function not found');
                 }
+            } else if (page === 'settings') {
+                // Initialize settings page
+                console.log('=== Loading Settings page ===');
+                setTimeout(() => {
+                    initSettingsPage();
+                }, 100);
+            } else if (page === 'cold-chain') {
+                // Initialize cold chain page
+                console.log('=== Loading Cold Chain page ===');
+            } else if (page === 'reports') {
+                // Initialize reports page
+                console.log('=== Loading Reports page ===');
             }
 
         } catch (error) {
@@ -69,9 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     navLinks.forEach(link => {
+        console.log(`Setting up nav link for: ${link.dataset.page}`);
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const page = link.dataset.page;
+            console.log(`Nav link clicked: ${page}`);
+            
+            // Special alert for settings to confirm it works
+            if (page === 'settings') {
+                alert('Settings clicked! Loading...');
+            }
+            
             loadPage(page);
         });
     });
@@ -314,4 +338,131 @@ function highlightRouteOnMap(routeId) {
     if (targetRow) {
         targetRow.classList.add('bg-blue-50', 'border-blue-200');
     }
+}
+
+function initSettingsPage() {
+    console.log('Initializing Settings page...');
+    
+    // Set timestamp on status indicator
+    const timestamp = document.getElementById('settings-timestamp');
+    if (timestamp) {
+        timestamp.textContent = `(${new Date().toLocaleTimeString()})`;
+    }
+    
+    // Wait a bit more for DOM to be ready
+    setTimeout(() => {
+        console.log('Setting up Settings page event handlers...');
+        
+        // Find buttons more specifically
+        const allButtons = document.querySelectorAll('#content button');
+        console.log('Found buttons:', allButtons.length);
+        
+        let saveButton = null;
+        let cancelButton = null;
+        
+        allButtons.forEach((button, index) => {
+            console.log(`Button ${index}: "${button.textContent.trim()}", classes: ${button.className}`);
+            
+            if (button.textContent.trim() === 'Save Changes') {
+                saveButton = button;
+                console.log('Found Save Changes button');
+            }
+            if (button.textContent.trim() === 'Cancel') {
+                cancelButton = button;
+                console.log('Found Cancel button');
+            }
+        });
+        
+        // Add event listener for Save button
+        if (saveButton) {
+            console.log('Adding event listener to Save button');
+            saveButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Save button clicked - demo mode');
+                
+                const originalText = saveButton.textContent;
+                const originalClasses = saveButton.className;
+                
+                saveButton.textContent = 'Saved! (Demo)';
+                saveButton.className = saveButton.className.replace('bg-blue-600', 'bg-green-600');
+                saveButton.className = saveButton.className.replace('hover:bg-blue-700', 'hover:bg-green-700');
+                
+                setTimeout(() => {
+                    saveButton.textContent = originalText;
+                    saveButton.className = originalClasses;
+                }, 2000);
+            });
+        } else {
+            console.error('Save button not found!');
+        }
+        
+        // Add event listener for Cancel button  
+        if (cancelButton) {
+            console.log('Adding event listener to Cancel button');
+            cancelButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Cancel button clicked - resetting form values');
+                
+                // Show feedback
+                const originalText = cancelButton.textContent;
+                cancelButton.textContent = 'Reset! (Demo)';
+                
+                setTimeout(() => {
+                    cancelButton.textContent = originalText;
+                }, 1000);
+            });
+        } else {
+            console.error('Cancel button not found!');
+        }
+        
+        // Add interactive behavior to toggles
+        const toggles = document.querySelectorAll('#content input[type="checkbox"]');
+        console.log('Found toggles:', toggles.length);
+        
+        toggles.forEach((toggle, index) => {
+            console.log(`Setting up toggle ${index}`);
+            toggle.addEventListener('change', (e) => {
+                console.log(`Toggle ${index} changed: ${e.target.checked ? 'ON' : 'OFF'} - demo mode`);
+            });
+        });
+        
+        // Add interactive behavior to range slider
+        const rangeInput = document.querySelector('#content input[type="range"]');
+        if (rangeInput) {
+            console.log('Found range slider');
+            const rangeDisplay = document.querySelector('#content .text-blue-600');
+            
+            rangeInput.addEventListener('input', (e) => {
+                const value = e.target.value;
+                if (rangeDisplay) {
+                    rangeDisplay.textContent = `${value}%`;
+                }
+                console.log(`AI Confidence Threshold: ${value}% - demo mode`);
+            });
+        } else {
+            console.log('Range slider not found');
+        }
+        
+        // Add change listeners to inputs for demo feedback
+        const inputs = document.querySelectorAll('#content input[type="text"], #content input[type="email"], #content input[type="tel"]');
+        console.log('Found form inputs:', inputs.length);
+        
+        inputs.forEach((input, index) => {
+            input.addEventListener('change', (e) => {
+                console.log(`Input ${index} changed to: ${e.target.value} - demo mode (changes won't persist)`);
+            });
+        });
+        
+        // Add change listeners to selects
+        const selects = document.querySelectorAll('#content select');
+        console.log('Found selects:', selects.length);
+        
+        selects.forEach((select, index) => {
+            select.addEventListener('change', (e) => {
+                console.log(`Select ${index} changed to: ${e.target.value} - demo mode (changes won't persist)`);
+            });
+        });
+        
+        console.log('Settings page initialized successfully');
+    }, 200);
 }
