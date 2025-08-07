@@ -137,20 +137,121 @@ const templates = {
     `,
     'cold-chain': `
         <h2 class="text-2xl font-bold mb-4">Cold Chain Monitoring</h2>
-        <div class="bg-white shadow rounded-lg p-6">
-            <p>Real-time temperature and humidity data for all vehicles will be displayed here.</p>
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-white shadow rounded-lg p-6 overflow-y-auto" style="max-height: calc(100vh - 160px);">
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="ri-alert-line text-red-600 mr-2"></i>
+                    <span class="text-sm font-semibold text-red-800">Critical Alert: Vehicle L - High Spoilage Risk (12.4%)</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between"><h3 class="font-bold">Vehicle A-12</h3><span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span></div>
-                    <p class="text-2xl mt-2">2°C</p><p class="text-sm text-gray-500">Humidity: 45%</p>
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle A</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">2°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 45%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.8%</p>
                 </div>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between"><h3 class="font-bold">Vehicle B-07</h3><span class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Warning</span></div>
-                    <p class="text-2xl mt-2">6°C</p><p class="text-sm text-gray-500">Humidity: 50%</p>
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle B</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">3°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 42%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.2%</p>
                 </div>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between"><h3 class="font-bold">Vehicle C-03</h3><span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span></div>
-                    <p class="text-2xl mt-2">3°C</p><p class="text-sm text-gray-500">Humidity: 48%</p>
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle C</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Warning</span>
+                    </div>
+                    <p class="text-2xl mt-2">6°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 52%</p>
+                    <p class="text-xs text-orange-600 mt-1">Spoilage Risk: 3.1%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle D</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">1°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 40%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.6%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle E</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">4°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 47%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.5%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle F</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Warning</span>
+                    </div>
+                    <p class="text-2xl mt-2">7°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 55%</p>
+                    <p class="text-xs text-orange-600 mt-1">Spoilage Risk: 4.2%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle G</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">2°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 43%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.9%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle H</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">3°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 46%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.0%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle I</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">4°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 44%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 1.3%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle J</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">Optimal</span>
+                    </div>
+                    <p class="text-2xl mt-2">1°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 41%</p>
+                    <p class="text-xs text-blue-600 mt-1">Spoilage Risk: 0.7%</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold">Vehicle K</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Warning</span>
+                    </div>
+                    <p class="text-2xl mt-2">5°C</p>
+                    <p class="text-sm text-gray-500">Humidity: 51%</p>
+                    <p class="text-xs text-orange-600 mt-1">Spoilage Risk: 2.8%</p>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-red-800">Vehicle L</h3>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-800">Critical</span>
+                    </div>
+                    <p class="text-2xl mt-2 text-red-700">12°C</p>
+                    <p class="text-sm text-red-600">Humidity: 68%</p>
+                    <p class="text-xs text-red-700 font-semibold mt-1">Spoilage Risk: 12.4%</p>
                 </div>
             </div>
         </div>
