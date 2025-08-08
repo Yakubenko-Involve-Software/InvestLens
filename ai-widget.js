@@ -21,8 +21,7 @@ async function initAI() {
     timelineList = document.getElementById('timeline-list');
 
     if (!routeList || !timelineList) {
-        console.error('One or more AI widget elements are missing.');
-        return;
+        console.warn('AI widget: optional elements missing (routeList or timelineList). Proceeding with map init only.');
     }
 
     // Initialize map with a delay to ensure DOM is ready
@@ -43,9 +42,13 @@ async function initAI() {
     allRoutes = allRoutesData;
     stopsData = stopsDataAll;
     
-    // Initialize
-    initAISorting();
-    renderRouteTable();
+    // Initialize table/sorting only if elements exist
+    if (routeList) {
+        initAISorting();
+        renderRouteTable();
+    } else {
+        console.log('AI widget: skipping route table rendering (routeList not found).');
+    }
     
     console.log('=== AI Widget initialization completed ===');
 }
