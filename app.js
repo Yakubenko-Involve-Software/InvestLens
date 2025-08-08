@@ -298,6 +298,7 @@ function loadRoutes() {
 
         tbody.innerHTML = sortedRoutes.map(route => `
             <tr class="hover:bg-gray-50 cursor-pointer" onclick="panToRoute('${route.id}')">
+                <td class="py-2 px-4 font-semibold text-blue-600">${route.id}</td>
                 <td class="py-2 px-4">${route.name}</td>
                 <td class="py-2 px-4">${route.stops}</td>
                 <td class="py-2 px-4">${route.km}</td>

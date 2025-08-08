@@ -1,5 +1,6 @@
 let routesMap = null;
-let routeLayers = [];
+// Use a uniquely named collection to avoid collisions with other pages
+let routesPageLayers = [];
 let activeRoute = null;
 
 function initRoutesMap(allRoutesData) {
@@ -10,7 +11,7 @@ function initRoutesMap(allRoutesData) {
         console.log('Removing existing map');
         routesMap.remove();
         routesMap = null;
-        routeLayers = [];
+        routesPageLayers = [];
     }
 
     const mapElement = document.getElementById('routes-map');
@@ -133,7 +134,7 @@ function addRoutesToRoutesMap(allRoutesData) {
             setActiveRoute(polyline, routeData, allRoutesData); 
         });
 
-        routeLayers.push({polyline: polyline, markers: [], id: routeData.id});
+        routesPageLayers.push({polyline: polyline, markers: [], id: routeData.id});
         polyline.addTo(routesMap);
 
         // Add markers at route points with Live Map style
@@ -142,7 +143,7 @@ function addRoutesToRoutesMap(allRoutesData) {
             
             // Create custom div icon similar to Live Map
             const iconHtml = `
-                <div class="relative flex items-center justify-center w-6 h-6 rounded-full ${getRiskBgColor(routeData.risk)} shadow-md border-2 border-white">
+                <div class="relative flex items-center justify-center w-6 h-6 rounded-full ${getRoutesRiskBgColor(routeData.risk)} shadow-md border-2 border-white">
                     <div class="text-xs font-bold text-white">${routeData.id}</div>
                 </div>`;
 
@@ -157,7 +158,7 @@ function addRoutesToRoutesMap(allRoutesData) {
                 .bindPopup(`<b>Route:</b> ${routeData.id}<br><b>Courier:</b> ${routeData.name}<br><b>Risk:</b> ${routeData.risk}`)
                 .addTo(routesMap);
                 
-            routeLayers[index].markers.push(marker);
+            routesPageLayers[index].markers.push(marker);
         });
     });
     
@@ -173,13 +174,13 @@ function addRoutesToRoutesMap(allRoutesData) {
     window.selectRoute = (routeId) => {
         const routeIndex = routesData.findIndex(r => r.id === routeId);
         if (routeIndex !== -1) {
-            setActiveRoute(routeLayers[routeIndex].polyline, routesData[routeIndex], allRoutesData);
+            setActiveRoute(routesPageLayers[routeIndex].polyline, routesData[routeIndex], allRoutesData);
         }
     };
     
     // Make panToRoute globally available (similar to Live Map's panToVehicle)
     window.panToRoute = (routeId) => {
-        const routeLayer = routeLayers.find(layer => layer.id === routeId);
+        const routeLayer = routesPageLayers.find(layer => layer.id === routeId);
         if (routeLayer && routeLayer.markers.length > 0) {
             // Pan to the first marker of the route
             routesMap.panTo(routeLayer.markers[0].getLatLng());
@@ -190,7 +191,8 @@ function addRoutesToRoutesMap(allRoutesData) {
     };
 }
 
-function getRiskBgColor(risk) {
+// Unique name to prevent clashes with AI Optimizer helpers
+function getRoutesRiskBgColor(risk) {
     switch (risk) {
         case 'High': return 'bg-red-500';
         case 'Med': return 'bg-yellow-500';
@@ -201,7 +203,7 @@ function getRiskBgColor(risk) {
 
 function setActiveRoute(polyline, routeData, allRoutesData) {
     // Reset all polylines to default style
-    routeLayers.forEach(layer => {
+    routesPageLayers.forEach(layer => {
         layer.polyline.setStyle({ weight: 2, opacity: 0.5 });
     });
     
@@ -298,41 +300,50 @@ function updateRoutesKpis(routeData = null, allRoutesData) {
 
 function generateRoutesData(allRoutesData) {
     const routes = [];
-    const clusters = [
-        { lat: 38.715, lng: -9.16 }, // Estrela area for Red routes (High risk)
-        { lat: 38.74, lng: -9.12 },   // Beato area for Yellow routes (Med risk)  
-        { lat: 38.75, lng: -9.17 },   // Benfica area for Green routes (Low risk)
-        { lat: 38.72, lng: -9.13 },   // Alfama area (additional cluster)
-        { lat: 38.73, lng: -9.15 },   // Campo de Ourique area (additional cluster)
-        { lat: 38.76, lng: -9.14 }    // Alvalade area (additional cluster)
+    // Use known-on-land anchors around Lisbon (borrowed from live-map land positions)
+    const landAnchors = [
+        { lat: 38.7223, lng: -9.1393 }, // Alfama
+        { lat: 38.7071, lng: -9.1357 }, // Bairro Alto
+        { lat: 38.7436, lng: -9.1602 }, // Benfica
+        { lat: 38.7169, lng: -9.1395 }, // Chiado
+        { lat: 38.7436, lng: -9.1301 }, // Campo Grande
+        { lat: 38.7267, lng: -9.1545 }, // Estrela
+        { lat: 38.7614, lng: -9.1477 }, // Lumiar
+        { lat: 38.7344, lng: -9.1394 }, // Marquês de Pombal
+        { lat: 38.7505, lng: -9.1849 }, // Restelo
+        { lat: 38.7436, lng: -9.1548 }, // Avenidas Novas
+        { lat: 38.7578, lng: -9.1639 }, // Alvalade Norte
+        { lat: 38.7393, lng: -9.1376 }, // Saldanha
+        { lat: 38.7267, lng: -9.1447 }, // Santos
+        { lat: 38.7169, lng: -9.1282 }, // Cais do Sodré
+        { lat: 38.7267, lng: -9.1647 }, // Campo de Ourique
+        { lat: 38.7505, lng: -9.1477 }, // Olivais
+        { lat: 38.7344, lng: -9.1647 }, // Lapa
+        { lat: 38.7578, lng: -9.1376 }, // Areeiro
+        { lat: 38.7223, lng: -9.1647 }, // Madragoa
+        { lat: 38.7436, lng: -9.1376 }, // Arroios
+        { lat: 38.7071, lng: -9.1647 }, // Príncipe Real
+        { lat: 38.7614, lng: -9.1602 }, // Carnide
+        { lat: 38.7267, lng: -9.1376 }, // Rato
+        { lat: 38.7505, lng: -9.1647 }  // Marvila
     ];
     const shapes = ['diamond', 'rectangle', 'triangle', 'circle', 'hexagon'];
 
-    // Display all routes, distribute them across clusters
+    // Mix routes: distribute them round-robin across anchors regardless of risk
     allRoutesData.forEach((routeInfo, i) => {
         if (!routeInfo) return;
 
-        // Determine cluster based on risk and index for better distribution
-        let clusterIndex;
-        if (routeInfo.risk === 'High') {
-            clusterIndex = i % 2; // Use first 2 clusters for high risk
-        } else if (routeInfo.risk === 'Med') {
-            clusterIndex = 2 + (i % 2); // Use clusters 2-3 for medium risk
-        } else {
-            clusterIndex = 4 + (i % 2); // Use clusters 4-5 for low risk
-        }
-        
-        const cluster = clusters[clusterIndex];
+        const cluster = landAnchors[i % landAnchors.length];
         const path = [];
         const shape = shapes[i % shapes.length];
 
         // Add some randomness to avoid overlapping
-        const centerLat = cluster.lat + (Math.random() - 0.5) * 0.015;
-        const centerLng = cluster.lng + (Math.random() - 0.5) * 0.015;
+        // Keep jitter small so we remain on land near anchor
+        const centerLat = cluster.lat + (Math.random() - 0.5) * 0.006;
+        const centerLng = cluster.lng + (Math.random() - 0.5) * 0.006;
         const latRadius = 0.002 + Math.random() * 0.004;
         const lngRadius = 0.002 + Math.random() * 0.004;
 
-        // Generate different shapes for variety
         if (shape === 'diamond') {
             path.push([centerLat + latRadius, centerLng]);
             path.push([centerLat, centerLng - lngRadius]);
@@ -351,7 +362,6 @@ function generateRoutesData(allRoutesData) {
             path.push([centerLat - latRadius, centerLng + lngRadius]);
             path.push([centerLat + latRadius, centerLng]);
         } else if (shape === 'circle') {
-            // Generate circular path
             const numPoints = 8;
             for (let j = 0; j <= numPoints; j++) {
                 const angle = (j / numPoints) * 2 * Math.PI;
@@ -369,20 +379,20 @@ function generateRoutesData(allRoutesData) {
             }
         }
 
-        // Assign colors based on risk level
+        // Color stays based on risk
         let color;
         if (routeInfo.risk === 'High') {
-            color = '#DC3545'; // Red
+            color = '#DC3545';
         } else if (routeInfo.risk === 'Med') {
-            color = '#FFC107'; // Yellow
+            color = '#FFC107';
         } else {
-            color = '#28A745'; // Green
+            color = '#28A745';
         }
 
         routes.push({
             ...routeInfo,
-            path: path,
-            color: color
+            path,
+            color
         });
     });
 

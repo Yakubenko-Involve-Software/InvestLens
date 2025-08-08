@@ -56,15 +56,6 @@ const templates = {
             <!-- Left side - Map -->
             <div class="flex-1 bg-white shadow rounded-lg relative overflow-hidden">
                 <div id="routes-map" class="w-full h-full" style="min-height: 500px;"></div>
-                <!-- Map Legend -->
-                <div class="absolute top-4 right-4 bg-white shadow-lg rounded-lg p-3 border border-gray-200" style="z-index: 401;">
-                    <h4 class="text-sm font-semibold text-gray-800 mb-2">Route Risk</h4>
-                    <div class="space-y-1 text-xs">
-                        <div class="flex items-center"><div class="w-3 h-3 mr-2 rounded" style="background-color: #DC3545;"></div>High</div>
-                        <div class="flex items-center"><div class="w-3 h-3 mr-2 rounded" style="background-color: #FFC107;"></div>Medium</div>
-                        <div class="flex items-center"><div class="w-3 h-3 mr-2 rounded" style="background-color: #28A745;"></div>Low</div>
-                    </div>
-                </div>
             </div>
             
             <!-- Right side - Table -->
@@ -77,6 +68,7 @@ const templates = {
                         <table id="routes-table" class="min-w-full">
                             <thead class="bg-gray-50 sticky top-0">
                                 <tr class="text-sm text-gray-600">
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="id">ID <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                     <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="name">Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                     <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                     <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="km">Distance km <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
@@ -520,8 +512,8 @@ const templates = {
             </div>
             <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6" style="height: calc(100vh - 350px);">
                 <div class="lg:col-span-2 flex flex-col gap-4">
-                    <div class="bg-white shadow rounded-lg p-4 flex flex-col h-full">
-                        <div id="map" class="flex-grow bg-white shadow rounded-lg" style="min-height: 400px; height: 100%; width: 100%;"></div>
+                    <div class="bg-white shadow rounded-lg flex flex-col h-full overflow-hidden">
+                        <div id="map" class="w-full h-full" style="min-height: 400px; height: 100%; width: 100%;"></div>
                     </div>
 
                 </div>
