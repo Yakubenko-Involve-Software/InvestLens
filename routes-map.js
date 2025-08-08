@@ -10,6 +10,7 @@ function initRoutesMap(allRoutesData) {
         console.log('Removing existing map');
         routesMap.remove();
         routesMap = null;
+        routeLayers = [];
     }
 
     const mapElement = document.getElementById('routes-map');
@@ -20,47 +21,85 @@ function initRoutesMap(allRoutesData) {
         return;
     }
     
+    // Ensure the map container has proper dimensions
+    if (mapElement.offsetHeight === 0 || mapElement.offsetWidth === 0) {
+        console.warn('Map container has zero dimensions. Waiting for layout...');
+        setTimeout(() => initRoutesMap(allRoutesData), 300); // Retry after a longer delay
+        return;
+    }
+    
     console.log('Map element dimensions:', {
         width: mapElement.offsetWidth,
         height: mapElement.offsetHeight,
         clientWidth: mapElement.clientWidth,
         clientHeight: mapElement.clientHeight
     });
-    
-    if (mapElement.offsetHeight === 0) {
-        console.warn('Map container has zero height. Waiting for layout...');
-        setTimeout(() => initRoutesMap(allRoutesData), 200); // Retry after a short delay
-        return;
-    }
 
     console.log('Creating Leaflet map...');
     try {
-        routesMap = L.map(mapElement).setView([38.736946, -9.142685], 12);
+        // Create the map with Live Map configuration
+        routesMap = L.map(mapElement, {
+            zoomControl: false,
+            attributionControl: true
+        }).setView([38.736946, -9.142685], 13);
+        
         console.log('Map created successfully:', routesMap);
     } catch (error) {
         console.error('Error creating map:', error);
         return;
     }
     
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        maxZoom: 19
-    }).addTo(routesMap);
+    // Add tile layer with Live Map configuration
+    try {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(routesMap);
+    } catch (error) {
+        console.error('Error adding tile layer:', error);
+        // Fallback to OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(routesMap);
+    }
 
-    addRoutesToRoutesMap(allRoutesData);
+    // Add zoom control like Live Map
+    L.control.zoom({ position: 'topright' }).addTo(routesMap);
 
-    // Multiple checks to ensure map is sized correctly
+    // Add routes to the map
+    if (allRoutesData && allRoutesData.length > 0) {
+        addRoutesToRoutesMap(allRoutesData);
+    } else {
+        console.warn('No routes data available');
+        // Add a sample marker to show the map is working
+        L.marker([38.736946, -9.142685]).addTo(routesMap)
+            .bindPopup('Map is working! No routes data available.')
+            .openPopup();
+    }
+
+    // Ensure the map is properly displayed
     setTimeout(() => {
         if (routesMap) {
             routesMap.invalidateSize();
+            console.log('Map size invalidated (100ms)');
         }
     }, 100);
     
     setTimeout(() => {
         if (routesMap) {
             routesMap.invalidateSize();
+            console.log('Map size invalidated (500ms)');
         }
     }, 500);
+    
+    setTimeout(() => {
+        if (routesMap) {
+            routesMap.invalidateSize();
+            console.log('Map size invalidated (1000ms)');
+        }
+    }, 1000);
     
     // Add ResizeObserver to handle dynamic resizing
     if (window.ResizeObserver) {
@@ -71,6 +110,11 @@ function initRoutesMap(allRoutesData) {
         });
         resizeObserver.observe(mapElement);
     }
+    
+    // Make map available globally
+    window.routesMap = routesMap;
+    
+    console.log('=== Map initialization completed ===');
 }
 
 function addRoutesToRoutesMap(allRoutesData) {
@@ -92,16 +136,28 @@ function addRoutesToRoutesMap(allRoutesData) {
         routeLayers.push({polyline: polyline, markers: [], id: routeData.id});
         polyline.addTo(routesMap);
 
+        // Add markers at route points with Live Map style
         routeData.path.forEach((point, pIndex) => {
             const isEndPoint = pIndex === routeData.path.length - 1;
-            const circleMarker = L.circleMarker(point, {
-                radius: isEndPoint ? 6 : 4,
-                color: routeData.color,
-                weight: 2,
-                fillColor: isEndPoint ? routeData.color : '#FFFFFF',
-                fillOpacity: 1
-            }).addTo(routesMap);
-            routeLayers[index].markers.push(circleMarker);
+            
+            // Create custom div icon similar to Live Map
+            const iconHtml = `
+                <div class="relative flex items-center justify-center w-6 h-6 rounded-full ${getRiskBgColor(routeData.risk)} shadow-md border-2 border-white">
+                    <div class="text-xs font-bold text-white">${routeData.id}</div>
+                </div>`;
+
+            const routeIcon = L.divIcon({
+                html: iconHtml,
+                className: '',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+
+            const marker = L.marker(point, { icon: routeIcon })
+                .bindPopup(`<b>Route:</b> ${routeData.id}<br><b>Courier:</b> ${routeData.name}<br><b>Risk:</b> ${routeData.risk}`)
+                .addTo(routesMap);
+                
+            routeLayers[index].markers.push(marker);
         });
     });
     
@@ -120,6 +176,27 @@ function addRoutesToRoutesMap(allRoutesData) {
             setActiveRoute(routeLayers[routeIndex].polyline, routesData[routeIndex], allRoutesData);
         }
     };
+    
+    // Make panToRoute globally available (similar to Live Map's panToVehicle)
+    window.panToRoute = (routeId) => {
+        const routeLayer = routeLayers.find(layer => layer.id === routeId);
+        if (routeLayer && routeLayer.markers.length > 0) {
+            // Pan to the first marker of the route
+            routesMap.panTo(routeLayer.markers[0].getLatLng());
+            routeLayer.markers[0].openPopup();
+            // Highlight the route
+            setActiveRoute(routeLayer.polyline, routesData.find(r => r.id === routeId), allRoutesData);
+        }
+    };
+}
+
+function getRiskBgColor(risk) {
+    switch (risk) {
+        case 'High': return 'bg-red-500';
+        case 'Med': return 'bg-yellow-500';
+        case 'Low': return 'bg-green-500';
+        default: return 'bg-gray-400';
+    }
 }
 
 function setActiveRoute(polyline, routeData, allRoutesData) {

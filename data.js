@@ -89,6 +89,30 @@ stopsDataAll['C'] = [
     {id: 5, eta: "09:00", addr: "Alfama", lat: 38.712, lon: -9.130}
 ];
 
+// Missed deliveries data
+const missedDeliveriesData = [
+    { orderId: "12847", customer: "Maria Santos", courier: "Miguel Silva", scheduled: "14:30", missedBy: "2h 15m", reason: "Traffic delay", status: "Rescheduled" },
+    { orderId: "12843", customer: "João Pereira", courier: "Ana Pereira", scheduled: "11:00", missedBy: "1h 45m", reason: "Customer unavailable", status: "Failed" },
+    { orderId: "12839", customer: "Carlos Silva", courier: "Sofia Santos", scheduled: "16:15", missedBy: "1h 32m", reason: "Vehicle breakdown", status: "Reassigned" },
+    { orderId: "12835", customer: "Patricia Costa", courier: "Pedro Ferreira", scheduled: "09:45", missedBy: "1h 20m", reason: "Wrong address", status: "Delivered" },
+    { orderId: "12831", customer: "Roberto Lima", courier: "Inês Ramos", scheduled: "13:20", missedBy: "1h 18m", reason: "GPS malfunction", status: "Rescheduled" },
+    { orderId: "12828", customer: "Luisa Fernandes", courier: "Rui Almeida", scheduled: "15:40", missedBy: "1h 12m", reason: "Temperature issue", status: "Failed" },
+    { orderId: "12824", customer: "Fernando Gomes", courier: "João Costa", scheduled: "10:30", missedBy: "1h 08m", reason: "Road closure", status: "Delivered" },
+    { orderId: "12820", customer: "Sandra Oliveira", courier: "Catarina Martins", scheduled: "12:15", missedBy: "1h 05m", reason: "Package damage", status: "Failed" },
+    { orderId: "12816", customer: "Miguel Torres", courier: "André Sousa", scheduled: "17:20", missedBy: "58m", reason: "Customer not home", status: "Rescheduled" },
+    { orderId: "12812", customer: "Ana Barbosa", courier: "Mariana Rodrigues", scheduled: "14:45", missedBy: "55m", reason: "Parking issues", status: "Delivered" },
+    { orderId: "12808", customer: "Ricardo Mendes", courier: "Tiago Gonçalves", scheduled: "11:30", missedBy: "52m", reason: "Building access", status: "Rescheduled" },
+    { orderId: "12804", customer: "Teresa Silva", courier: "Beatriz Lopes", scheduled: "16:00", missedBy: "48m", reason: "Weather delay", status: "Delivered" },
+    { orderId: "12800", customer: "Paulo Rodrigues", courier: "Diogo Mendes", scheduled: "08:15", missedBy: "45m", reason: "System error", status: "Failed" },
+    { orderId: "12796", customer: "Isabel Costa", courier: "Carolina Jesus", scheduled: "13:50", missedBy: "42m", reason: "Fuel shortage", status: "Reassigned" },
+    { orderId: "12792", customer: "Mário Lopes", courier: "Vasco Pinto", scheduled: "15:25", missedBy: "40m", reason: "Late departure", status: "Delivered" },
+    { orderId: "12788", customer: "Helena Martins", courier: "Daniela Correia", scheduled: "12:30", missedBy: "38m", reason: "Address change", status: "Rescheduled" },
+    { orderId: "12784", customer: "António Silva", courier: "Jorge Dias", scheduled: "14:20", missedBy: "35m", reason: "Traffic accident", status: "Failed" },
+    { orderId: "12780", customer: "Carla Santos", courier: "Lúcia Duarte", scheduled: "16:45", missedBy: "32m", reason: "Customer request", status: "Delivered" },
+    { orderId: "12776", customer: "Manuel Costa", courier: "Bruno Fernandes", scheduled: "10:15", missedBy: "30m", reason: "Vehicle maintenance", status: "Reassigned" },
+    { orderId: "12772", customer: "Sofia Lima", courier: "Joana Ribeiro", scheduled: "13:10", missedBy: "28m", reason: "Weather conditions", status: "Delivered" }
+];
+
 
 const couriers = "ABCDEFGHIJKLMNOPQRSTUVWX".split('');
 const sampleAddresses = [

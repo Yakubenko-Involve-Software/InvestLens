@@ -54,15 +54,15 @@ const templates = {
         
         <div class="flex gap-6" style="height: calc(100vh - 300px);">
             <!-- Left side - Map -->
-            <div class="flex-1 bg-gray-200 shadow rounded-lg relative">
-                <div id="routes-map" class="w-full h-full"></div>
+            <div class="flex-1 bg-white shadow rounded-lg relative overflow-hidden">
+                <div id="routes-map" class="w-full h-full" style="min-height: 500px;"></div>
                 <!-- Map Legend -->
                 <div class="absolute top-4 right-4 bg-white shadow-lg rounded-lg p-3 border border-gray-200" style="z-index: 401;">
                     <h4 class="text-sm font-semibold text-gray-800 mb-2">Route Risk</h4>
                     <div class="space-y-1 text-xs">
-                        <div class="flex items-center"><div class="w-3 h-3 mr-2" style="background-color: #DC3545;"></div>High</div>
-                        <div class="flex items-center"><div class="w-3 h-3 mr-2" style="background-color: #FFC107;"></div>Medium</div>
-                        <div class="flex items-center"><div class="w-3 h-3 mr-2" style="background-color: #28A745;"></div>Low</div>
+                        <div class="flex items-center"><div class="w-3 h-3 mr-2 rounded" style="background-color: #DC3545;"></div>High</div>
+                        <div class="flex items-center"><div class="w-3 h-3 mr-2 rounded" style="background-color: #FFC107;"></div>Medium</div>
+                        <div class="flex items-center"><div class="w-3 h-3 mr-2 rounded" style="background-color: #28A745;"></div>Low</div>
                     </div>
                 </div>
             </div>
@@ -295,190 +295,20 @@ const templates = {
                     <h3 class="text-lg font-semibold text-gray-800">Top 20 Missed Deliveries</h3>
                 </div>
                 <div class="overflow-y-auto flex-grow">
-                <table class="min-w-full">
+                <table id="missed-deliveries-table" class="min-w-full">
                     <thead class="bg-gray-50 sticky top-0">
                         <tr class="text-sm text-left text-gray-500">
-                            <th class="py-3 px-4 font-semibold">Order ID</th>
-                            <th class="py-3 px-4 font-semibold">Customer</th>
-                            <th class="py-3 px-4 font-semibold">Courier</th>
-                            <th class="py-3 px-4 font-semibold">Scheduled</th>
-                            <th class="py-3 px-4 font-semibold">Missed By</th>
-                            <th class="py-3 px-4 font-semibold">Reason</th>
-                            <th class="py-3 px-4 font-semibold">Status</th>
+                            <th class="py-3 px-4 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="orderId">Order ID <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                            <th class="py-3 px-4 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="customer">Customer <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                            <th class="py-3 px-4 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="courier">Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                            <th class="py-3 px-4 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="scheduled">Scheduled <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                            <th class="py-3 px-4 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="missedBy">Missed By <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                            <th class="py-3 px-4 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="reason">Reason <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                            <th class="py-3 px-4 font-semibold cursor-pointer hover:text-gray-800" data-sort-key="status">Status <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                         </tr>
                     </thead>
                     <tbody class="text-sm text-gray-700">
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12847</td>
-                            <td class="py-3 px-4">Maria Santos</td>
-                            <td class="py-3 px-4">Miguel Silva</td>
-                            <td class="py-3 px-4">14:30</td>
-                            <td class="py-3 px-4 text-red-600">2h 15m</td>
-                            <td class="py-3 px-4">Traffic delay</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12843</td>
-                            <td class="py-3 px-4">João Pereira</td>
-                            <td class="py-3 px-4">Ana Pereira</td>
-                            <td class="py-3 px-4">11:00</td>
-                            <td class="py-3 px-4 text-red-600">1h 45m</td>
-                            <td class="py-3 px-4">Customer unavailable</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12839</td>
-                            <td class="py-3 px-4">Carlos Silva</td>
-                            <td class="py-3 px-4">Sofia Santos</td>
-                            <td class="py-3 px-4">16:15</td>
-                            <td class="py-3 px-4 text-red-600">1h 32m</td>
-                            <td class="py-3 px-4">Vehicle breakdown</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Reassigned</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12835</td>
-                            <td class="py-3 px-4">Patricia Costa</td>
-                            <td class="py-3 px-4">Pedro Ferreira</td>
-                            <td class="py-3 px-4">09:45</td>
-                            <td class="py-3 px-4 text-red-600">1h 20m</td>
-                            <td class="py-3 px-4">Wrong address</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12831</td>
-                            <td class="py-3 px-4">Roberto Lima</td>
-                            <td class="py-3 px-4">Inês Ramos</td>
-                            <td class="py-3 px-4">13:20</td>
-                            <td class="py-3 px-4 text-red-600">1h 18m</td>
-                            <td class="py-3 px-4">GPS malfunction</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12828</td>
-                            <td class="py-3 px-4">Luisa Fernandes</td>
-                            <td class="py-3 px-4">Rui Almeida</td>
-                            <td class="py-3 px-4">15:40</td>
-                            <td class="py-3 px-4 text-red-600">1h 12m</td>
-                            <td class="py-3 px-4">Temperature issue</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12824</td>
-                            <td class="py-3 px-4">Fernando Gomes</td>
-                            <td class="py-3 px-4">João Costa</td>
-                            <td class="py-3 px-4">10:30</td>
-                            <td class="py-3 px-4 text-red-600">1h 08m</td>
-                            <td class="py-3 px-4">Road closure</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12820</td>
-                            <td class="py-3 px-4">Sandra Oliveira</td>
-                            <td class="py-3 px-4">Catarina Martins</td>
-                            <td class="py-3 px-4">12:15</td>
-                            <td class="py-3 px-4 text-red-600">1h 05m</td>
-                            <td class="py-3 px-4">Package damage</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12816</td>
-                            <td class="py-3 px-4">Miguel Torres</td>
-                            <td class="py-3 px-4">André Sousa</td>
-                            <td class="py-3 px-4">17:20</td>
-                            <td class="py-3 px-4 text-red-600">58m</td>
-                            <td class="py-3 px-4">Customer not home</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12812</td>
-                            <td class="py-3 px-4">Ana Barbosa</td>
-                            <td class="py-3 px-4">Mariana Rodrigues</td>
-                            <td class="py-3 px-4">14:45</td>
-                            <td class="py-3 px-4 text-red-600">55m</td>
-                            <td class="py-3 px-4">Parking issues</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12808</td>
-                            <td class="py-3 px-4">Ricardo Mendes</td>
-                            <td class="py-3 px-4">Tiago Gonçalves</td>
-                            <td class="py-3 px-4">11:30</td>
-                            <td class="py-3 px-4 text-red-600">52m</td>
-                            <td class="py-3 px-4">Building access</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12804</td>
-                            <td class="py-3 px-4">Teresa Silva</td>
-                            <td class="py-3 px-4">Beatriz Lopes</td>
-                            <td class="py-3 px-4">16:00</td>
-                            <td class="py-3 px-4 text-red-600">48m</td>
-                            <td class="py-3 px-4">Weather delay</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12800</td>
-                            <td class="py-3 px-4">Paulo Rodrigues</td>
-                            <td class="py-3 px-4">Diogo Mendes</td>
-                            <td class="py-3 px-4">08:15</td>
-                            <td class="py-3 px-4 text-red-600">45m</td>
-                            <td class="py-3 px-4">System error</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12796</td>
-                            <td class="py-3 px-4">Isabel Costa</td>
-                            <td class="py-3 px-4">Carolina Jesus</td>
-                            <td class="py-3 px-4">13:50</td>
-                            <td class="py-3 px-4 text-red-600">42m</td>
-                            <td class="py-3 px-4">Fuel shortage</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Reassigned</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12792</td>
-                            <td class="py-3 px-4">Mário Lopes</td>
-                            <td class="py-3 px-4">Vasco Pinto</td>
-                            <td class="py-3 px-4">15:25</td>
-                            <td class="py-3 px-4 text-red-600">40m</td>
-                            <td class="py-3 px-4">Late departure</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12788</td>
-                            <td class="py-3 px-4">Helena Martins</td>
-                            <td class="py-3 px-4">Daniela Correia</td>
-                            <td class="py-3 px-4">10:45</td>
-                            <td class="py-3 px-4 text-red-600">38m</td>
-                            <td class="py-3 px-4">Order mix-up</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12784</td>
-                            <td class="py-3 px-4">José Ferreira</td>
-                            <td class="py-3 px-4">Bruno Fernandes</td>
-                            <td class="py-3 px-4">12:30</td>
-                            <td class="py-3 px-4 text-red-600">35m</td>
-                            <td class="py-3 px-4">Equipment failure</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Failed</span></td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12780</td>
-                            <td class="py-3 px-4">Cristina Alves</td>
-                            <td class="py-3 px-4">Joana Ribeiro</td>
-                            <td class="py-3 px-4">09:20</td>
-                            <td class="py-3 px-4 text-red-600">32m</td>
-                            <td class="py-3 px-4">Communication issue</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Delivered</span></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-3 px-4 font-semibold text-blue-600">#12776</td>
-                            <td class="py-3 px-4">Vítor Santos</td>
-                            <td class="py-3 px-4">Ricardo Neves</td>
-                            <td class="py-3 px-4">14:10</td>
-                            <td class="py-3 px-4 text-red-600">30m</td>
-                            <td class="py-3 px-4">Route optimization</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Rescheduled</span></td>
-                        </tr>
+                        <!-- Missed deliveries data will be injected here -->
                     </tbody>
                 </table>
                 </div>
@@ -691,14 +521,13 @@ const templates = {
             <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6" style="height: calc(100vh - 350px);">
                 <div class="lg:col-span-2 flex flex-col gap-4">
                     <div class="bg-white shadow rounded-lg p-4 flex flex-col h-full">
-                        <div id="map" class="flex-grow bg-gray-200 rounded-lg"></div>
+                        <div id="map" class="flex-grow bg-white shadow rounded-lg" style="min-height: 400px; height: 100%; width: 100%;"></div>
                     </div>
 
                 </div>
                 <div class="bg-white shadow rounded-lg p-4 flex flex-col h-full">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-800">Optimization Results</h3>
-                        <div id="toggle-status" class="text-xs text-gray-400">Loading...</div>
                     </div>
                     
                     <div class="flex bg-gray-100 rounded-lg p-1 mb-4">
@@ -710,7 +539,7 @@ const templates = {
                         </button>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="grid grid-cols-2 gap-3 mb-6 flex-grow">
                         <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
                             <p class="text-sm font-medium text-gray-700">Routes Optimised</p>
                             <p id="routes-optimised" class="text-2xl font-bold text-blue-600 mt-1">15 %</p>
@@ -745,7 +574,7 @@ const templates = {
                         </div>
                     </div>
                     
-                    <div class="space-y-3">
+                    <div class="space-y-3 mt-auto">
                         <button id="optimize-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
                             Optimize
                         </button>

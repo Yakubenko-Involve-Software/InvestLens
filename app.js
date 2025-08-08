@@ -50,10 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
                                 window.aiMap.invalidateSize();
                             }
                         }, 300);
+                        
+                        // Force map refresh one more time
+                        setTimeout(() => {
+                            if (window.aiMap && typeof window.aiMap.invalidateSize === 'function') {
+                                console.log('Final AI map refresh...');
+                                window.aiMap.invalidateSize();
+                            }
+                        }, 1000);
                     } else {
                         console.error('initAI function not found');
                     }
-                }, 100); // Small delay to ensure DOM is ready
+                }, 200); // Increased delay to ensure DOM is ready
             } else if (page === 'orders') {
                 await loadOrders();
             } else if (page === 'routes') {
@@ -64,13 +72,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('Checking for initRoutesMap function...');
                     if (typeof initRoutesMap === 'function') {
                         console.log('Calling initRoutesMap with data:', allRoutesData);
-                        initRoutesMap(allRoutesData);
-                        // Additional refresh after a longer delay
+                        // Ensure the DOM is fully rendered before initializing the map
                         setTimeout(() => {
-                            console.log('Calling refreshRoutesMap...');
-                            if (typeof window.refreshRoutesMap === 'function') {
-                                window.refreshRoutesMap();
-                            }
+                            initRoutesMap(allRoutesData);
+                            // Additional refresh after a longer delay
+                            setTimeout(() => {
+                                console.log('Calling refreshRoutesMap...');
+                                if (typeof window.refreshRoutesMap === 'function') {
+                                    window.refreshRoutesMap();
+                                }
+                                // Force map refresh one more time
+                                if (window.routesMap && typeof window.routesMap.invalidateSize === 'function') {
+                                    window.routesMap.invalidateSize();
+                                }
+                            }, 500);
                         }, 300);
                     } else {
                         console.error('initRoutesMap function not found');
@@ -94,6 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (page === 'reports') {
                 // Initialize reports page
                 console.log('=== Loading Reports page ===');
+                setTimeout(() => {
+                    initReportsPage();
+                }, 100);
             }
 
         } catch (error) {
@@ -279,7 +297,7 @@ function loadRoutes() {
         });
 
         tbody.innerHTML = sortedRoutes.map(route => `
-            <tr class="hover:bg-gray-50 cursor-pointer" onclick="highlightRouteOnMap('${route.id}')">
+            <tr class="hover:bg-gray-50 cursor-pointer" onclick="panToRoute('${route.id}')">
                 <td class="py-2 px-4">${route.name}</td>
                 <td class="py-2 px-4">${route.stops}</td>
                 <td class="py-2 px-4">${route.km}</td>
@@ -335,10 +353,12 @@ function getRiskClass(risk) {
 
 function highlightRouteOnMap(routeId) {
     console.log('Highlighting route on map:', routeId);
-    if (typeof window.selectRoute === 'function') {
+    if (typeof window.panToRoute === 'function') {
+        window.panToRoute(routeId);
+    } else if (typeof window.selectRoute === 'function') {
         window.selectRoute(routeId);
     } else {
-        console.warn('selectRoute function not available yet');
+        console.warn('panToRoute function not available yet');
     }
     
     // Also highlight the row in the table
@@ -482,4 +502,124 @@ function initSettingsPage() {
         
         console.log('Settings page initialized successfully');
     }, 200);
+}
+
+function initReportsPage() {
+    console.log('=== Initializing Reports page ===');
+    
+    // Initialize missed deliveries table
+    initMissedDeliveriesTable();
+}
+
+function initMissedDeliveriesTable() {
+    const tableBody = document.querySelector('#missed-deliveries-table tbody');
+    if (!tableBody) {
+        console.error('Missed deliveries table body not found');
+        return;
+    }
+
+    let state = {
+        sortKey: 'orderId',
+        sortAsc: true
+    };
+
+    const getStatusClass = (status) => {
+        switch (status) {
+            case 'Rescheduled': return 'bg-yellow-100 text-yellow-800';
+            case 'Failed': return 'bg-red-100 text-red-800';
+            case 'Reassigned': return 'bg-yellow-100 text-yellow-800';
+            case 'Delivered': return 'bg-green-100 text-green-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const parseMissedBy = (missedBy) => {
+        // Convert "2h 15m" or "58m" to minutes for sorting
+        const hours = missedBy.match(/(\d+)h/);
+        const minutes = missedBy.match(/(\d+)m/);
+        let totalMinutes = 0;
+        if (hours) totalMinutes += parseInt(hours[1]) * 60;
+        if (minutes) totalMinutes += parseInt(minutes[1]);
+        return totalMinutes;
+    };
+
+    const renderTable = () => {
+        // Sort data based on current sort settings
+        const sortedData = [...missedDeliveriesData].sort((a, b) => {
+            let valA = a[state.sortKey];
+            let valB = b[state.sortKey];
+
+            // Handle special cases for sorting
+            if (state.sortKey === 'missedBy') {
+                valA = parseMissedBy(valA);
+                valB = parseMissedBy(valB);
+            } else if (state.sortKey === 'orderId') {
+                valA = parseInt(valA);
+                valB = parseInt(valB);
+            } else if (state.sortKey === 'scheduled') {
+                // Convert time to minutes for sorting (e.g., "14:30" -> 870 minutes)
+                const [hoursA, minutesA] = valA.split(':').map(Number);
+                const [hoursB, minutesB] = valB.split(':').map(Number);
+                valA = hoursA * 60 + minutesA;
+                valB = hoursB * 60 + minutesB;
+            }
+
+            if (typeof valA === 'string') {
+                return state.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            } else {
+                return state.sortAsc ? valA - valB : valB - valA;
+            }
+        });
+
+        // Render table rows
+        tableBody.innerHTML = sortedData.map(delivery => `
+            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-3 px-4 font-semibold text-blue-600">#${delivery.orderId}</td>
+                <td class="py-3 px-4">${delivery.customer}</td>
+                <td class="py-3 px-4">${delivery.courier}</td>
+                <td class="py-3 px-4">${delivery.scheduled}</td>
+                <td class="py-3 px-4 text-red-600">${delivery.missedBy}</td>
+                <td class="py-3 px-4">${delivery.reason}</td>
+                <td class="py-3 px-4">
+                    <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(delivery.status)}">
+                        ${delivery.status}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    const updateSortIcons = () => {
+        const headers = document.querySelectorAll('#missed-deliveries-table th[data-sort-key]');
+        headers.forEach(header => {
+            const icon = header.querySelector('i');
+            if (header.dataset.sortKey === state.sortKey) {
+                icon.className = state.sortAsc 
+                    ? 'ri-arrow-up-line ml-1 align-middle text-gray-800' 
+                    : 'ri-arrow-down-line ml-1 align-middle text-gray-800';
+            } else {
+                icon.className = 'ri-arrow-up-down-line ml-1 align-middle text-gray-400';
+            }
+        });
+    };
+
+    // Add click event listeners to sortable headers
+    const sortableHeaders = document.querySelectorAll('#missed-deliveries-table th[data-sort-key]');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const sortKey = header.dataset.sortKey;
+            if (state.sortKey === sortKey) {
+                state.sortAsc = !state.sortAsc;
+            } else {
+                state.sortKey = sortKey;
+                state.sortAsc = true;
+            }
+            renderTable();
+            updateSortIcons();
+        });
+    });
+
+    // Initial render
+    renderTable();
+    updateSortIcons();
 }
