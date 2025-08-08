@@ -570,7 +570,7 @@ const templates = {
                         <button id="optimize-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
                             Optimize
                         </button>
-                        <button class="w-full border border-blue-600 text-blue-600 px-4 py-3 rounded-lg font-normal hover:bg-blue-50 transition">
+                        <button id="timeline-btn" class="w-full border border-blue-600 text-blue-600 px-4 py-3 rounded-lg font-normal hover:bg-blue-50 transition">
                             Timeline
                         </button>
                     </div>

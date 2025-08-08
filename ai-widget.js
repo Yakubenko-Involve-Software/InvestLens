@@ -701,17 +701,17 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
 
     function updateOptimizeButton(isDefault) {
         if (isDefault) {
-            // Default state - Tomorrow selected (normal appearance)
-            optimizeBtn.className = 'w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors';
+            // Default state - Tomorrow selected (disabled, gray)
+            optimizeBtn.className = 'w-full py-3 px-4 bg-gray-300 text-gray-600 font-semibold rounded-lg cursor-not-allowed';
             optimizeBtn.style.opacity = '1';
-            optimizeBtn.disabled = false;
+            optimizeBtn.disabled = true;
             optimizeBtn.textContent = 'Optimize';
             // Remove any animation or special effects
             optimizeBtn.style.animation = 'none';
             optimizeBtn.style.boxShadow = 'none';
             optimizeBtn.classList.remove('animate-pulse', 'shadow-lg');
         } else {
-            // Active state - Today selected, needs optimization (highlighted)
+            // Active state - Today selected, needs optimization (enabled, green)
             optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors animate-pulse shadow-lg';
             optimizeBtn.style.opacity = '1';
             optimizeBtn.disabled = false;
@@ -755,6 +755,10 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
     
     // Add click handler for optimize button
     optimizeBtn.addEventListener('click', () => {
+        if (optimizeBtn.disabled) {
+            console.log('Optimize button is disabled (Tomorrow selected)');
+            return;
+        }
         console.log('Optimize button clicked');
         
         // Show feedback
@@ -771,16 +775,36 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
             // Reset after 2 seconds
             setTimeout(() => {
                 optimizeBtn.textContent = originalText;
-                optimizeBtn.disabled = false;
+                // Restore state depending on current toggle
                 // Use the tracked state to determine button appearance
                 if (currentToggleState === 'tomorrow') {
-                    updateOptimizeButton(true); // Default state for Tomorrow
+                    updateOptimizeButton(true); // Disabled gray for Tomorrow
                 } else {
-                    updateOptimizeButton(false); // Active state for Today
+                    updateOptimizeButton(false); // Enabled green for Today
                 }
             }, 2000);
         }, 1500);
     });
+    
+    // Timeline button: focus a route and ensure timeline area is populated
+    const timelineBtn = document.getElementById('timeline-btn');
+    if (timelineBtn) {
+        timelineBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Timeline button clicked');
+            const firstRoute = allRoutes && allRoutes.length ? allRoutes[0] : null;
+            if (firstRoute) {
+                setFocus(firstRoute.id);
+                // Smooth scroll to a potential timeline panel if present
+                const timelineContainer = document.getElementById('timeline-list');
+                if (timelineContainer && typeof timelineContainer.scrollIntoView === 'function') {
+                    timelineContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            } else {
+                console.warn('No routes available to show timeline');
+            }
+        });
+    }
     
     console.log('Toggle buttons initialization complete');
 }
