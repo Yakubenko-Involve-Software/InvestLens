@@ -7,7 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`=== Loading page: ${page} ===`);
             
             navLinks.forEach(link => link.classList.remove('bg-blue-600', 'text-white'));
-            const activeLink = document.querySelector(`a[data-page='${page}']`);
+            // Highlight the matching link; if alias used (settings <-> seatings), try both
+            let activeLink = document.querySelector(`a[data-page='${page}']`);
+            if (!activeLink && page === 'settings') {
+                activeLink = document.querySelector("a[data-page='seatings']");
+            }
             if (activeLink) {
                 activeLink.classList.add('bg-blue-600', 'text-white');
             }
@@ -123,13 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Setting up nav link for: ${link.dataset.page}`);
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = link.dataset.page;
+            const raw = link.dataset.page;
+            const page = raw === 'seatings' ? 'settings' : raw; // alias support
             console.log(`Nav link clicked: ${page}`);
-            
-            // Special alert for settings to confirm it works
-            if (page === 'settings') {
-                alert('Settings clicked! Loading...');
-            }
             
             loadPage(page);
         });

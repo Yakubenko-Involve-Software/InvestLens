@@ -120,15 +120,93 @@ function initRoutesMap(allRoutesData) {
 
 function addRoutesToRoutesMap(allRoutesData) {
     console.log('addRoutesToRoutesMap called with:', allRoutesData);
-    const routesData = generateRoutesData(allRoutesData);
+    // Helper to clamp points to safe land bounds (rough Lisbon; avoid river to the east)
+    function clampToLand(lat, lng) {
+        const minLat = 38.715, maxLat = 38.790; // away from water
+        // Allow spread but keep clear of river
+        const minLng = -9.250, maxLng = -9.155; // west of ~-9.155
+        let clampedLat = Math.min(Math.max(lat, minLat), maxLat);
+        let clampedLng = Math.min(Math.max(lng, minLng), maxLng - 0.002);
+        return [clampedLat, clampedLng];
+    }
+
+    // Choose candidates with real stops (use global stopsDataAll binding, not window property)
+    const hasStops = typeof stopsDataAll !== 'undefined';
+    if (!hasStops) console.warn('stopsDataAll is not defined; falling back to synthetic routes');
+    const pool = hasStops
+        ? allRoutesData.filter(r => Array.isArray(stopsDataAll[r.id]) && stopsDataAll[r.id].length >= 2)
+        : [];
+    const candidates = pool.slice(0, Math.min(pool.length, 24));
+
+    // A spread of mainland anchor points across Lisbon; used to translate paths without resizing
+    const landAnchors = [
+        // West (Ajuda, Restelo, Benfica)
+        [38.725, -9.210], [38.735, -9.205], [38.745, -9.198], [38.740, -9.192],
+        // Central-West (Alcântara, Campolide)
+        [38.725, -9.190], [38.735, -9.185], [38.745, -9.180], [38.750, -9.175],
+        // Central (Avenidas Novas, Saldanha)
+        [38.740, -9.170], [38.735, -9.168], [38.745, -9.165], [38.750, -9.162],
+        // North (Lumiar, Telheiras)
+        [38.760, -9.190], [38.760, -9.175], [38.755, -9.165], [38.755, -9.180],
+        // Southwest (Estrela, Lapa, Campo de Ourique)
+        [38.720, -9.190], [38.725, -9.184], [38.730, -9.178], [38.735, -9.172],
+        // Northwest (Carnide, Pontinha)
+        [38.755, -9.205], [38.750, -9.200], [38.745, -9.195], [38.740, -9.188]
+    ];
+    let routesData = [];
+    for (let i = 0; i < candidates.length; i++) {
+        const r = candidates[i];
+        const stops = stopsDataAll[r.id];
+        if (!stops || stops.length < 2) continue;
+        const orig = stops.map(s => [s.lat, s.lon]);
+        // Keep original size; compute centroid then translate entire path to anchor with tiny jitter
+        const centroid = orig.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0]).map(v => v / orig.length);
+        const anchor = landAnchors[i % landAnchors.length];
+        const jitterLat = (Math.random() - 0.5) * 0.004;
+        const jitterLng = (Math.random() - 0.5) * 0.004;
+        const target = [anchor[0] + jitterLat, anchor[1] + jitterLng];
+        const scale = 0.18; // shrink footprint while preserving shape
+        let path = orig.map(([lat, lng]) => {
+            const scaledLat = (lat - centroid[0]) * scale;
+            const scaledLng = (lng - centroid[1]) * scale;
+            return clampToLand(target[0] + scaledLat, target[1] + scaledLng);
+        });
+        // If any point is still too close to sea (east) or south, shift whole path inland and re-clamp
+        const maxLngPath = Math.max(...path.map(p => p[1]));
+        const minLatPath = Math.min(...path.map(p => p[0]));
+        const eastThreshold = -9.157; // keep west of this
+        const southThreshold = 38.720; // keep north of this
+        let shiftLng = 0, shiftLat = 0;
+        if (maxLngPath > eastThreshold) {
+            shiftLng = eastThreshold - maxLngPath - 0.003; // negative shift (west)
+        }
+        if (minLatPath < southThreshold) {
+            shiftLat = southThreshold - minLatPath + 0.003; // positive shift (north)
+        }
+        if (shiftLng !== 0 || shiftLat !== 0) {
+            path = path.map(([lat, lng]) => clampToLand(lat + shiftLat, lng + shiftLng));
+        }
+        // Ensure closed loop
+        if (path.length > 1) {
+            const [s0, s1] = path[0];
+            const [e0, e1] = path[path.length - 1];
+            if (Math.abs(s0 - e0) > 1e-9 || Math.abs(s1 - e1) > 1e-9) path.push([s0, s1]);
+        }
+        let color = '#28A745';
+        if (r.risk === 'High') color = '#DC3545';
+        else if (r.risk === 'Med') color = '#FFC107';
+        routesData.push({ ...r, path, color });
+    }
+
+    // Fallback: if no routes from real stops, use existing synthetic generator
+    if (routesData.length === 0) {
+        console.warn('No routes generated from stopsDataAll; using generateRoutesData fallback');
+        routesData = generateRoutesData(allRoutesData).slice(0, 24);
+    }
     console.log('Generated routes data:', routesData);
     
     routesData.forEach((routeData, index) => {
-        const polyline = L.polyline(routeData.path, { 
-            color: routeData.color,
-            weight: 2,
-            opacity: 0.9
-        });
+        const polyline = L.polyline(routeData.path, { color: routeData.color, weight: 4, opacity: 0.9 });
         
         polyline.on('click', () => {
             setActiveRoute(polyline, routeData, allRoutesData); 
@@ -137,30 +215,30 @@ function addRoutesToRoutesMap(allRoutesData) {
         routesPageLayers.push({polyline: polyline, markers: [], id: routeData.id});
         polyline.addTo(routesMap);
 
-        // Add markers at route points with Live Map style
-        routeData.path.forEach((point, pIndex) => {
-            const isEndPoint = pIndex === routeData.path.length - 1;
-            
-            // Create custom div icon similar to Live Map
-            const iconHtml = `
-                <div class="relative flex items-center justify-center w-6 h-6 rounded-full ${getRoutesRiskBgColor(routeData.risk)} shadow-md border-2 border-white">
-                    <div class="text-xs font-bold text-white">${routeData.id}</div>
-                </div>`;
+        // Blue ID at start/end on the line
+        const startLatLng = L.latLng(routeData.path[0][0], routeData.path[0][1]);
+        const iconHtml = `
+            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
+                <div style="color:#2563eb;font-weight:700;font-size:12px;">${getRouteLetter(routeData.id)}</div>
+            </div>`;
+        const routeIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
+        const startMarker = L.marker(startLatLng, { icon: routeIcon }).addTo(routesMap);
+        routesPageLayers[index].markers.push(startMarker);
 
-            const routeIcon = L.divIcon({
-                html: iconHtml,
-                className: '',
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-            });
-
-            const marker = L.marker(point, { icon: routeIcon })
-                .bindPopup(`<b>Route:</b> ${routeData.id}<br><b>Courier:</b> ${routeData.name}<br><b>Risk:</b> ${routeData.risk}`)
-                .addTo(routesMap);
-                
-            routesPageLayers[index].markers.push(marker);
+        // Small vertex dots
+        const points = (routeData.path.length > 1 && routeData.path[0][0] === routeData.path[routeData.path.length - 1][0] && routeData.path[0][1] === routeData.path[routeData.path.length - 1][1]) ? routeData.path.slice(0, -1) : routeData.path;
+        points.forEach(pt => {
+            const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: routeData.color, fillOpacity: 1 }).addTo(routesMap);
+            routesPageLayers[index].markers.push(dot);
         });
+         
     });
+    
+    // Fit to all routes so they are visible immediately
+    if (routesPageLayers.length > 0) {
+        const group = L.featureGroup(routesPageLayers.map(l => l.polyline));
+        routesMap.fitBounds(group.getBounds(), { padding: [20, 20] });
+    }
     
     setTimeout(() => {
         routesMap.invalidateSize();
@@ -184,7 +262,7 @@ function addRoutesToRoutesMap(allRoutesData) {
         if (routeLayer && routeLayer.markers.length > 0) {
             // Pan to the first marker of the route
             routesMap.panTo(routeLayer.markers[0].getLatLng());
-            routeLayer.markers[0].openPopup();
+            routeLayer.markers[0].openPopup?.();
             // Highlight the route
             setActiveRoute(routeLayer.polyline, routesData.find(r => r.id === routeId), allRoutesData);
         }
@@ -199,6 +277,11 @@ function getRoutesRiskBgColor(risk) {
         case 'Low': return 'bg-green-500';
         default: return 'bg-gray-400';
     }
+}
+
+function getRouteLetter(id) {
+    const lettersOnly = String(id).match(/[A-Za-z]/g);
+    return lettersOnly && lettersOnly.length > 0 ? lettersOnly[0].toUpperCase() : 'R';
 }
 
 function setActiveRoute(polyline, routeData, allRoutesData) {

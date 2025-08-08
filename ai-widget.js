@@ -3,6 +3,8 @@ let allRoutes = [];
 let filteredRoutes = [];
 let stopsData = {};
 let currentSort = { key: 'id', asc: true };
+let isOptimized = false; // when true, show 3 routes instead of 9
+let lastAIBounds = null; // track bounds of last non-optimized render
 
 
 // DOM Elements
@@ -27,7 +29,7 @@ async function initAI() {
     // Initialize map with a delay to ensure DOM is ready
     setTimeout(() => {
         console.log('🚀 Initializing AI map after DOM delay...');
-        initAIMap();
+    initAIMap();
     }, 300);
 
     // Event Listeners
@@ -44,8 +46,8 @@ async function initAI() {
     
     // Initialize table/sorting only if elements exist
     if (routeList) {
-        initAISorting();
-        renderRouteTable();
+    initAISorting();
+    renderRouteTable();
     } else {
         console.log('AI widget: skipping route table rendering (routeList not found).');
     }
@@ -122,7 +124,7 @@ function initAIMap() {
     
     // Initialize Leaflet map with Live Map configuration
     try {
-        map = L.map(mapElement, {
+    map = L.map(mapElement, {
             zoomControl: false,
             attributionControl: true,
             scrollWheelZoom: true,
@@ -131,7 +133,7 @@ function initAIMap() {
             keyboard: true,
             dragging: true,
             touchZoom: true
-        }).setView([38.736946, -9.142685], 13);
+    }).setView([38.736946, -9.142685], 13);
         
         console.log('✅ Map created successfully:', map);
     } catch (error) {
@@ -145,11 +147,11 @@ function initAIMap() {
     // Add tile layer with Live Map configuration
     try {
         console.log('🌍 Adding tile layer...');
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
         console.log('✅ Tile layer added successfully');
     } catch (error) {
         console.error('❌ Error adding tile layer:', error);
@@ -168,11 +170,11 @@ function initAIMap() {
     // Force size recalculation multiple times
     setTimeout(() => {
         if (map) {
-            map.invalidateSize();
+        map.invalidateSize();
             console.log('🔄 Map size invalidated (100ms)');
         }
     }, 100);
-    
+
     setTimeout(() => {
         if (map) {
             map.invalidateSize();
@@ -304,124 +306,144 @@ function addRoutesToAIMap() {
     });
     routeLayers = [];
 
-    // Define 3 districts with their colors and center coordinates
-    const districts = [
-        { 
-            name: 'Центр', 
-            center: { lat: 38.736946, lng: -9.142685 }, 
-            color: '#DC3545', // Red
-            routes: []
-        },
-        { 
-            name: 'Північ', 
-            center: { lat: 38.755, lng: -9.155 }, 
-            color: '#FFC107', // Yellow
-            routes: []
-        },
-        { 
-            name: 'Південь', 
-            center: { lat: 38.715, lng: -9.130 }, 
-            color: '#28A745', // Green
-            routes: []
-        }
-    ];
-
-    // Create exactly 9 routes - 3 per district
-    for (let districtIndex = 0; districtIndex < 3; districtIndex++) {
-        const district = districts[districtIndex];
-        
-        for (let routeIndex = 0; routeIndex < 3; routeIndex++) {
-            const globalRouteIndex = districtIndex * 3 + routeIndex;
-            const routeInfo = allRoutes[globalRouteIndex] || allRoutes[globalRouteIndex % allRoutes.length];
-            
-            // Generate route path around district center
-            const path = [];
-            const centerLat = district.center.lat + (Math.random() - 0.5) * 0.02;
-            const centerLng = district.center.lng + (Math.random() - 0.5) * 0.02;
-            const latRadius = 0.003 + Math.random() * 0.005;
-            const lngRadius = 0.003 + Math.random() * 0.005;
-            
-            // Create different route shapes
-            const shapes = ['circle', 'rectangle', 'triangle'];
-            const shape = shapes[routeIndex];
-            
-            if (shape === 'circle') {
-                // Circular route
-                for (let j = 0; j <= 8; j++) {
-                    const angle = (j / 8) * 2 * Math.PI;
-                    path.push([
-                        centerLat + latRadius * Math.cos(angle), 
-                        centerLng + lngRadius * Math.sin(angle)
-                    ]);
-                }
-            } else if (shape === 'rectangle') {
-                // Rectangular route
-                path.push(
-                    [centerLat + latRadius, centerLng - lngRadius],
-                    [centerLat + latRadius, centerLng + lngRadius],
-                    [centerLat - latRadius, centerLng + lngRadius],
-                    [centerLat - latRadius, centerLng - lngRadius],
-                    [centerLat + latRadius, centerLng - lngRadius]
-                );
-            } else {
-                // Triangular route
-                for (let j = 0; j <= 3; j++) {
-                    const angle = (j / 3) * 2 * Math.PI + Math.PI/2;
-                    path.push([
-                        centerLat + latRadius * Math.cos(angle), 
-                        centerLng + lngRadius * Math.sin(angle)
-                    ]);
-                }
-            }
-            
-            // Create polyline with district color
-            const polyline = L.polyline(path, { 
-                color: district.color, 
-                weight: 3, 
-                opacity: 0.8 
-            });
-            polyline.addTo(map);
-
-            // Add markers along the route with Live Map style
-            const markers = path.map((point, pIndex) => {
-                const isEndPoint = pIndex === path.length - 1;
-                
-                // Create custom div icon similar to Live Map
-                const iconHtml = `
-                    <div class="relative flex items-center justify-center w-6 h-6 rounded-full ${getRiskBgColor(routeInfo.risk)} shadow-md border-2 border-white">
-                        <div class="text-xs font-bold text-white">${routeInfo.id}</div>
-                    </div>`;
-
-                const routeIcon = L.divIcon({
-                    html: iconHtml,
-                    className: '',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
-                });
-
-                const marker = L.marker(point, { icon: routeIcon })
-                    .bindPopup(`<b>Route:</b> ${routeInfo.id}<br><b>Courier:</b> ${routeInfo.name}<br><b>Risk:</b> ${routeInfo.risk}`)
-                    .addTo(map);
-                    
-                return marker;
-            });
-
-            // Add click event to highlight route
-            polyline.on('click', () => {
-                setFocus(routeInfo.id);
-            });
-
-            // Store route layer information
-            routeLayers.push({ 
-                polyline: polyline, 
-                markers: markers, 
-                id: routeInfo.id,
-                district: district.name,
-                color: district.color
-            });
-        }
+    // Helper to clamp to safe land bounds further from sea
+    function clampToLand(lat, lng) {
+        const minLat = 38.715, maxLat = 38.790;
+        const minLng = -9.250, maxLng = -9.155; // west of river
+        let clampedLat = Math.min(Math.max(lat, minLat), maxLat);
+        let clampedLng = Math.min(Math.max(lng, minLng), maxLng - 0.002);
+        return [clampedLat, clampedLng];
     }
 
+    function clampToArea(lat, lng, bounds, pad = 0.002) {
+        if (!bounds) return [lat, lng];
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const minLat = sw.lat + pad;
+        const maxLat = ne.lat - pad;
+        const minLng = sw.lng + pad;
+        const maxLng = ne.lng - pad;
+        const cLat = Math.min(Math.max(lat, minLat), maxLat);
+        const cLng = Math.min(Math.max(lng, minLng), maxLng);
+        return [cLat, cLng];
+    }
+
+    // Inland anchors (same style as Routes tab)
+    const landAnchors = [
+        // West (Ajuda, Restelo, Benfica)
+        [38.725, -9.210], [38.735, -9.205], [38.745, -9.198], [38.740, -9.192],
+        // Central-West (Alcântara, Campolide)
+        [38.725, -9.190], [38.735, -9.185], [38.745, -9.180], [38.750, -9.175],
+        // Central (Avenidas Novas, Saldanha)
+        [38.740, -9.170], [38.735, -9.168], [38.745, -9.165], [38.750, -9.162],
+        // North (Lumiar, Telheiras)
+        [38.760, -9.190], [38.760, -9.175], [38.755, -9.165], [38.755, -9.180],
+        // Southwest (Estrela, Lapa, Campo de Ourique)
+        [38.720, -9.190], [38.725, -9.184], [38.730, -9.178], [38.735, -9.172],
+        // Northwest (Carnide, Pontinha)
+        [38.755, -9.205], [38.750, -9.200], [38.745, -9.195], [38.740, -9.188]
+    ];
+
+    // Pick candidate routes with real stops
+    const pool = allRoutes.filter(r => Array.isArray(stopsDataAll[r.id]) && stopsDataAll[r.id].length >= 2);
+    const desiredCount = isOptimized ? 4 : 24;
+    const candidates = pool.slice(0, Math.min(pool.length, desiredCount));
+
+    const colorForRisk = (risk) => risk === 'High' ? '#DC3545' : risk === 'Med' ? '#FFC107' : '#28A745';
+
+    // Determine anchors: use previous area bounds to place 4 optimized anchors over the same area
+    function anchorsFromBounds(bounds) {
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const latPad = (ne.lat - sw.lat) * 0.12;
+        const lngPad = (ne.lng - sw.lng) * 0.12;
+        const latN = ne.lat - latPad;
+        const latS = sw.lat + latPad;
+        const lngW = sw.lng + lngPad;
+        const lngE = ne.lng - lngPad;
+        return [
+            [latN, lngW], // NW
+            [latN, lngE], // NE
+            [latS, lngW], // SW
+            [latS, lngE]  // SE
+        ];
+    }
+    const optimizedAnchors = (isOptimized && lastAIBounds) ? anchorsFromBounds(lastAIBounds) : [[38.745,-9.200],[38.745,-9.165],[38.725,-9.195],[38.725,-9.170]];
+    const anchorIndices = Array.from({length: 24}, (_, i) => i);
+    for (let i = 0; i < candidates.length; i++) {
+        const routeInfo = candidates[i];
+        const stops = stopsDataAll[routeInfo.id];
+        let orig = stops.map(s => [s.lat, s.lon]);
+        const centroid = orig.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0]).map(v => v / orig.length);
+        const anchor = isOptimized ? optimizedAnchors[i % optimizedAnchors.length] : landAnchors[anchorIndices[i % anchorIndices.length]];
+        const jitterLat = (Math.random() - 0.5) * 0.004;
+        const jitterLng = (Math.random() - 0.5) * 0.004;
+        const target = [anchor[0] + jitterLat, anchor[1] + jitterLng];
+        const scale = isOptimized ? 0.5 : 0.18; // very large when optimized
+        let path = orig.map(([lat, lng]) => {
+            const scaledLat = (lat - centroid[0]) * scale;
+            const scaledLng = (lng - centroid[1]) * scale;
+            let p = clampToLand(target[0] + scaledLat, target[1] + scaledLng);
+            if (isOptimized && lastAIBounds) {
+                p = clampToArea(p[0], p[1], lastAIBounds, 0.003);
+            }
+            return p;
+        });
+        // Inland shift if needed
+        const maxLngPath = Math.max(...path.map(p => p[1]));
+        const minLatPath = Math.min(...path.map(p => p[0]));
+        const eastThreshold = -9.157;
+        const southThreshold = 38.720;
+        let shiftLng = 0, shiftLat = 0;
+        if (maxLngPath > eastThreshold) shiftLng = eastThreshold - maxLngPath - 0.003;
+        if (minLatPath < southThreshold) shiftLat = southThreshold - minLatPath + 0.003;
+        if (shiftLng !== 0 || shiftLat !== 0) {
+            path = path.map(([lat, lng]) => {
+                let p = clampToLand(lat + shiftLat, lng + shiftLng);
+                if (isOptimized && lastAIBounds) p = clampToArea(p[0], p[1], lastAIBounds, 0.003);
+                return p;
+            });
+        }
+        // Close loop
+        if (path.length > 1) {
+            const [s0, s1] = path[0];
+            const [e0, e1] = path[path.length - 1];
+            if (Math.abs(s0 - e0) > 1e-9 || Math.abs(s1 - e1) > 1e-9) path.push([s0, s1]);
+        }
+
+        const color = colorForRisk(routeInfo.risk);
+        const polyline = L.polyline(path, { color, weight: 4, opacity: 0.9 }).addTo(map);
+
+        const startLatLng = L.latLng(path[0][0], path[0][1]);
+        const idIconHtml = `
+            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
+                <div style="color:#2563eb;font-weight:700;font-size:12px;">${getRouteLetter(routeInfo.id)}</div>
+            </div>`;
+        const idIcon = L.divIcon({ html: idIconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
+        const idMarker = L.marker(startLatLng, { icon: idIcon }).addTo(map);
+
+        const vertices = (path.length > 1 && path[0][0] === path[path.length - 1][0] && path[0][1] === path[path.length - 1][1]) ? path.slice(0, -1) : path;
+        const markers = [idMarker];
+        const step = isOptimized ? Math.ceil(vertices.length / 8) : 1; // fewer dots when optimized
+        for (let vi = 0; vi < vertices.length; vi += step) {
+            const pt = vertices[vi];
+            const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }).addTo(map);
+            markers.push(dot);
+        }
+
+        polyline.on('click', () => setFocus(routeInfo.id));
+        routeLayers.push({ polyline, markers, id: routeInfo.id, district: '', color });
+    }
+
+    // Fit bounds to all displayed routes
+    if (routeLayers.length > 0) {
+        const group = L.featureGroup(routeLayers.map(l => l.polyline));
+        const gb = group.getBounds();
+        map.fitBounds(gb, { padding: [20, 20] });
+        if (!isOptimized) {
+            lastAIBounds = gb; // remember area of 24 routes
+        }
+    }
     setTimeout(() => map.invalidateSize(), 100);
 }
 
@@ -474,6 +496,12 @@ function getRiskBgColor(risk) {
         case 'Low': return 'bg-green-500';
         default: return 'bg-gray-500';
     }
+}
+
+// Ensure we display a single-letter route label consistently
+function getRouteLetter(id) {
+    const lettersOnly = String(id).match(/[A-Za-z]/g);
+    return lettersOnly && lettersOnly.length > 0 ? lettersOnly[0].toUpperCase() : 'R';
 }
 
 function initAISorting() {
@@ -745,7 +773,7 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
     });
 
     console.log('✅ Event listeners attached successfully');
-    
+
     // Initialize with Tomorrow selected (default)
     console.log('Initializing with Tomorrow data and default button state...');
     updateToggleState(tomorrowBtn, todayBtn);
@@ -761,14 +789,50 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
         }
         console.log('Optimize button clicked');
         
-        // Show feedback
+        // Create a simple loading popup overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'optimize-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;z-index:2000;';
+        overlay.innerHTML = `
+            <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center">
+                <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+                <p class="text-sm font-medium text-gray-700">Optimizing routes...</p>
+            </div>`;
+        document.body.appendChild(overlay);
+        
+        // Show feedback on button
         const originalText = optimizeBtn.textContent;
         optimizeBtn.textContent = 'Optimizing...';
         optimizeBtn.disabled = true;
         optimizeBtn.className = 'w-full py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed transition-colors';
         
-        // Simulate optimization process
+        // Start map update immediately to minimize perceived latency
+        isOptimized = true;
+        // Redraw with fewer layers (handled inside addRoutesToAIMap)
+        setTimeout(() => addRoutesToAIMap(), 0);
+
+        // Simulate brief optimization and update KPI values
         setTimeout(() => {
+            // Update KPIs with sample improved numbers
+            const updates = {
+                'routes-optimised': '18 %',
+                'stops-merged': '9',
+                'calls-scheduled': '1',
+                'time-saved': '54 min',
+                'success-rate': '+8.1 %',
+                'spoilage-risk': '-1.1 %',
+                'efficiency-gain': '18 %',
+                'cost-reduction': '€2,940'
+            };
+            Object.entries(updates).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            });
+            
+            // Remove loading popup
+            const ov = document.getElementById('optimize-overlay');
+            if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+            
             optimizeBtn.textContent = 'Optimization Complete!';
             optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg transition-colors';
             
@@ -776,30 +840,67 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
             setTimeout(() => {
                 optimizeBtn.textContent = originalText;
                 // Restore state depending on current toggle
-                // Use the tracked state to determine button appearance
                 if (currentToggleState === 'tomorrow') {
                     updateOptimizeButton(true); // Disabled gray for Tomorrow
                 } else {
                     updateOptimizeButton(false); // Enabled green for Today
                 }
-            }, 2000);
-        }, 1500);
+            }, 1200);
+        }, 600);
     });
     
-    // Timeline button: focus a route and ensure timeline area is populated
+    // Timeline panel that replaces the Optimization Results card (no overlay)
     const timelineBtn = document.getElementById('timeline-btn');
+    const resultsView = document.getElementById('results-view');
+    const timelineView = document.getElementById('timeline-view');
+    const timelineCourier = document.getElementById('timeline-panel-courier');
+    const timelineContent = document.getElementById('timeline-panel-content');
+    const timelineClosePanel = document.getElementById('timeline-close-panel');
+ 
+    function renderTimelineItems(route) {
+        if (!timelineContent) return;
+        const stops = (stopsData[route.id] || []).slice(0, 12);
+        timelineCourier.textContent = route.name || `Courier ${route.id}`;
+        timelineContent.innerHTML = stops.map((stop, idx) => {
+            const base = 'rounded-lg border p-3';
+            const accent = idx === 0 || idx === stops.length - 1 ? 'bg-blue-50 border-blue-200' : (stop.optimised ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200');
+            const badge = stop.optimised ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Optimised by AI</span>' : '';
+            const warn = stop.warning ? `<div class="text-xs text-amber-600 mt-1"><i class="ri-alert-line mr-1"></i>${stop.warning}</div>` : '';
+            const placeBadge = stop.type === 'warehouse' ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">Warehouse</span>' : '';
+            return `
+                <div class="${base} ${accent}">
+                    <div class="text-sm font-semibold text-gray-900">${stop.eta || stop.time || ''} ${stop.addr || stop.address || 'Stop'}</div>
+                    <div class="text-xs text-gray-500 mt-1 flex items-center">${placeBadge}${badge}</div>
+                    ${warn}
+                </div>
+            `;
+        }).join('');
+    }
+ 
+    function showTimelinePanel(route) {
+        if (!resultsView || !timelineView) return;
+        renderTimelineItems(route);
+        resultsView.classList.add('hidden');
+        timelineView.classList.remove('hidden');
+        timelineView.classList.add('flex');
+    }
+
+    function hideTimelinePanel() {
+        if (!resultsView || !timelineView) return;
+        timelineView.classList.add('hidden');
+        timelineView.classList.remove('flex');
+        resultsView.classList.remove('hidden');
+    }
+
+    if (timelineClosePanel) timelineClosePanel.addEventListener('click', hideTimelinePanel);
+
     if (timelineBtn) {
         timelineBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Timeline button clicked');
             const firstRoute = allRoutes && allRoutes.length ? allRoutes[0] : null;
             if (firstRoute) {
                 setFocus(firstRoute.id);
-                // Smooth scroll to a potential timeline panel if present
-                const timelineContainer = document.getElementById('timeline-list');
-                if (timelineContainer && typeof timelineContainer.scrollIntoView === 'function') {
-                    timelineContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
+                showTimelinePanel(firstRoute);
             } else {
                 console.warn('No routes available to show timeline');
             }

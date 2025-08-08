@@ -518,19 +518,15 @@ const templates = {
 
                 </div>
                 <div class="bg-white shadow rounded-lg p-4 flex flex-col h-full">
+                <!-- Results view -->
+                <div id="results-view" class="flex flex-col h-full">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-800">Optimization Results</h3>
                     </div>
-                    
                     <div class="flex bg-gray-100 rounded-lg p-1 mb-4">
-                        <button id="toggle-tomorrow" class="flex-1 py-2 px-3 text-sm font-medium rounded-md bg-blue-600 text-white transition-colors">
-                            Tomorrow
-                        </button>
-                        <button id="toggle-today" class="flex-1 py-2 px-3 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800 transition-colors">
-                            Today
-                        </button>
+                        <button id="toggle-tomorrow" class="flex-1 py-2 px-3 text-sm font-medium rounded-md bg-blue-600 text-white transition-colors">Tomorrow</button>
+                        <button id="toggle-today" class="flex-1 py-2 px-3 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800 transition-colors">Today</button>
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-3 mb-6 flex-grow">
                         <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
                             <p class="text-sm font-medium text-gray-700">Routes Optimised</p>
@@ -565,14 +561,32 @@ const templates = {
                             <p id="cost-reduction" class="text-2xl font-bold text-green-600 mt-1">€2,340</p>
                         </div>
                     </div>
-                    
+                    <!-- Optional inline timeline (kept hidden) -->
+                    <div id="optimization-timeline" class="hidden mb-4">
+                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <p class="text-sm font-semibold text-gray-800 mb-2">Timeline</p>
+                            <ul id="optimization-timeline-list" class="space-y-2 text-sm text-gray-700"></ul>
+                        </div>
+                    </div>
                     <div class="space-y-3 mt-auto">
-                        <button id="optimize-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                            Optimize
-                        </button>
-                        <button id="timeline-btn" class="w-full border border-blue-600 text-blue-600 px-4 py-3 rounded-lg font-normal hover:bg-blue-50 transition">
-                            Timeline
-                        </button>
+                        <button id="optimize-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">Optimize</button>
+                        <button id="timeline-btn" class="w-full border border-blue-600 text-blue-600 px-4 py-3 rounded-lg font-normal hover:bg-blue-50 transition">Timeline</button>
+                    </div>
+                </div>
+
+                <!-- Timeline view (replaces results view) -->
+                <div id="timeline-view" class="hidden flex-col h-full">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-1">
+                            <span id="timeline-panel-courier" class="text-base font-semibold text-gray-900">Courier</span>
+                            <i class="ri-arrow-down-s-line text-gray-500"></i>
+                        </div>
+                        <button id="timeline-close-panel" class="p-2 rounded hover:bg-gray-100" title="Close"><i class="ri-close-line text-xl text-gray-600"></i></button>
+                    </div>
+                    <button class="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 mb-3 self-start">Show All Days</button>
+                    <div class="rounded-lg border border-blue-200 bg-blue-50/30 p-3">
+                        <div class="text-sm font-semibold text-blue-700 mb-3"><i class="ri-record-circle-line mr-1 align-middle"></i> Today (solid)</div>
+                        <div id="timeline-panel-content" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
             </div>
