@@ -5,6 +5,7 @@ let stopsData = {};
 let currentSort = { key: 'id', asc: true };
 let isOptimized = false; // when true, show 3 routes instead of 9
 let lastAIBounds = null; // track bounds of last non-optimized render
+let lastAIKeyPoints = []; // sample of points used by the 24-route layout
 
 
 // DOM Elements
@@ -189,14 +190,13 @@ function initAIMap() {
         }
     }, 1000);
 
-    // Add routes to the map
+    // Add routes to the map (match the "Routes" tab appearance)
     setTimeout(() => {
         if (allRoutesData && allRoutesData.length > 0) {
-            console.log('🛣️ Adding routes to AI map...');
-            addRoutesToAIMap();
+            console.log('🛣️ Adding routes (Routes-tab style) to AI map...');
+            drawRoutesLikeRoutesTabOnAI();
         } else {
             console.warn('⚠️ No routes data available for AI map');
-            // Add a sample marker to show the map is working
             L.marker([38.736946, -9.142685]).addTo(map)
                 .bindPopup('AI Map is working! No routes data available.')
                 .openPopup();
@@ -298,7 +298,7 @@ window.checkAIMapContainer = function() {
     return true;
 };
 
-function addRoutesToAIMap() {
+async function addRoutesToAIMap() {
     // Clear existing layers
     routeLayers.forEach(layer => {
         map.removeLayer(layer.polyline);
@@ -328,63 +328,450 @@ function addRoutesToAIMap() {
         return [cLat, cLng];
     }
 
-    // Inland anchors (same style as Routes tab)
+    // Clamp to a rectangular region described by {minLat, maxLat, minLng, maxLng}
+    function clampToRect(lat, lng, rect, padLat = 0.002, padLng = 0.002) {
+        if (!rect) return [lat, lng];
+        const minLat = rect.minLat + padLat;
+        const maxLat = rect.maxLat - padLat;
+        const minLng = rect.minLng + padLng;
+        const maxLng = rect.maxLng - padLng;
+        const cLat = Math.min(Math.max(lat, minLat), maxLat);
+        const cLng = Math.min(Math.max(lng, minLng), maxLng);
+        return [cLat, cLng];
+    }
+
+    // From a Leaflet bounds, build 4 quadrant rectangles (NW, NE, SW, SE)
+    function quadrantsFromBounds(bounds, padRel = 0.06) {
+        if (!bounds) return null;
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const latSpan = ne.lat - sw.lat;
+        const lngSpan = ne.lng - sw.lng;
+        const latPad = latSpan * padRel;
+        const lngPad = lngSpan * padRel;
+        const latMid = (ne.lat + sw.lat) / 2;
+        const lngMid = (ne.lng + sw.lng) / 2;
+        // Return 4 rectangles covering area minus padding
+        return [
+            // NW
+            { minLat: latMid + latPad, maxLat: ne.lat - latPad, minLng: sw.lng + lngPad, maxLng: lngMid - lngPad },
+            // NE
+            { minLat: latMid + latPad, maxLat: ne.lat - latPad, minLng: lngMid + lngPad, maxLng: ne.lng - lngPad },
+            // SW
+            { minLat: sw.lat + latPad, maxLat: latMid - latPad, minLng: sw.lng + lngPad, maxLng: lngMid - lngPad },
+            // SE
+            { minLat: sw.lat + latPad, maxLat: latMid - latPad, minLng: lngMid + lngPad, maxLng: ne.lng - lngPad }
+        ];
+    }
+
+    function rectCenter(rect) {
+        return [ (rect.minLat + rect.maxLat) / 2, (rect.minLng + rect.maxLng) / 2 ];
+    }
+
+    function rectSpans(rect) {
+        return [ rect.maxLat - rect.minLat, rect.maxLng - rect.minLng ];
+    }
+
+    // If we are in optimized mode and we previously drew 24 routes, reuse those
+    // points so the 4 routes pass through the same places and cover the same area.
+    if (isOptimized && lastAIBounds && Array.isArray(lastAIKeyPoints) && lastAIKeyPoints.length > 0) {
+        const rects = quadrantsFromBounds(lastAIBounds, 0.0); // no padding: same total area
+        const colors = ['#28A745', '#0D6EFD', '#FFC107', '#DC3545'];
+        const ids = ['A', 'B', 'C', 'D'];
+
+        function pointInRect([lat, lng], r) {
+            return lat >= r.minLat && lat <= r.maxLat && lng >= r.minLng && lng <= r.maxLng;
+        }
+
+        function rectBoundaryPoints(r, inset = 0.0008) {
+            const a = [r.maxLat - inset, r.minLng + inset]; // NW
+            const b = [r.maxLat - inset, r.maxLng - inset]; // NE
+            const c = [r.minLat + inset, r.maxLng - inset]; // SE
+            const d = [r.minLat + inset, r.minLng + inset]; // SW
+            // include midpoints as soft anchors
+            const ab = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+            const bc = [(b[0] + c[0]) / 2, (b[1] + c[1]) / 2];
+            const cd = [(c[0] + d[0]) / 2, (c[1] + d[1]) / 2];
+            const da = [(d[0] + a[0]) / 2, (d[1] + a[1]) / 2];
+            // return 8 anchors (no explicit closing point)
+            return [a, ab, b, bc, c, cd, d, da];
+        }
+
+        function rectCenter(r) {
+            return [(r.minLat + r.maxLat) / 2, (r.minLng + r.maxLng) / 2];
+        }
+
+        function angleFromCenter(pt, center) {
+            return Math.atan2(pt[0] - center[0], pt[1] - center[1]);
+        }
+
+        // Chaikin smoothing for a more realistic route shape
+        function smoothClosedPathChaikin(points, iterations = 2) {
+            let pts = points.slice();
+            for (let it = 0; it < iterations; it++) {
+                const out = [];
+                for (let i = 0; i < pts.length; i++) {
+                    const p0 = pts[i];
+                    const p1 = pts[(i + 1) % pts.length];
+                    const q = [0.75 * p0[0] + 0.25 * p1[0], 0.75 * p0[1] + 0.25 * p1[1]];
+                    const r = [0.25 * p0[0] + 0.75 * p1[0], 0.25 * p0[1] + 0.75 * p1[1]];
+                    out.push(q, r);
+                }
+                pts = out;
+            }
+            return pts;
+        }
+
+        function ensureClosedPath(points, epsilon = 1e-9) {
+            if (!points || points.length === 0) return points;
+            const first = points[0];
+            const last = points[points.length - 1];
+            const dLat = Math.abs(first[0] - last[0]);
+            const dLng = Math.abs(first[1] - last[1]);
+            if (dLat > epsilon || dLng > epsilon) {
+                return [...points, [first[0], first[1]]];
+            }
+            return points;
+        }
+
+        // Helpers to create a natural-looking outer-perimeter path that hugs the rectangle edges
+        function seededRandFactory(seed) {
+            let s = seed;
+            return () => {
+                s = Math.sin(s) * 10000;
+                return s - Math.floor(s);
+            };
+        }
+
+        function buildNaturalPerimeter(rect, inset, seed) {
+            const rand = seededRandFactory(seed);
+            const topY = rect.maxLat - inset;
+            const bottomY = rect.minLat + inset;
+            const leftX = rect.minLng + inset;
+            const rightX = rect.maxLng - inset;
+
+            const latSpan = rect.maxLat - rect.minLat;
+            const lngSpan = rect.maxLng - rect.minLng;
+            const ampLat = Math.min(latSpan * 0.008, inset * 0.8);
+            const ampLng = Math.min(lngSpan * 0.008, inset * 0.8);
+
+            const topSteps = 14, rightSteps = 14, bottomSteps = 14, leftSteps = 14;
+            const topPhase = rand() * Math.PI * 2, rightPhase = rand() * Math.PI * 2, bottomPhase = rand() * Math.PI * 2, leftPhase = rand() * Math.PI * 2;
+            const topFreq = 1.5 + rand() * 1.2, rightFreq = 1.5 + rand() * 1.2, bottomFreq = 1.5 + rand() * 1.2, leftFreq = 1.5 + rand() * 1.2;
+
+            const pts = [];
+            // Top edge: left -> right
+            for (let i = 0; i <= topSteps; i++) {
+                const t = i / topSteps;
+                const x = leftX + (rightX - leftX) * t;
+                const y = topY - ampLat * Math.sin(topPhase + topFreq * t);
+                pts.push([y, x]);
+            }
+            // Right edge: top -> bottom
+            for (let i = 1; i <= rightSteps; i++) {
+                const t = i / rightSteps;
+                const y = topY - (topY - bottomY) * t;
+                const x = rightX - ampLng * Math.sin(rightPhase + rightFreq * t);
+                pts.push([y, x]);
+            }
+            // Bottom edge: right -> left
+            for (let i = 1; i <= bottomSteps; i++) {
+                const t = i / bottomSteps;
+                const x = rightX - (rightX - leftX) * t;
+                const y = bottomY + ampLat * Math.sin(bottomPhase + bottomFreq * t);
+                pts.push([y, x]);
+            }
+            // Left edge: bottom -> top
+            for (let i = 1; i < leftSteps; i++) {
+                const t = i / leftSteps;
+                const y = bottomY + (topY - bottomY) * t;
+                const x = leftX + ampLng * Math.sin(leftPhase + leftFreq * t);
+                pts.push([y, x]);
+            }
+            return pts;
+        }
+
+        // Distance helpers & conversions
+        const toRad = (deg) => deg * Math.PI / 180;
+        const haversineMeters = (a, b) => {
+            const R = 6371000; // meters
+            const dLat = toRad(b[0] - a[0]);
+            const dLng = toRad(b[1] - a[1]);
+            const lat1 = toRad(a[0]);
+            const lat2 = toRad(b[0]);
+            const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+            return 2 * R * Math.asin(Math.sqrt(h));
+        };
+        const metersToLat = (m) => m / 111320;
+        const metersToLng = (m, atLat) => m / (111320 * Math.cos(toRad(atLat)));
+
+        // Build convex hull of points and inset toward centroid; densify to ~80–150m spacing
+        function buildPerimeterPoints(rect, points, opts = {}) {
+            // Tunables for inset and spacing
+            const insetMin = opts.insetMinM ?? 20;
+            const insetMax = opts.insetMaxM ?? 35;
+            const stepMin = opts.stepMinM ?? 80;
+            const stepMax = opts.stepMaxM ?? 150;
+            const varianceMin = opts.varianceMin ?? 0.2; // 20%
+            const varianceMax = opts.varianceMax ?? 0.6; // 60%
+
+            // Small inset to stay on streets near the outer boundary while preserving area location
+            const insetM = insetMin + Math.random() * (insetMax - insetMin);
+            const insetLat = metersToLat(insetM);
+            const insetLng = metersToLng(insetM, (rect.minLat + rect.maxLat) / 2);
+
+            let base = (points && points.length >= 3) ? points : [
+                [rect.maxLat - insetLat, rect.minLng + insetLng],
+                [rect.maxLat - insetLat, rect.maxLng - insetLng],
+                [rect.minLat + insetLat, rect.maxLng - insetLng],
+                [rect.minLat + insetLat, rect.minLng + insetLng]
+            ];
+
+            const hull = (function convexHullLatLng(pts) {
+                if (!pts || pts.length <= 3) return pts.slice();
+                const arr = pts.map(([la, ln]) => ({ x: ln, y: la, ll: [la, ln] }))
+                               .sort((a,b)=> a.x===b.x ? a.y-b.y : a.x-b.x);
+                const cross = (o,a,b)=> (a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+                const lower=[]; for(const p of arr){ while(lower.length>=2 && cross(lower[lower.length-2], lower[lower.length-1], p) <= 0) lower.pop(); lower.push(p);} 
+                const upper=[]; for(let i=arr.length-1;i>=0;i--){ const p=arr[i]; while(upper.length>=2 && cross(upper[upper.length-2], upper[upper.length-1], p) <= 0) upper.pop(); upper.push(p);} 
+                const h=lower.concat(upper.slice(1,-1));
+                return h.map(p=>p.ll);
+            })(base);
+
+            const centroid = hull.reduce((acc,p)=>[acc[0]+p[0], acc[1]+p[1]],[0,0]).map(v=>v/hull.length);
+            const inset = hull.map(([lat,lng])=>{
+                const dy = lat - centroid[0];
+                const dx = lng - centroid[1];
+                const len = Math.sqrt(dy*dy + dx*dx) || 1e-6;
+                return [lat - insetLat * (dy/len), lng - insetLng * (dx/len)];
+            });
+
+            const densified = [];
+            for (let i=0;i<inset.length;i++){
+                const a = inset[i];
+                const b = inset[(i+1)%inset.length];
+                const segLen = haversineMeters(a,b);
+                let step = stepMin + Math.random()*(stepMax - stepMin);
+                const variance = varianceMin + Math.random()*(varianceMax - varianceMin);
+                step *= (1 - variance);
+                const steps = Math.max(1, Math.floor(segLen/step));
+                for(let s=0;s<steps;s++){
+                    const t = s/steps;
+                    densified.push([a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t]);
+                }
+            }
+            densified.push(densified[0]);
+            return densified;
+        }
+
+        async function osrmSnapLoop(points) {
+            const maxPerReq = 20;
+            const chunks = [];
+            for(let i=0;i<points.length;i+=maxPerReq-1){
+                const slice = points.slice(i, Math.min(points.length, i+maxPerReq));
+                if (i>0) slice.unshift(points[i-1]);
+                chunks.push(slice);
+            }
+            const allCoords = [];
+            for (const ch of chunks){
+                const coordStr = ch.map(p=> `${p[1].toFixed(6)},${p[0].toFixed(6)}`).join(';');
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson&continue_straight=true&alternatives=false`;
+                try{
+                    const res = await fetch(url);
+                    const json = await res.json();
+                    const coords = json?.routes?.[0]?.geometry?.coordinates || [];
+                    coords.forEach(([lng,lat])=> allCoords.push([lat,lng]));
+                }catch(e){
+                    ch.forEach(p=> allCoords.push([p[0],p[1]]));
+                }
+            }
+            const simplified = [];
+            for(const p of allCoords){
+                const last = simplified[simplified.length-1];
+                if (!last || Math.abs(last[0]-p[0])>1e-6 || Math.abs(last[1]-p[1])>1e-6){
+                    simplified.push(p);
+                }
+            }
+            return simplified;
+        }
+
+        function clampPathToRectMeters(path, rect, padM) {
+            const padLat = metersToLat(padM);
+            const padLng = metersToLng(padM, (rect.minLat + rect.maxLat) / 2);
+            return path.map(([la, ln]) => [
+                Math.min(Math.max(la, rect.minLat + padLat), rect.maxLat - padLat),
+                Math.min(Math.max(ln, rect.minLng + padLng), rect.maxLng - padLng)
+            ]);
+        }
+
+        function fitBoundsIfShrunk(path, rect, scaleCap = 1.12) {
+            // If snapped path shrank too much, nudge points outward linearly toward rect edges
+            let latMin = Infinity, latMax = -Infinity, lngMin = Infinity, lngMax = -Infinity;
+            path.forEach(([la,ln]) => { latMin = Math.min(latMin, la); latMax = Math.max(latMax, la); lngMin = Math.min(lngMin, ln); lngMax = Math.max(lngMax, ln); });
+            const latSpan = latMax - latMin; const lngSpan = lngMax - lngMin;
+            const targetLatSpan = (rect.maxLat - rect.minLat) * 0.96; // keep ~same area
+            const targetLngSpan = (rect.maxLng - rect.minLng) * 0.96;
+            const sLat = targetLatSpan / Math.max(1e-9, latSpan);
+            const sLng = targetLngSpan / Math.max(1e-9, lngSpan);
+            const scale = Math.min(scaleCap, Math.max(1.0, Math.min(sLat, sLng))); // expand up to cap
+            if (scale <= 1.001) return path;
+            const cLat = (rect.minLat + rect.maxLat) / 2;
+            const cLng = (rect.minLng + rect.maxLng) / 2;
+            return path.map(([la,ln]) => [ cLat + (la - cLat) * scale, cLng + (ln - cLng) * scale ]);
+        }
+
+        function shiftPathTowards(path, fromCenter, toCenter, meters) {
+            if (meters <= 0) return path;
+            const dLat = toCenter[0] - fromCenter[0];
+            const dLng = toCenter[1] - fromCenter[1];
+            const latMeters = dLat * 111320;
+            const lngMeters = dLng * 111320 * Math.cos(toRad((fromCenter[0]+toCenter[0])/2));
+            const len = Math.sqrt(latMeters*latMeters + lngMeters*lngMeters) || 1e-6;
+            const unitLat = (dLat/len) * meters / 111320;
+            const unitLng = (dLng/len) * meters / (111320 * Math.cos(toRad((fromCenter[0]+toCenter[0])/2)));
+            return path.map(([la,ln]) => [la + unitLat, ln + unitLng]);
+        }
+
+        for (let idx = 0; idx < rects.length; idx++) {
+            const r = rects[idx];
+            // Use previously visited points inside rect to shape the perimeter
+            const pts = lastAIKeyPoints.filter(p => p[0] >= r.minLat && p[0] <= r.maxLat && p[1] >= r.minLng && p[1] <= r.maxLng);
+            // Tweak A/B for longer routes and closeness to center
+            const isAB = idx === 0 || idx === 1;
+            const options = isAB ? { insetMinM: 12, insetMaxM: 22, stepMinM: 60, stepMaxM: 120, varianceMin: 0.3, varianceMax: 0.6 } : {};
+            let ring = buildPerimeterPoints(r, pts, options);
+            ring = await osrmSnapLoop(ring);
+            // Keep snapped path inside the same quadrant area (with small padding)
+            ring = clampPathToRectMeters(ring, r, 12);
+            // Expand slightly more for A/B to lengthen perimeter
+            ring = fitBoundsIfShrunk(ring, r, isAB ? 1.20 : 1.12);
+            // Move A/B slightly toward the global center to be closer to others
+            if (isAB && lastAIBounds) {
+                const allCenter = [(lastAIBounds.getSouthWest().lat + lastAIBounds.getNorthEast().lat)/2, (lastAIBounds.getSouthWest().lng + lastAIBounds.getNorthEast().lng)/2];
+                const rectCenterPt = [(r.minLat + r.maxLat)/2, (r.minLng + r.maxLng)/2];
+                ring = shiftPathTowards(ring, rectCenterPt, allCenter, 45); // shift ~45m toward center
+                ring = clampPathToRectMeters(ring, r, 10);
+            }
+            const smooth = smoothClosedPathChaikin(ring, 1);
+            const finalPath = ensureClosedPath(smooth);
+
+            const color = colors[idx % colors.length];
+            const polyline = L.polyline(finalPath, { color, weight: 5, opacity: 0, lineJoin: 'round', lineCap: 'round' }).addTo(map);
+            setTimeout(() => polyline.setStyle({ opacity: 0.95 }), 60);
+            const startLatLng = L.latLng(finalPath[0][0], finalPath[0][1]);
+            const idIconHtml = `
+                <div style=\"display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;\">\n                    <div style=\"color:#2563eb;font-weight:700;font-size:12px;\">${ids[idx]}</div>\n                </div>`;
+            const idIcon = L.divIcon({ html: idIconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
+            const idMarker = L.marker(startLatLng, { icon: idIcon }).addTo(map);
+
+            const markers = [idMarker];
+            let accum = 0; let lastPt = finalPath[0];
+            for (let vi = 1; vi < finalPath.length; vi++) {
+                const pt = finalPath[vi];
+                accum += haversineMeters(lastPt, pt);
+                if (accum >= 150) {
+                    const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }).addTo(map);
+                    markers.push(dot);
+                    accum = 0;
+                }
+                lastPt = pt;
+            }
+
+            routeLayers.push({ polyline, markers, id: ids[idx], district: '', color });
+
+            // Expose GeoJSON
+            window.optimizedGeoJSON = window.optimizedGeoJSON || {};
+            window.optimizedGeoJSON[ids[idx]] = {
+                type: 'Feature',
+                properties: { id: ids[idx], color },
+                geometry: { type: 'LineString', coordinates: finalPath.map(([la,ln])=>[ln,la]) }
+            };
+        }
+
+        // Preserve the same overall map area as before optimization
+        if (routeLayers.length > 0 && lastAIBounds) {
+            map.fitBounds(lastAIBounds, { padding: [20, 20] });
+        }
+        setTimeout(() => map.invalidateSize(), 100);
+        return; // optimized rendering complete
+    }
+
+    // Inland anchors (used for 24-route layout)
     const landAnchors = [
-        // West (Ajuda, Restelo, Benfica)
         [38.725, -9.210], [38.735, -9.205], [38.745, -9.198], [38.740, -9.192],
-        // Central-West (Alcântara, Campolide)
         [38.725, -9.190], [38.735, -9.185], [38.745, -9.180], [38.750, -9.175],
-        // Central (Avenidas Novas, Saldanha)
         [38.740, -9.170], [38.735, -9.168], [38.745, -9.165], [38.750, -9.162],
-        // North (Lumiar, Telheiras)
         [38.760, -9.190], [38.760, -9.175], [38.755, -9.165], [38.755, -9.180],
-        // Southwest (Estrela, Lapa, Campo de Ourique)
         [38.720, -9.190], [38.725, -9.184], [38.730, -9.178], [38.735, -9.172],
-        // Northwest (Carnide, Pontinha)
         [38.755, -9.205], [38.750, -9.200], [38.745, -9.195], [38.740, -9.188]
     ];
 
     // Pick candidate routes with real stops
-    const pool = allRoutes.filter(r => Array.isArray(stopsDataAll[r.id]) && stopsDataAll[r.id].length >= 2);
+    const pool = allRoutes.filter(route => Array.isArray(stopsDataAll[route.id]) && stopsDataAll[route.id].length >= 2);
     const desiredCount = isOptimized ? 4 : 24;
-    const candidates = pool.slice(0, Math.min(pool.length, desiredCount));
+    // When optimized, prefer the "major" routes by highest number of stops, then by distance (km)
+    const optimizedPool = isOptimized
+        ? [...pool].sort((a, b) => {
+            const stopsA = typeof a.stops === 'number' ? a.stops : 0;
+            const stopsB = typeof b.stops === 'number' ? b.stops : 0;
+            if (stopsB !== stopsA) return stopsB - stopsA;
+            const kmA = typeof a.km === 'number' ? a.km : 0;
+            const kmB = typeof b.km === 'number' ? b.km : 0;
+            return kmB - kmA;
+        })
+        : pool;
+    const candidates = optimizedPool.slice(0, Math.min(optimizedPool.length, desiredCount));
 
     const colorForRisk = (risk) => risk === 'High' ? '#DC3545' : risk === 'Med' ? '#FFC107' : '#28A745';
 
-    // Determine anchors: use previous area bounds to place 4 optimized anchors over the same area
-    function anchorsFromBounds(bounds) {
-        const sw = bounds.getSouthWest();
-        const ne = bounds.getNorthEast();
-        const latPad = (ne.lat - sw.lat) * 0.12;
-        const lngPad = (ne.lng - sw.lng) * 0.12;
-        const latN = ne.lat - latPad;
-        const latS = sw.lat + latPad;
-        const lngW = sw.lng + lngPad;
-        const lngE = ne.lng - lngPad;
-        return [
-            [latN, lngW], // NW
-            [latN, lngE], // NE
-            [latS, lngW], // SW
-            [latS, lngE]  // SE
-        ];
-    }
-    const optimizedAnchors = (isOptimized && lastAIBounds) ? anchorsFromBounds(lastAIBounds) : [[38.745,-9.200],[38.745,-9.165],[38.725,-9.195],[38.725,-9.170]];
+    // Build quadrant rectangles to maintain original coverage area when optimized
+    const quadrantRects = (isOptimized && lastAIBounds) ? quadrantsFromBounds(lastAIBounds, 0.06) : null;
     const anchorIndices = Array.from({length: 24}, (_, i) => i);
+    // Collect a sample of points used when drawing the full (non-optimized) layout
+    const sampledPoints = [];
+
     for (let i = 0; i < candidates.length; i++) {
         const routeInfo = candidates[i];
         const stops = stopsDataAll[routeInfo.id];
         let orig = stops.map(s => [s.lat, s.lon]);
         const centroid = orig.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0]).map(v => v / orig.length);
-        const anchor = isOptimized ? optimizedAnchors[i % optimizedAnchors.length] : landAnchors[anchorIndices[i % anchorIndices.length]];
-        const jitterLat = (Math.random() - 0.5) * 0.004;
-        const jitterLng = (Math.random() - 0.5) * 0.004;
-        const target = [anchor[0] + jitterLat, anchor[1] + jitterLng];
-        const scale = isOptimized ? 0.5 : 0.18; // very large when optimized
+
+        // Choose placement and scale
+        let target, scale;
+        let rectForClamp = null;
+        if (isOptimized && quadrantRects && quadrantRects.length === 4) {
+            const rect = quadrantRects[i % 4];
+            rectForClamp = rect;
+            const [rectLatSpan, rectLngSpan] = rectSpans(rect);
+            const origLatMin = Math.min(...orig.map(p => p[0]));
+            const origLatMax = Math.max(...orig.map(p => p[0]));
+            const origLngMin = Math.min(...orig.map(p => p[1]));
+            const origLngMax = Math.max(...orig.map(p => p[1]));
+            const origLatSpan = Math.max(1e-6, origLatMax - origLatMin);
+            const origLngSpan = Math.max(1e-6, origLngMax - origLngMin);
+            const targetLatSpan = rectLatSpan * 0.85; // fill ~85% of quadrant
+            const targetLngSpan = rectLngSpan * 0.85;
+            const sLat = targetLatSpan / origLatSpan;
+            const sLng = targetLngSpan / origLngSpan;
+            scale = Math.max(0.25, Math.min(1.5, Math.min(sLat, sLng)));
+            const c = rectCenter(rect);
+            const jitterLat = (Math.random() - 0.5) * rectLatSpan * 0.04;
+            const jitterLng = (Math.random() - 0.5) * rectLngSpan * 0.04;
+            target = [c[0] + jitterLat, c[1] + jitterLng];
+        } else {
+            const anchor = landAnchors[anchorIndices[i % anchorIndices.length]];
+            const jitterLat = (Math.random() - 0.5) * 0.004;
+            const jitterLng = (Math.random() - 0.5) * 0.004;
+            target = [anchor[0] + jitterLat, anchor[1] + jitterLng];
+            scale = 0.18;
+        }
         let path = orig.map(([lat, lng]) => {
             const scaledLat = (lat - centroid[0]) * scale;
             const scaledLng = (lng - centroid[1]) * scale;
             let p = clampToLand(target[0] + scaledLat, target[1] + scaledLng);
-            if (isOptimized && lastAIBounds) {
+            if (isOptimized && rectForClamp) {
+                p = clampToRect(p[0], p[1], rectForClamp, 0.003, 0.003);
+            } else if (isOptimized && lastAIBounds) {
                 p = clampToArea(p[0], p[1], lastAIBounds, 0.003);
             }
             return p;
@@ -400,7 +787,8 @@ function addRoutesToAIMap() {
         if (shiftLng !== 0 || shiftLat !== 0) {
             path = path.map(([lat, lng]) => {
                 let p = clampToLand(lat + shiftLat, lng + shiftLng);
-                if (isOptimized && lastAIBounds) p = clampToArea(p[0], p[1], lastAIBounds, 0.003);
+                if (isOptimized && rectForClamp) p = clampToRect(p[0], p[1], rectForClamp, 0.003, 0.003);
+                else if (isOptimized && lastAIBounds) p = clampToArea(p[0], p[1], lastAIBounds, 0.003);
                 return p;
             });
         }
@@ -431,17 +819,30 @@ function addRoutesToAIMap() {
             markers.push(dot);
         }
 
+        // When not optimized, sample some points so the later 4 routes can pass through them
+        if (!isOptimized) {
+            const keyStep = Math.max(1, Math.floor(path.length / 20));
+            for (let k = 0; k < path.length; k += keyStep) {
+                sampledPoints.push(path[k]);
+            }
+        }
+
         polyline.on('click', () => setFocus(routeInfo.id));
         routeLayers.push({ polyline, markers, id: routeInfo.id, district: '', color });
     }
 
-    // Fit bounds to all displayed routes
+    // Fit bounds: for optimized, preserve original coverage; otherwise compute and save
     if (routeLayers.length > 0) {
         const group = L.featureGroup(routeLayers.map(l => l.polyline));
         const gb = group.getBounds();
-        map.fitBounds(gb, { padding: [20, 20] });
         if (!isOptimized) {
             lastAIBounds = gb; // remember area of 24 routes
+            lastAIKeyPoints = sampledPoints; // remember points that routes passed through
+            map.fitBounds(gb, { padding: [20, 20] });
+        } else if (lastAIBounds) {
+            map.fitBounds(lastAIBounds, { padding: [20, 20] });
+        } else {
+            map.fitBounds(gb, { padding: [20, 20] });
         }
     }
     setTimeout(() => map.invalidateSize(), 100);
@@ -609,14 +1010,14 @@ function initToggleButtons() {
         attempts++;
         console.log(`Attempt ${attempts} to find toggle elements...`);
         
-        const tomorrowBtn = document.getElementById('toggle-tomorrow');
+        const yesterdayBtn = document.getElementById('toggle-yesterday');
         const todayBtn = document.getElementById('toggle-today');
         const optimizeBtn = document.getElementById('optimize-btn');
 
-        if (!tomorrowBtn || !todayBtn || !optimizeBtn) {
+        if (!yesterdayBtn || !todayBtn || !optimizeBtn) {
             console.log('Some elements not found:', {
-                tomorrowBtn: !!tomorrowBtn,
-                todayBtn: !!todayBtn, 
+                yesterdayBtn: !!yesterdayBtn,
+                todayBtn: !!todayBtn,
                 optimizeBtn: !!optimizeBtn
             });
             
@@ -631,32 +1032,27 @@ function initToggleButtons() {
         }
         
         console.log('✅ All toggle buttons found successfully on attempt', attempts);
-        console.log('Found elements:', {
-            tomorrowBtn: tomorrowBtn.textContent,
-            todayBtn: todayBtn.textContent,
-            optimizeBtn: optimizeBtn.textContent
-        });
+        console.log('Found elements:', { yesterdayBtn: yesterdayBtn.textContent, todayBtn: todayBtn.textContent, optimizeBtn: optimizeBtn.textContent });
         
         // Remove any existing event listeners
-        const newTomorrowBtn = tomorrowBtn.cloneNode(true);
+        const newYesterdayBtn = yesterdayBtn.cloneNode(true);
         const newTodayBtn = todayBtn.cloneNode(true);
-        tomorrowBtn.parentNode.replaceChild(newTomorrowBtn, tomorrowBtn);
+        yesterdayBtn.parentNode.replaceChild(newYesterdayBtn, yesterdayBtn);
         todayBtn.parentNode.replaceChild(newTodayBtn, todayBtn);
-        
-        setupToggleFunctionality(newTomorrowBtn, newTodayBtn, optimizeBtn);
+        setupToggleFunctionality(newYesterdayBtn, newTodayBtn, optimizeBtn);
     }
     
     tryInit();
 }
 
-function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
+function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     console.log('=== Setting up toggle functionality ===');
     
     // Track current toggle state
-    let currentToggleState = 'tomorrow'; // 'tomorrow' or 'today'
+    let currentToggleState = 'yesterday'; // 'yesterday' or 'today'
 
-    // Default data for Tomorrow
-    const tomorrowData = {
+    // Data for Yesterday (default)
+    const yesterdayData = {
         'routes-optimised': '15 %',
         'stops-merged': '7',
         'calls-scheduled': '2',
@@ -667,7 +1063,7 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
         'cost-reduction': '€2,340'
     };
 
-    // Current data for Today (shows current state, needs optimization)
+    // Data for Today (alternate)
     const todayData = {
         'routes-optimised': '5 %',
         'stops-merged': '2',
@@ -728,58 +1124,52 @@ function setupToggleFunctionality(tomorrowBtn, todayBtn, optimizeBtn) {
     }
 
     function updateOptimizeButton(isDefault) {
-        if (isDefault) {
-            // Default state - Tomorrow selected (disabled, gray)
-            optimizeBtn.className = 'w-full py-3 px-4 bg-gray-300 text-gray-600 font-semibold rounded-lg cursor-not-allowed';
-            optimizeBtn.style.opacity = '1';
-            optimizeBtn.disabled = true;
-            optimizeBtn.textContent = 'Optimize';
-            // Remove any animation or special effects
-            optimizeBtn.style.animation = 'none';
-            optimizeBtn.style.boxShadow = 'none';
-            optimizeBtn.classList.remove('animate-pulse', 'shadow-lg');
-        } else {
-            // Active state - Today selected, needs optimization (enabled, green)
-            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors animate-pulse shadow-lg';
-            optimizeBtn.style.opacity = '1';
-            optimizeBtn.disabled = false;
-            optimizeBtn.textContent = 'Optimize Now!';
-        }
+        // We always keep Optimize inactive by default and only enable when user decides
+        optimizeBtn.className = 'w-full py-3 px-4 bg-gray-300 text-gray-600 font-semibold rounded-lg cursor-not-allowed';
+        optimizeBtn.style.opacity = '1';
+        optimizeBtn.disabled = true;
+        optimizeBtn.textContent = 'Optimize';
+        optimizeBtn.style.animation = 'none';
+        optimizeBtn.style.boxShadow = 'none';
+        optimizeBtn.classList.remove('animate-pulse', 'shadow-lg');
     }
 
     // Event listeners
     console.log('🔗 Attaching event listeners...');
     
-    tomorrowBtn.addEventListener('click', (e) => {
+    yesterdayBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🟦 Tomorrow button clicked - setting default state');
-        updateToggleState(tomorrowBtn, todayBtn);
-        updateOptimizationData(tomorrowData);
-        updateOptimizeButton(true); // Default state
-        currentToggleState = 'tomorrow';
-        console.log('✅ Optimize button set to default state');
+        console.log('🟨 Yesterday selected');
+        updateToggleState(yesterdayBtn, todayBtn);
+        updateOptimizationData(yesterdayData);
+        updateOptimizeButton(true); // keep disabled
+        currentToggleState = 'yesterday';
+        console.log('✅ Optimize button remains disabled');
     });
 
     todayBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🟨 Today button clicked - setting active state');
-        updateToggleState(todayBtn, tomorrowBtn);
+        console.log('🟦 Today selected');
+        updateToggleState(todayBtn, yesterdayBtn);
         updateOptimizationData(todayData);
-        updateOptimizeButton(false); // Active state
+        // Enable Optimize when user selects Today
+        optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors';
+        optimizeBtn.disabled = false;
+        optimizeBtn.textContent = 'Optimize Now!';
         currentToggleState = 'today';
-        console.log('✅ Optimize button set to active state');
+        console.log('✅ Optimize button enabled');
     });
 
     console.log('✅ Event listeners attached successfully');
 
-    // Initialize with Tomorrow selected (default)
-    console.log('Initializing with Tomorrow data and default button state...');
-    updateToggleState(tomorrowBtn, todayBtn);
-    updateOptimizationData(tomorrowData);
-    updateOptimizeButton(true); // Ensure default state
-    console.log('Initial button state set to default');
+    // Initialize with Yesterday selected by default; keep optimize disabled
+    console.log('Initializing with Yesterday data and disabled Optimize button...');
+    updateToggleState(yesterdayBtn, todayBtn);
+    updateOptimizationData(yesterdayData);
+    updateOptimizeButton(true); // disabled
+    console.log('Initial state set to Yesterday');
     
     // Add click handler for optimize button
     optimizeBtn.addEventListener('click', () => {
@@ -924,7 +1314,7 @@ style.innerHTML = `
 `;
 document.head.appendChild(style);
 
-// Global function for testing toggle functionality from browser console
+// Global function for testing toggle functionality from browser console (manual only)
 window.testToggleFunctionality = function() {
     console.log('=== Testing Toggle Functionality ===');
     
@@ -975,12 +1365,94 @@ window.forceInitToggles = function() {
     initToggleButtons();
 };
 
-// Auto-test when AI widget is loaded (for debugging)
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        if (document.getElementById('toggle-tomorrow')) {
-            console.log('🔄 AI Widget toggle elements detected, running auto-test...');
-            window.testToggleFunctionality();
+// Disable auto test to prevent unintended toggling on load
+
+// Render AI map routes using the same logic as the "Routes" tab
+function drawRoutesLikeRoutesTabOnAI() {
+    // Clear existing layers
+    routeLayers.forEach(layer => {
+        try { map.removeLayer(layer.polyline); } catch(e) {}
+        (layer.markers || []).forEach(m => { try { map.removeLayer(m);} catch(e) {} });
+    });
+    routeLayers = [];
+
+    function clampToLand(lat, lng) {
+        const minLat = 38.715, maxLat = 38.790;
+        const minLng = -9.250, maxLng = -9.155;
+        let clampedLat = Math.min(Math.max(lat, minLat), maxLat);
+        let clampedLng = Math.min(Math.max(lng, minLng), maxLng - 0.002);
+        return [clampedLat, clampedLng];
+    }
+
+    const landAnchors = [
+        [38.725, -9.210], [38.735, -9.205], [38.745, -9.198], [38.740, -9.192],
+        [38.725, -9.190], [38.735, -9.185], [38.745, -9.180], [38.750, -9.175],
+        [38.740, -9.170], [38.735, -9.168], [38.745, -9.165], [38.750, -9.162],
+        [38.760, -9.190], [38.760, -9.175], [38.755, -9.165], [38.755, -9.180],
+        [38.720, -9.190], [38.725, -9.184], [38.730, -9.178], [38.735, -9.172],
+        [38.755, -9.205], [38.750, -9.200], [38.745, -9.195], [38.740, -9.188]
+    ];
+
+    const hasStops = typeof stopsDataAll !== 'undefined';
+    const pool = hasStops
+        ? allRoutesData.filter(r => Array.isArray(stopsDataAll[r.id]) && stopsDataAll[r.id].length >= 2)
+        : [];
+    const candidates = pool.slice(0, Math.min(pool.length, 24));
+
+    const layers = [];
+    candidates.forEach((r, i) => {
+        const stops = stopsDataAll[r.id];
+        const orig = stops.map(s => [s.lat, s.lon]);
+        const centroid = orig.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0]).map(v => v / orig.length);
+        let anchor = landAnchors[i % landAnchors.length];
+        const letter = getRouteLetter(r.id);
+        if (letter === 'A') anchor = [38.740, -9.170];
+        if (letter === 'B') anchor = [38.735, -9.168];
+        if (letter === 'C') anchor = [38.736, -9.175];
+        const scale = (letter === 'A' || letter === 'B') ? 0.22 : 0.18;
+        let path = orig.map(([lat, lng]) => {
+            const scaledLat = (lat - centroid[0]) * scale;
+            const scaledLng = (lng - centroid[1]) * scale;
+            return clampToLand(anchor[0] + scaledLat, anchor[1] + scaledLng);
+        });
+        const maxLngPath = Math.max(...path.map(p => p[1]));
+        const minLatPath = Math.min(...path.map(p => p[0]));
+        const eastThreshold = -9.157, southThreshold = 38.720;
+        let shiftLng = 0, shiftLat = 0;
+        if (maxLngPath > eastThreshold) shiftLng = eastThreshold - maxLngPath - 0.003;
+        if (minLatPath < southThreshold) shiftLat = southThreshold - minLatPath + 0.003;
+        if (shiftLng !== 0 || shiftLat !== 0) {
+            path = path.map(([la, ln]) => clampToLand(la + shiftLat, ln + shiftLng));
         }
-    }, 2000);
-});
+        if (path.length > 1) {
+            const [s0, s1] = path[0];
+            const [e0, e1] = path[path.length - 1];
+            if (Math.abs(s0 - e0) > 1e-9 || Math.abs(s1 - e1) > 1e-9) path.push([s0, s1]);
+        }
+        let color = '#28A745';
+        if (r.risk === 'High') color = '#DC3545';
+        else if (r.risk === 'Med') color = '#FFC107';
+
+        const polyline = L.polyline(path, { color, weight: 4, opacity: 0.9 }).addTo(map);
+        const startLatLng = L.latLng(path[0][0], path[0][1]);
+        const iconHtml = `
+            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
+                <div style="color:#2563eb;font-weight:700;font-size:12px;">${getRouteLetter(r.id)}</div>
+            </div>`;
+        const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
+        const idMarker = L.marker(startLatLng, { icon: idIcon }).addTo(map);
+
+        const dots = (path[0][0] === path[path.length-1][0] && path[0][1] === path[path.length-1][1]) ? path.slice(0,-1) : path;
+        const markers = [idMarker];
+        dots.forEach(pt => {
+            const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }).addTo(map);
+            markers.push(dot);
+        });
+        routeLayers.push({ polyline, markers, id: r.id, color });
+    });
+
+    if (routeLayers.length) {
+        const group = L.featureGroup(routeLayers.map(l => l.polyline));
+        map.fitBounds(group.getBounds(), { padding: [20, 20] });
+    }
+}

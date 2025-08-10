@@ -154,6 +154,17 @@ function addRoutesToRoutesMap(allRoutesData) {
         [38.755, -9.205], [38.750, -9.200], [38.745, -9.195], [38.740, -9.188]
     ];
     let routesData = [];
+    // Helper to compute a convex hull for a set of lat/lng points (monotone chain)
+    function convexHullLatLng(points) {
+        if (!points || points.length <= 3) return points ? points.slice() : [];
+        const arr = points.map(([la, ln]) => ({ x: ln, y: la, ll: [la, ln] }))
+                          .sort((a,b)=> a.x===b.x ? a.y-b.y : a.x-b.x);
+        const cross = (o,a,b)=> (a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+        const lower=[]; for(const p of arr){ while(lower.length>=2 && cross(lower[lower.length-2], lower[lower.length-1], p) <= 0) lower.pop(); lower.push(p);} 
+        const upper=[]; for(let i=arr.length-1;i>=0;i--){ const p=arr[i]; while(upper.length>=2 && cross(upper[upper.length-2], upper[upper.length-1], p) <= 0) upper.pop(); upper.push(p);} 
+        const h=lower.concat(upper.slice(1,-1));
+        return h.map(p=>p.ll);
+    }
     for (let i = 0; i < candidates.length; i++) {
         const r = candidates[i];
         const stops = stopsDataAll[r.id];
@@ -161,11 +172,20 @@ function addRoutesToRoutesMap(allRoutesData) {
         const orig = stops.map(s => [s.lat, s.lon]);
         // Keep original size; compute centroid then translate entire path to anchor with tiny jitter
         const centroid = orig.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0]).map(v => v / orig.length);
-        const anchor = landAnchors[i % landAnchors.length];
+        // Prefer central anchors for routes A and B so they appear next to others
+        let anchor = landAnchors[i % landAnchors.length];
+        const routeLetter = getRouteLetter(r.id);
+        if (routeLetter === 'A') {
+            anchor = [38.740, -9.170]; // central-west
+        } else if (routeLetter === 'B') {
+            anchor = [38.735, -9.168]; // central
+        } else if (routeLetter === 'C') {
+            anchor = [38.736, -9.175]; // align C with cluster as well
+        }
         const jitterLat = (Math.random() - 0.5) * 0.004;
         const jitterLng = (Math.random() - 0.5) * 0.004;
         const target = [anchor[0] + jitterLat, anchor[1] + jitterLng];
-        const scale = 0.18; // shrink footprint while preserving shape
+        const scale = (routeLetter === 'A' || routeLetter === 'B') ? 0.22 : 0.18; // make A/B a bit longer
         let path = orig.map(([lat, lng]) => {
             const scaledLat = (lat - centroid[0]) * scale;
             const scaledLng = (lng - centroid[1]) * scale;
@@ -185,6 +205,11 @@ function addRoutesToRoutesMap(allRoutesData) {
         }
         if (shiftLng !== 0 || shiftLat !== 0) {
             path = path.map(([lat, lng]) => clampToLand(lat + shiftLat, lng + shiftLng));
+        }
+        // For route C, enforce a hull-like loop so its shape matches the others' polygonal loops
+        if (routeLetter === 'C') {
+            const hull = convexHullLatLng(path);
+            if (hull && hull.length >= 3) path = hull;
         }
         // Ensure closed loop
         if (path.length > 1) {

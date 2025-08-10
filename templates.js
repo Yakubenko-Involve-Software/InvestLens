@@ -52,14 +52,14 @@ const templates = {
             </div>
         </div>
         
-        <div class="flex gap-6" style="height: calc(100vh - 300px);">
+            <div class="flex gap-6" style="height: calc(100vh - 300px);">
             <!-- Left side - Map -->
             <div class="flex-1 bg-white shadow rounded-lg relative overflow-hidden">
                 <div id="routes-map" class="w-full h-full" style="min-height: 500px;"></div>
             </div>
             
             <!-- Right side - Table -->
-            <div class="w-2/5">
+                <div class="w-1/2">
                 <div class="bg-white shadow rounded-lg overflow-hidden h-full flex flex-col">
                     <div class="bg-gray-50 px-4 py-3 border-b flex-shrink-0">
                         <h3 class="text-lg font-semibold text-gray-800">Routes List</h3>
@@ -524,7 +524,7 @@ const templates = {
                         <h3 class="text-lg font-semibold text-gray-800">Optimization Results</h3>
                     </div>
                     <div class="flex bg-gray-100 rounded-lg p-1 mb-4">
-                        <button id="toggle-tomorrow" class="flex-1 py-2 px-3 text-sm font-medium rounded-md bg-blue-600 text-white transition-colors">Tomorrow</button>
+                        <button id="toggle-yesterday" class="flex-1 py-2 px-3 text-sm font-medium rounded-md bg-blue-600 text-white transition-colors">Yesterday</button>
                         <button id="toggle-today" class="flex-1 py-2 px-3 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800 transition-colors">Today</button>
                     </div>
                     <div class="grid grid-cols-2 gap-3 mb-6 flex-grow">

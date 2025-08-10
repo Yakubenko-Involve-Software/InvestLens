@@ -40,11 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             };
                             console.log('Toggle elements after AI init:', toggleElements);
                             
-                            // Test functionality availability
-                            if (typeof window.testToggleFunctionality === 'function') {
-                                console.log('Running toggle functionality test...');
-                                window.testToggleFunctionality();
-                            }
+                            // Do not auto-toggle; initial state is set inside AI widget (Today by default)
                         }, 1000);
                         
                         // Additional refresh after a longer delay
