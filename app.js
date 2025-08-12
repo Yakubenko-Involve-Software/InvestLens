@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const content = document.getElementById('content');
-    const navLinks = document.querySelectorAll('aside nav a');
+    // Include all sidebar links, including the Settings link outside the <nav>
+    const navLinks = document.querySelectorAll('aside .nav-link');
 
     const loadPage = async (page) => {
         try {
@@ -459,6 +460,30 @@ function initSettingsPage() {
                 console.log(`Toggle ${index} changed: ${e.target.checked ? 'ON' : 'OFF'} - demo mode`);
             });
         });
+
+        // Demo-only: visual toggle for AI auto-apply that does not persist
+        const aiToggle = document.getElementById('ai-auto-apply-toggle');
+        const aiForm = document.getElementById('ai-auto-apply-form');
+        if (aiToggle) {
+            // Initialize from a non-persistent default (OFF)
+            aiToggle.checked = false;
+            aiToggle.addEventListener('change', () => {
+                const state = aiToggle.checked ? 'enabled' : 'disabled';
+                console.log(`AI auto-apply ${state} (demo only; will reset on reload)`);
+            });
+        }
+        if (aiForm) {
+            aiForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const btn = aiForm.querySelector('button[type="submit"]');
+                if (btn) {
+                    const original = btn.textContent;
+                    btn.textContent = 'Applied (Demo)';
+                    setTimeout(()=> btn.textContent = original, 1200);
+                }
+                console.log('AI auto-apply form submitted (demo only; no persistence)');
+            });
+        }
         
         // Add interactive behavior to range slider
         const rangeInput = document.querySelector('#content input[type="range"]');

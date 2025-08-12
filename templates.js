@@ -309,7 +309,13 @@ const templates = {
     `,
     'settings': `
         <div class="flex flex-col h-full" style="height: calc(100vh - 120px);">
-            <h2 class="text-2xl font-bold mb-6">Settings</h2>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">Settings</h2>
+                <div class="flex items-center gap-3">
+                    <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">Cancel</button>
+                    <button class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">Save Changes</button>
+                </div>
+            </div>
             
             <!-- Status Indicator -->
             <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -320,11 +326,11 @@ const templates = {
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-y-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-y-auto auto-rows-auto items-stretch">
                 <!-- User Profile Form -->
-                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-fit">
+                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-full flex flex-col min-h-[420px]">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">User Profile</h3>
-                    <form class="space-y-4">
+                    <form class="space-y-4 flex-1">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                             <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="João Silva" />
@@ -346,13 +352,16 @@ const templates = {
                                 <option value="analytics">Analytics</option>
                             </select>
                         </div>
+                        
+                        
                     </form>
+                    
                 </div>
 
                 <!-- Company Settings Form -->
-                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-fit">
+                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-full flex flex-col min-h-[420px]">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Company Settings</h3>
-                    <form class="space-y-4">
+                    <form class="space-y-4 flex-1">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
                             <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="InvestLens Logistics" />
@@ -374,21 +383,28 @@ const templates = {
                                 <option value="gbp">GBP (£)</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Headquarters Address</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Av. da Liberdade 100, Lisboa" />
+                        </div>
+                        
+                        
                     </form>
+                    
                 </div>
 
                 <!-- AI & Automation Settings -->
-                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-fit">
+                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-full flex flex-col min-h-[420px]">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">AI & Automation</h3>
-                    <div class="space-y-6">
-                        <!-- AI Auto-Apply Toggle -->
+                    <form id="ai-auto-apply-form" class="space-y-6 flex-1" onsubmit="return false;">
+                        <!-- AI Auto-Apply Toggle (demo only) -->
                         <div class="flex items-center justify-between">
                             <div>
-                                <label class="text-sm font-medium text-gray-700">Enable AI auto-apply</label>
-                                <p class="text-xs text-gray-500 mt-1">Automatically apply AI route optimizations</p>
+                                <label for="ai-auto-apply-toggle" class="text-sm font-medium text-gray-700">Enable AI auto-apply</label>
+                                <p class="text-xs text-gray-500 mt-1">Automatically apply AI route optimizations (demo only, not persisted)</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" class="sr-only peer" checked />
+                                <input id="ai-auto-apply-toggle" type="checkbox" class="sr-only peer" />
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                             </label>
                         </div>
@@ -414,13 +430,29 @@ const templates = {
                                 <option value="weekly">Weekly on Monday</option>
                             </select>
                         </div>
-                    </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Simulation Mode</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option>Off</option>
+                                    <option selected>Visual Only</option>
+                                    <option>Apply to Sandbox</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Max Daily Auto-applies</label>
+                                <input type="number" min="0" max="24" value="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                        </div>
+                        
+                    </form>
+                    
                 </div>
 
                 <!-- Notification Settings -->
-                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-fit">
+                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-full flex flex-col min-h-[420px]">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Notifications</h3>
-                    <div class="space-y-4">
+                    <div class="space-y-4 flex-1">
                         <div class="flex items-center justify-between">
                             <div>
                                 <label class="text-sm font-medium text-gray-700">Route Updates</label>
@@ -464,15 +496,27 @@ const templates = {
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                             </label>
                         </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Digest Frequency</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option>Off</option>
+                                    <option>Hourly</option>
+                                    <option selected>Daily</option>
+                                    <option>Weekly</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">SMS Number</label>
+                                <input type="tel" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="+351 900 000 000" />
+                            </div>
+                        </div>
                     </div>
+                    
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex justify-end space-x-4 mt-6 pt-6 border-t border-gray-200 flex-shrink-0">
-                <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">Cancel</button>
-                <button class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">Save Changes</button>
-            </div>
+            
         </div>
     `,
     'ai-widget': `

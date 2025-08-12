@@ -1483,7 +1483,7 @@ async function computeAndSnapOptimizedRoutes() {
 
     if (points.length === 0) throw new Error('No points available to optimize');
 
-    // 2) K-means (k=4) clustering on lat/lng (simple implementation)
+    // 2) Balanced K-means (k=4) with capacity to ensure even distribution and compact clusters
     const K = 4;
     const lats = points.map(p => p[0]);
     const lngs = points.map(p => p[1]);
@@ -1495,88 +1495,165 @@ async function computeAndSnapOptimizedRoutes() {
         [latMin + (latMax - latMin) * 0.75, lngMin + (lngMax - lngMin) * 0.25],
         [latMin + (latMax - latMin) * 0.75, lngMin + (lngMax - lngMin) * 0.75]
     ];
-    const assign = new Array(points.length).fill(0);
+    const capacity = Math.ceil(points.length / K);
     function dist2(a, b) { const dy = a[0]-b[0], dx = a[1]-b[1]; return dy*dy + dx*dx; }
-    for (let iter = 0; iter < 12; iter++) {
-        // assign
+    for (let iter = 0; iter < 8; iter++) {
+        const clusters = Array.from({length: K}, () => []);
+        // Build all candidate assignments and greedily fill with capacity constraint
+        const candidates = [];
         for (let i = 0; i < points.length; i++) {
-            let best = 0, bd = Infinity;
-            for (let k = 0; k < K; k++) { const d = dist2(points[i], centers[k]); if (d < bd) { bd = d; best = k; } }
-            assign[i] = best;
+            for (let k = 0; k < K; k++) {
+                candidates.push({ pointIndex: i, k, d: dist2(points[i], centers[k]) });
+            }
         }
-        // recompute centers
-        const sums = Array.from({length: K}, () => [0,0,0]);
-        for (let i = 0; i < points.length; i++) { const k = assign[i]; sums[k][0]+=points[i][0]; sums[k][1]+=points[i][1]; sums[k][2]++; }
-        for (let k = 0; k < K; k++) { if (sums[k][2] > 0) centers[k] = [sums[k][0]/sums[k][2], sums[k][1]/sums[k][2]]; }
-    }
-
-    // 3) Order points within each cluster by nearest-neighbor tour (simple TSP heuristic)
-    function nnOrder(clusterPts, startPoint) {
-        if (clusterPts.length <= 2) return clusterPts.slice();
-        // choose start as the point closest to the provided start or centroid
-        const c = startPoint || clusterPts.reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]).map(v=>v/clusterPts.length);
-        let start = 0; let best = Infinity;
-        for (let i=0;i<clusterPts.length;i++){ const d=dist2(clusterPts[i],c); if(d<best){best=d; start=i;} }
-        const used = new Array(clusterPts.length).fill(false);
-        const route = []; let cur = start; used[cur]=true; route.push(clusterPts[cur]);
-        for (let step=1; step<clusterPts.length; step++){
-            let nxt=-1, bd=Infinity;
-            for (let j=0;j<clusterPts.length;j++) if(!used[j]){ const d=dist2(clusterPts[cur],clusterPts[j]); if(d<bd){bd=d;nxt=j;} }
-            cur=nxt; used[cur]=true; route.push(clusterPts[cur]);
+        candidates.sort((a,b)=> a.d - b.d);
+        const taken = new Array(points.length).fill(false);
+        for (const c of candidates) {
+            if (taken[c.pointIndex]) continue;
+            if (clusters[c.k].length < capacity) {
+                clusters[c.k].push(points[c.pointIndex]);
+                taken[c.pointIndex] = true;
+            }
+            if (clusters.every(arr => arr.length >= capacity) && taken.every(Boolean)) break;
         }
-        // close loop to end near start
-        route.push(route[0]);
-        return route;
-    }
-
-    const clusters = Array.from({length: K}, () => []);
-    for (let i = 0; i < points.length; i++) clusters[assign[i]].push(points[i]);
-
-    // Ensure all 4 clusters are non-empty by moving nearest points to empty clusters
-    function rehydrateEmptyClusters() {
+        // Any leftovers (shouldn't happen with ceil, but guard): put to nearest cluster even if over capacity
+        for (let i = 0; i < points.length; i++) {
+            if (!taken[i]) {
+                let bestK = 0, bd = Infinity;
+                for (let k = 0; k < K; k++) { const d = dist2(points[i], centers[k]); if (d < bd) { bd = d; bestK = k; } }
+                clusters[bestK].push(points[i]);
+                taken[i] = true;
+            }
+        }
+        // Recompute centers
         for (let k = 0; k < K; k++) {
-            while (clusters[k].length < 2) {
-                // Find a donor cluster with > 2 points
-                let donor = -1;
-                let bestDist = Infinity;
-                let bestIdxInDonor = -1;
-                for (let j = 0; j < K; j++) {
-                    if (j === k || clusters[j].length <= 2) continue;
-                    // Pick the point in donor closest to center k
-                    for (let idx = 0; idx < clusters[j].length; idx++) {
-                        const d = dist2(clusters[j][idx], centers[k]);
-                        if (d < bestDist) { bestDist = d; donor = j; bestIdxInDonor = idx; }
-                    }
-                }
-                if (donor === -1) break; // cannot move more
-                const moved = clusters[donor].splice(bestIdxInDonor, 1)[0];
-                clusters[k].push(moved);
+            if (clusters[k].length) {
+                const sum = clusters[k].reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]);
+                centers[k] = [sum[0]/clusters[k].length, sum[1]/clusters[k].length];
             }
         }
     }
-    rehydrateEmptyClusters();
-    // If still not exactly 4 non-empty clusters, split the largest until we have 4
-    function ensureFourClusters() {
-        let nonEmpty = clusters.filter(c => c.length > 0).length;
-        while (nonEmpty < K) {
-            // find largest cluster
-            let li = clusters.reduce((bestIdx, c, idx, arr) => (arr[idx].length > arr[bestIdx].length ? idx : bestIdx), 0);
-            if (clusters[li].length <= 1) break;
-            // split by simple alternating pick
-            const a = []; const b = [];
-            clusters[li].forEach((pt, i) => (i % 2 === 0 ? a : b).push(pt));
-            clusters[li] = a;
-            const emptyIdx = clusters.findIndex(c => c.length === 0);
-            if (emptyIdx !== -1) clusters[emptyIdx] = b; else clusters.push(b);
-            nonEmpty = clusters.filter(c => c.length > 0).length;
-            if (clusters.length > K) clusters.length = K; // cap
-        }
-        // remove any accidental empties by moving nearest points
-        rehydrateEmptyClusters();
+    // Final assignment using capacity constraint to obtain clusters
+    const finalClusters = Array.from({length: K}, () => []);
+    const finalCandidates = [];
+    for (let i = 0; i < points.length; i++) {
+        for (let k = 0; k < K; k++) finalCandidates.push({ pointIndex: i, k, d: dist2(points[i], centers[k]) });
     }
-    ensureFourClusters();
-    const starts = centers;
-    const orderedClusters = clusters.map((pts, idx) => nnOrder(pts, starts[idx]));
+    finalCandidates.sort((a,b)=> a.d - b.d);
+    const used = new Array(points.length).fill(false);
+    for (const c of finalCandidates) {
+        if (used[c.pointIndex]) continue;
+        if (finalClusters[c.k].length < capacity) {
+            finalClusters[c.k].push(points[c.pointIndex]);
+            used[c.pointIndex] = true;
+        }
+    }
+    for (let i = 0; i < points.length; i++) if (!used[i]) {
+        let bestK = 0, bd = Infinity;
+        for (let k = 0; k < K; k++) { const d = dist2(points[i], centers[k]); if (d < bd) { bd = d; bestK = k; } }
+        finalClusters[bestK].push(points[i]);
+        used[i] = true;
+    }
+
+    // Helpers to build a compact loop around each cluster using its convex hull
+    function convexHullLatLng(pts){
+        if (!pts || pts.length <= 3) return pts.slice();
+        const arr = pts.map(([la,ln])=>({x:ln,y:la,ll:[la,ln]})).sort((a,b)=> a.x===b.x? a.y-b.y : a.x-b.x);
+        const cross = (o,a,b)=> (a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+        const lower=[]; for (const p of arr){ while(lower.length>=2 && cross(lower[lower.length-2], lower[lower.length-1], p) <= 0) lower.pop(); lower.push(p);} 
+        const upper=[]; for (let i=arr.length-1;i>=0;i--){ const p=arr[i]; while(upper.length>=2 && cross(upper[upper.length-2], upper[upper.length-1], p) <= 0) upper.pop(); upper.push(p);} 
+        const h=lower.concat(upper.slice(1,-1));
+        return h.map(p=>p.ll);
+    }
+    function densifyHullLoop(hullPts, stepMinM=80, stepMaxM=120){
+        if (!hullPts || hullPts.length < 2) return hullPts;
+        const toRad = (deg) => deg * Math.PI / 180;
+        const haversineMeters = (a,b)=>{ const R=6371000; const dLat=toRad(b[0]-a[0]); const dLng=toRad(b[1]-a[1]); const lat1=toRad(a[0]); const lat2=toRad(b[0]); const h=Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
+        const out=[]; const pts=hullPts.slice(); if (pts[0][0]!==pts[pts.length-1][0]||pts[0][1]!==pts[pts.length-1][1]) pts.push(pts[0]);
+        for (let i=0;i<pts.length-1;i++){
+            const a=pts[i], b=pts[i+1];
+            const segLen=haversineMeters(a,b);
+            let step=stepMinM + Math.random()*(stepMaxM-stepMinM);
+            const steps=Math.max(1, Math.floor(segLen/step));
+            for (let s=0;s<steps;s++){ const t=s/steps; out.push([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]); }
+        }
+        out.push(out[0]);
+        return out;
+    }
+
+    // Build an organic, winding path that covers the cluster area naturally
+    function buildOrganicPathFromPoints(clusterPts, routeIndex){
+        if (!clusterPts || clusterPts.length === 0) return [];
+        if (clusterPts.length === 1) {
+            const p = clusterPts[0];
+            // Create a small organic loop around the single point
+            const r = 0.0008; // ~90m radius
+            return [
+                [p[0], p[1]],
+                [p[0] + r * 0.7, p[1] + r * 0.3],
+                [p[0] + r * 0.3, p[1] + r * 0.8],
+                [p[0] - r * 0.4, p[1] + r * 0.6],
+                [p[0] - r * 0.8, p[1] - r * 0.2],
+                [p[0] - r * 0.2, p[1] - r * 0.7],
+                [p[0] + r * 0.5, p[1] - r * 0.4],
+                [p[0], p[1]]
+            ];
+        }
+        
+        // Find bounding area and create organic path
+        const lats = clusterPts.map(p => p[0]);
+        const lngs = clusterPts.map(p => p[1]);
+        const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+        const centerLat = (minLat + maxLat) / 2;
+        const centerLng = (minLng + maxLng) / 2;
+        const latSpan = maxLat - minLat;
+        const lngSpan = maxLng - minLng;
+        
+        // Create seed for deterministic randomness per route
+        let seed = (routeIndex + 1) * 12345;
+        const seededRand = () => {
+            seed = (seed * 9301 + 49297) % 233280;
+            return seed / 233280;
+        };
+        
+        // Generate organic winding path with multiple curves
+        const path = [];
+        const numSegments = 8 + Math.floor(seededRand() * 6); // 8-13 segments
+        const radiusLat = latSpan * 0.4 + latSpan * 0.3 * seededRand();
+        const radiusLng = lngSpan * 0.4 + lngSpan * 0.3 * seededRand();
+        
+        for (let i = 0; i < numSegments; i++) {
+            const angle = (i / numSegments) * Math.PI * 2;
+            const nextAngle = ((i + 1) / numSegments) * Math.PI * 2;
+            
+            // Create curved segments with organic variation
+            const r1 = 0.7 + 0.4 * seededRand();
+            const r2 = 0.7 + 0.4 * seededRand();
+            const wiggle1 = (seededRand() - 0.5) * 0.3;
+            const wiggle2 = (seededRand() - 0.5) * 0.3;
+            
+            const lat1 = centerLat + Math.cos(angle + wiggle1) * radiusLat * r1;
+            const lng1 = centerLng + Math.sin(angle + wiggle1) * radiusLng * r1;
+            
+            // Add intermediate curved points for smooth organic shape
+            const midAngle = (angle + nextAngle) / 2 + (seededRand() - 0.5) * 0.4;
+            const midR = 0.5 + 0.3 * seededRand();
+            const midLat = centerLat + Math.cos(midAngle) * radiusLat * midR;
+            const midLng = centerLng + Math.sin(midAngle) * radiusLng * midR;
+            
+            path.push([lat1, lng1]);
+            if (seededRand() > 0.3) { // Sometimes add mid-point for extra curves
+                path.push([midLat, midLng]);
+            }
+        }
+        
+        // Close the loop
+        path.push(path[0]);
+        return path;
+    }
+
+    const orderedClusters = finalClusters.map((pts, index) => buildOrganicPathFromPoints(pts, index));
 
     // 4) Snap each cluster path to roads using OSRM and smooth
     // Helpers for bounds clamping to keep final 4 routes in same area as previous 24
@@ -1715,40 +1792,281 @@ async function computeAndSnapOptimizedRoutes() {
         pts.push(pts[0]);
         return pts;
     }
-    const snapped = [];
+
+    // Expand or shrink a rectangle by a relative padding
+    function expandRect(rect, padRel = 0.06) {
+        if (!rect) return rect;
+        const latSpan = rect.maxLat - rect.minLat;
+        const lngSpan = rect.maxLng - rect.minLng;
+        return {
+            minLat: rect.minLat + latSpan * padRel,
+            maxLat: rect.maxLat - latSpan * padRel,
+            minLng: rect.minLng + lngSpan * padRel,
+            maxLng: rect.maxLng - lngSpan * padRel
+        };
+    }
+
+    // Filter points inside a rectangle
+    function pointsInRect(pts, r) {
+        return pts.filter(([la, ln]) => la >= r.minLat && la <= r.maxLat && ln >= r.minLng && ln <= r.maxLng);
+    }
+
+    // Farthest Point Sampling to get well-spread anchors
+    function farthestPointSample(pts, count) {
+        if (!pts || pts.length === 0) return [];
+        const out = [];
+        // start from centroid-nearest point
+        const c = pts.reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]).map(v=>v/pts.length);
+        let bestIdx = 0; let bestD = Infinity;
+        const d2 = (a,b)=>{ const dy=a[0]-b[0], dx=a[1]-b[1]; return dy*dy+dx*dx; };
+        for (let i=0;i<pts.length;i++){ const dist=d2(pts[i],c); if(dist<bestD){bestD=dist; bestIdx=i;} }
+        out.push(pts[bestIdx]);
+        const used = new Array(pts.length).fill(false); used[bestIdx]=true;
+        while (out.length < Math.min(count, pts.length)) {
+            let sel = -1; let best = -1;
+            for (let i=0;i<pts.length;i++){
+                if (used[i]) continue;
+                let minD = Infinity;
+                for (const q of out) { const dd = d2(pts[i], q); if (dd < minD) minD = dd; }
+                if (minD > best) { best = minD; sel = i; }
+            }
+            used[sel] = true; out.push(pts[sel]);
+        }
+        return out;
+    }
+
+    // Order points into a loop by angle around their centroid
+    function orderAsLoop(pts) {
+        if (!pts || pts.length < 2) return pts.slice();
+        const c = pts.reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]).map(v=>v/pts.length);
+        const withAng = pts.map(p => ({ p, a: Math.atan2(p[0]-c[0], p[1]-c[1]) }));
+        withAng.sort((u,v)=> u.a - v.a);
+        const ring = withAng.map(o=>o.p);
+        ring.push(ring[0]);
+        return ring;
+    }
+
+    // Densify a closed loop and add gentle perpendicular wiggles for organic feel
+    function densifyLoopWithWiggle(loopPts, stepMinM = 90, stepMaxM = 150, wiggleMinM = 12, wiggleMaxM = 28) {
+        if (!loopPts || loopPts.length < 2) return loopPts;
+        const toRad = (deg) => deg * Math.PI / 180;
+        const haversineMeters = (a, b) => {
+            const R = 6371000;
+            const dLat = toRad(b[0]-a[0]);
+            const dLng = toRad(b[1]-a[1]);
+            const lat1 = toRad(a[0]);
+            const lat2 = toRad(b[0]);
+            const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+            return 2 * R * Math.asin(Math.sqrt(h));
+        };
+        const out = [];
+        let phase = Math.random() * Math.PI * 2;
+        for (let i = 0; i < loopPts.length - 1; i++) {
+            const a = loopPts[i];
+            const b = loopPts[i+1];
+            const midLat = (a[0] + b[0]) / 2;
+            const cosLat = Math.cos(toRad(midLat));
+            const latScale = 111320;
+            const lngScale = 111320 * cosLat;
+            const segLenM = haversineMeters(a,b);
+            let step = stepMinM + Math.random() * (stepMaxM - stepMinM);
+            const steps = Math.max(1, Math.round(segLenM / step));
+            const dyM = (b[0]-a[0]) * latScale;
+            const dxM = (b[1]-a[1]) * lngScale;
+            const segLenMApprox = Math.max(1e-6, Math.sqrt(dyM*dyM + dxM*dxM));
+            // unit perpendicular in meters (left-hand)
+            const upYM = -dxM / segLenMApprox;
+            const upXM = dyM / segLenMApprox;
+            // convert to degrees
+            const upLatDeg = upYM / latScale;
+            const upLngDeg = upXM / lngScale;
+            const amp = wiggleMinM + Math.random() * (wiggleMaxM - wiggleMinM);
+            for (let s = 0; s < steps; s++) {
+                const t = s / steps;
+                const baseLat = a[0] + (b[0]-a[0]) * t;
+                const baseLng = a[1] + (b[1]-a[1]) * t;
+                const wiggle = Math.sin(phase + t * Math.PI * 2) * amp;
+                out.push([ baseLat + upLatDeg * wiggle, baseLng + upLngDeg * wiggle ]);
+            }
+            phase += Math.random() * 0.8; // vary
+        }
+        out.push(out[0]);
+        return out;
+    }
+
+    // Softly keep a path inside a rect: shift whole path inward if it exceeds pad
+    function softKeepInsideRect(path, rect, padMeters = 18) {
+        if (!rect || !path || path.length === 0) return path;
+        const toRad = (deg) => deg * Math.PI / 180;
+        const metersToLat = (m) => m / 111320;
+        const metersToLng = (m, atLat) => m / (111320 * Math.cos(toRad(atLat)));
+        const midLat = (rect.minLat + rect.maxLat) / 2;
+        const padLat = metersToLat(padMeters);
+        const padLng = metersToLng(padMeters, midLat);
+        const minLat = rect.minLat + padLat, maxLat = rect.maxLat - padLat;
+        const minLng = rect.minLng + padLng, maxLng = rect.maxLng - padLng;
+        let dLat = 0, dLng = 0;
+        for (const [la,ln] of path){
+            if (la < minLat) dLat = Math.max(dLat, minLat - la);
+            if (la > maxLat) dLat = Math.min(dLat, maxLat - la);
+            if (ln < minLng) dLng = Math.max(dLng, minLng - ln);
+            if (ln > maxLng) dLng = Math.min(dLng, maxLng - ln);
+        }
+        if (dLat !== 0 || dLng !== 0) return path.map(([la,ln]) => [la + dLat, ln + dLng]);
+        return path;
+    }
+    const resSnapped = [];
+    // Prepare an expanded rect per quadrant to pick anchors from actual points
+    // Build candidate paths directly from organic cluster loops
+    const rawPaths = [];
     for (let k=0;k<K;k++){
-        // Prefer standardized template per quadrant to make routes similar
-        let candidatePath = (rects && rects[k]) ? buildTemplateLoop(rects[k], k+1) : orderedClusters[k];
-        let roadPath = await osrmSnap(candidatePath);
+        let candidatePath = orderedClusters[k];
+        
+        // Add more organic variation before road snapping
+        const enhanced = [];
+        for (let i = 0; i < candidatePath.length - 1; i++) {
+            const a = candidatePath[i];
+            const b = candidatePath[i + 1];
+            enhanced.push(a);
+            
+            // Add curved intermediate points between each segment
+            const midLat = (a[0] + b[0]) / 2;
+            const midLng = (a[1] + b[1]) / 2;
+            const perpLat = (b[1] - a[1]) * 0.3; // perpendicular offset
+            const perpLng = -(b[0] - a[0]) * 0.3;
+            const curveMagnitude = (Math.random() - 0.5) * 0.0004; // random curve
+            
+            enhanced.push([
+                midLat + perpLat * curveMagnitude,
+                midLng + perpLng * curveMagnitude
+            ]);
+        }
+        enhanced.push(candidatePath[candidatePath.length - 1]);
+        
+        let roadPath = await osrmSnap(enhanced);
+        
         // Guarantee at least two coordinates for rendering/snapping fallback
         if (!roadPath || roadPath.length < 2) {
-            const base = orderedClusters[k];
-            if (base && base.length >= 2) {
-                roadPath = base;
-            } else if (base && base.length === 1) {
-                const p = base[0];
-                // tiny offset ~15m east
-                roadPath = [p, [p[0], p[1] + 15 / (111320 * Math.cos(toRad(p[0])) )]];
-            } else {
-                // synthesize minimal segment near cluster center
-                const c = centers[k];
-                const off = 15 / (111320 * Math.cos(toRad(c[0])));
-                roadPath = [[c[0], c[1]], [c[0], c[1] + off]];
-            }
+            roadPath = enhanced;
         }
+        
         // Keep within previous 24-routes' overall area if available
         if (lastAIBounds) roadPath = clampPathToBounds(roadPath, lastAIBounds, 12);
-        // Nudge northwest to better reflect routing (stay within bounds/quadrant)
-        roadPath = shiftPathByMeters(roadPath, 600, 800); // ~600m north, ~800m west
-        if (rects && rects[k]) {
-            roadPath = clampPathToRectMeters(roadPath, rects[k], 12);
-        } else if (lastAIBounds) {
-            roadPath = clampPathToBounds(roadPath, lastAIBounds, 12);
-        }
+        
+        // Small nudge for realism but don't move routes too far apart
+        const nudgeNorth = 40 + Math.random() * 30; // 40-70m north
+        const nudgeWest = 50 + Math.random() * 40;  // 50-90m west
+        roadPath = shiftPathByMeters(roadPath, nudgeNorth, nudgeWest);
+        
+        if (lastAIBounds) roadPath = clampPathToBounds(roadPath, lastAIBounds, 12);
+        
+        // Light smoothing to maintain organic curves
         const smooth = chaikinSmoothClosed(roadPath, 1);
-        snapped.push({ name: names[k], color: colors[k], coords: smooth });
+        rawPaths.push(smooth);
     }
-    return snapped;
+
+    // Enforce separation with multi-iteration soft repulsion to keep routes distinct
+    function enforceMinSeparationOnAll(paths, minMeters = 100, iterations = 4) {
+        const toRad = (deg) => deg * Math.PI / 180;
+        const metersToLat = (m) => m / 111320;
+        const metersToLng = (m, atLat) => m / (111320 * Math.cos(toRad(atLat)));
+        const distMeters = (a,b)=>{
+            const R=6371000; const dLat=toRad(b[0]-a[0]); const dLng=toRad(b[1]-a[1]);
+            const lat1=toRad(a[0]); const lat2=toRad(b[0]);
+            const h=Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(h));
+        };
+        const adjusted = paths.map(p=>p.map(pt=>[pt[0],pt[1]]));
+        // Precompute centroids for directional bias
+        const centroids = adjusted.map(path => {
+            const s = path.reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]);
+            return [s[0]/path.length, s[1]/path.length];
+        });
+        for (let it = 0; it < iterations; it++) {
+            for (let k=0;k<adjusted.length;k++){
+                for (let i=0;i<adjusted[k].length;i++){ // examine all points for strong separation
+                    const p = adjusted[k][i];
+                    let nearest=null; let nd=Infinity; let nearestOwner=-1; let nearestIndex=-1;
+                    for (let j=0;j<adjusted.length;j++) if (j!==k){
+                        const other = adjusted[j];
+                        for (let t=0;t<other.length;t+=2){
+                            const d = distMeters(p, other[t]);
+                            if (d < nd){ nd=d; nearest=other[t]; nearestOwner=j; nearestIndex=t; }
+                        }
+                    }
+                    if (nearest && nd < minMeters){
+                        const midLat = (p[0]+nearest[0])/2;
+                        const latScale = 111320; const lngScale = 111320 * Math.cos(toRad(midLat));
+                        // vector from nearest to this point
+                        let vLatM = (p[0]-nearest[0]) * latScale;
+                        let vLngM = (p[1]-nearest[1]) * lngScale;
+                        // If nearly colinear, bias away from the other route centroid
+                        const mag = Math.hypot(vLatM, vLngM);
+                        if (mag < 1e-3) {
+                            vLatM = (centroids[k][0]-centroids[nearestOwner][0]) * latScale;
+                            vLngM = (centroids[k][1]-centroids[nearestOwner][1]) * lngScale;
+                        }
+                        const len = Math.max(1e-6, Math.hypot(vLatM, vLngM));
+                        const need = (minMeters - nd) * 0.85; // stronger push
+                        const shiftLat = metersToLat((vLatM/len)*need);
+                        const shiftLng = metersToLng((vLngM/len)*need, midLat);
+                        adjusted[k][i] = [p[0] + shiftLat, p[1] + shiftLng];
+                    }
+                }
+            }
+        }
+        // Final light smooth for natural look
+        return adjusted.map(path=> chaikinSmoothClosed(path, 1));
+    }
+
+    // Ensure entire routes (centroids) are well separated to avoid stacking
+    function enforceCentroidSeparation(paths, minCentroidMeters = 320, iterations = 3) {
+        const toRad = (deg) => deg * Math.PI / 180;
+        const metersToLat = (m) => m / 111320;
+        const metersToLng = (m, atLat) => m / (111320 * Math.cos(toRad(atLat)));
+        const distMeters = (a,b)=>{
+            const R=6371000; const dLat=toRad(b[0]-a[0]); const dLng=toRad(b[1]-a[1]);
+            const lat1=toRad(a[0]); const lat2=toRad(b[0]);
+            const h=Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(h));
+        };
+        let adjusted = paths.map(p=>p.map(pt=>[pt[0],pt[1]]));
+        for (let it=0; it<iterations; it++) {
+            // recompute centroids
+            const cents = adjusted.map(path => {
+                const s = path.reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]);
+                return [s[0]/path.length, s[1]/path.length];
+            });
+            // pairwise pushes
+            for (let i=0;i<cents.length;i++){
+                for (let j=i+1;j<cents.length;j++){
+                    const a=cents[i], b=cents[j];
+                    const d=distMeters(a,b);
+                    if (d < minCentroidMeters) {
+                        const midLat = (a[0]+b[0])/2;
+                        const latScale = 111320; const lngScale = 111320 * Math.cos(toRad(midLat));
+                        let vLatM = (a[0]-b[0]) * latScale;
+                        let vLngM = (a[1]-b[1]) * lngScale;
+                        const len = Math.max(1e-6, Math.hypot(vLatM, vLngM));
+                        const need = (minCentroidMeters - d) / 2; // split push between both
+                        const sLat = metersToLat((vLatM/len)*need);
+                        const sLng = metersToLng((vLngM/len)*need, midLat);
+                        // push i by +shift, j by -shift
+                        adjusted[i] = adjusted[i].map(([la,ln]) => [la + sLat, ln + sLng]);
+                        adjusted[j] = adjusted[j].map(([la,ln]) => [la - sLat, ln - sLng]);
+                    }
+                }
+            }
+        }
+        return adjusted;
+    }
+
+    const separatedPaths = enforceMinSeparationOnAll(rawPaths, 100, 4);
+    const centroidSeparated = enforceCentroidSeparation(separatedPaths, 360, 3);
+    // Keep within bounds after separation
+    const finalPaths = centroidSeparated.map(p => lastAIBounds ? clampPathToBounds(p, lastAIBounds, 12) : p);
+    for (let k=0;k<K;k++){
+        resSnapped.push({ name: names[k], color: colors[k], coords: finalPaths[k] });
+    }
+    return resSnapped;
 }
 
 function renderOptimizedRoutesOnAI(mergedRoutes) {
