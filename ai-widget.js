@@ -1017,7 +1017,7 @@ function initToggleButtons() {
         if (!yesterdayBtn || !todayBtn || !optimizeBtn) {
             console.log('Some elements not found:', {
                 yesterdayBtn: !!yesterdayBtn,
-                todayBtn: !!todayBtn,
+                todayBtn: !!todayBtn, 
                 optimizeBtn: !!optimizeBtn
             });
             
@@ -1125,13 +1125,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
 
     function updateOptimizeButton(isDefault) {
         // We always keep Optimize inactive by default and only enable when user decides
-        optimizeBtn.className = 'w-full py-3 px-4 bg-gray-300 text-gray-600 font-semibold rounded-lg cursor-not-allowed';
-        optimizeBtn.style.opacity = '1';
-        optimizeBtn.disabled = true;
-        optimizeBtn.textContent = 'Optimize';
-        optimizeBtn.style.animation = 'none';
-        optimizeBtn.style.boxShadow = 'none';
-        optimizeBtn.classList.remove('animate-pulse', 'shadow-lg');
+            optimizeBtn.className = 'w-full py-3 px-4 bg-gray-300 text-gray-600 font-semibold rounded-lg cursor-not-allowed';
+            optimizeBtn.style.opacity = '1';
+            optimizeBtn.disabled = true;
+            optimizeBtn.textContent = 'Optimize';
+            optimizeBtn.style.animation = 'none';
+            optimizeBtn.style.boxShadow = 'none';
+            optimizeBtn.classList.remove('animate-pulse', 'shadow-lg');
     }
 
     // Event listeners
@@ -1196,47 +1196,57 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         optimizeBtn.disabled = true;
         optimizeBtn.className = 'w-full py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed transition-colors';
         
-        // Start map update immediately to minimize perceived latency
-        isOptimized = true;
-        // Redraw with fewer layers (handled inside addRoutesToAIMap)
-        setTimeout(() => addRoutesToAIMap(), 0);
+        // Start optimization: cluster 24 routes into 4 (A,B,C,D) and delay final reveal 5–10s
+        (async () => {
+            try {
+                isOptimized = true;
+                const computePromise = computeAndSnapOptimizedRoutes();
+                const delayMs = 5000 + Math.floor(Math.random() * 5001); // 5–10 seconds
+                await Promise.all([
+                    computePromise,
+                    new Promise(resolve => setTimeout(resolve, delayMs))
+                ]);
 
-        // Simulate brief optimization and update KPI values
-        setTimeout(() => {
-            // Update KPIs with sample improved numbers
-            const updates = {
-                'routes-optimised': '18 %',
-                'stops-merged': '9',
-                'calls-scheduled': '1',
-                'time-saved': '54 min',
-                'success-rate': '+8.1 %',
-                'spoilage-risk': '-1.1 %',
-                'efficiency-gain': '18 %',
-                'cost-reduction': '€2,940'
-            };
-            Object.entries(updates).forEach(([id, value]) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = value;
-            });
-            
-            // Remove loading popup
-            const ov = document.getElementById('optimize-overlay');
-            if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
-            
-            optimizeBtn.textContent = 'Optimization Complete!';
-            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg transition-colors';
-            
-            // Reset after 2 seconds
-            setTimeout(() => {
-                optimizeBtn.textContent = originalText;
-                // Restore state depending on current toggle
-                if (currentToggleState === 'tomorrow') {
-                    updateOptimizeButton(true); // Disabled gray for Tomorrow
-                } else {
-                    updateOptimizeButton(false); // Enabled green for Today
-                }
-            }, 1200);
-        }, 600);
+                const merged = await computePromise;
+                renderOptimizedRoutesOnAI(merged);
+
+                // Update KPIs with sample improved numbers
+                const updates = {
+                    'routes-optimised': '18 %',
+                    'stops-merged': '9',
+                    'calls-scheduled': '1',
+                    'time-saved': '54 min',
+                    'success-rate': '+8.1 %',
+                    'spoilage-risk': '-1.1 %',
+                    'efficiency-gain': '18 %',
+                    'cost-reduction': '€2,940'
+                };
+                Object.entries(updates).forEach(([id, value]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = value;
+                });
+
+                // Remove loading popup (if still present)
+                const ov = document.getElementById('optimize-overlay');
+                if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+
+                optimizeBtn.textContent = 'Optimization Complete!';
+                optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg transition-colors';
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    optimizeBtn.textContent = originalText;
+                    // Restore state depending on current toggle
+                    if (currentToggleState === 'tomorrow') {
+                        updateOptimizeButton(true); // Disabled gray for Tomorrow
+                    } else {
+                        updateOptimizeButton(false); // Enabled green for Today
+                    }
+                }, 1200);
+            } catch (e) {
+                console.error('Optimization failed:', e);
+            }
+        })();
     });
     
     // Timeline panel that replaces the Optimization Results card (no overlay)
@@ -1453,6 +1463,328 @@ function drawRoutesLikeRoutesTabOnAI() {
 
     if (routeLayers.length) {
         const group = L.featureGroup(routeLayers.map(l => l.polyline));
-        map.fitBounds(group.getBounds(), { padding: [20, 20] });
+        const gb = group.getBounds();
+        lastAIBounds = gb; // remember area for optimization clamping
+        map.fitBounds(gb, { padding: [20, 20] });
     }
+}
+
+// Compute 4 optimized routes (A,B,C,D) from existing 24 by spatial clustering and road snapping
+async function computeAndSnapOptimizedRoutes() {
+    // 1) Gather all coordinates from the 24 routes
+    const points = [];
+    const routeMeta = []; // keep routeId -> points index ranges for potential future use
+    allRoutesData.slice(0, 24).forEach((r) => {
+        const stops = stopsDataAll[r.id] || [];
+        const startIndex = points.length;
+        stops.forEach(s => points.push([s.lat, s.lon]));
+        routeMeta.push({ id: r.id, startIndex, endIndex: points.length });
+    });
+
+    if (points.length === 0) throw new Error('No points available to optimize');
+
+    // 2) K-means (k=4) clustering on lat/lng (simple implementation)
+    const K = 4;
+    const lats = points.map(p => p[0]);
+    const lngs = points.map(p => p[1]);
+    const latMin = Math.min(...lats), latMax = Math.max(...lats);
+    const lngMin = Math.min(...lngs), lngMax = Math.max(...lngs);
+    let centers = [
+        [latMin + (latMax - latMin) * 0.25, lngMin + (lngMax - lngMin) * 0.25],
+        [latMin + (latMax - latMin) * 0.25, lngMin + (lngMax - lngMin) * 0.75],
+        [latMin + (latMax - latMin) * 0.75, lngMin + (lngMax - lngMin) * 0.25],
+        [latMin + (latMax - latMin) * 0.75, lngMin + (lngMax - lngMin) * 0.75]
+    ];
+    const assign = new Array(points.length).fill(0);
+    function dist2(a, b) { const dy = a[0]-b[0], dx = a[1]-b[1]; return dy*dy + dx*dx; }
+    for (let iter = 0; iter < 12; iter++) {
+        // assign
+        for (let i = 0; i < points.length; i++) {
+            let best = 0, bd = Infinity;
+            for (let k = 0; k < K; k++) { const d = dist2(points[i], centers[k]); if (d < bd) { bd = d; best = k; } }
+            assign[i] = best;
+        }
+        // recompute centers
+        const sums = Array.from({length: K}, () => [0,0,0]);
+        for (let i = 0; i < points.length; i++) { const k = assign[i]; sums[k][0]+=points[i][0]; sums[k][1]+=points[i][1]; sums[k][2]++; }
+        for (let k = 0; k < K; k++) { if (sums[k][2] > 0) centers[k] = [sums[k][0]/sums[k][2], sums[k][1]/sums[k][2]]; }
+    }
+
+    // 3) Order points within each cluster by nearest-neighbor tour (simple TSP heuristic)
+    function nnOrder(clusterPts, startPoint) {
+        if (clusterPts.length <= 2) return clusterPts.slice();
+        // choose start as the point closest to the provided start or centroid
+        const c = startPoint || clusterPts.reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]).map(v=>v/clusterPts.length);
+        let start = 0; let best = Infinity;
+        for (let i=0;i<clusterPts.length;i++){ const d=dist2(clusterPts[i],c); if(d<best){best=d; start=i;} }
+        const used = new Array(clusterPts.length).fill(false);
+        const route = []; let cur = start; used[cur]=true; route.push(clusterPts[cur]);
+        for (let step=1; step<clusterPts.length; step++){
+            let nxt=-1, bd=Infinity;
+            for (let j=0;j<clusterPts.length;j++) if(!used[j]){ const d=dist2(clusterPts[cur],clusterPts[j]); if(d<bd){bd=d;nxt=j;} }
+            cur=nxt; used[cur]=true; route.push(clusterPts[cur]);
+        }
+        // close loop to end near start
+        route.push(route[0]);
+        return route;
+    }
+
+    const clusters = Array.from({length: K}, () => []);
+    for (let i = 0; i < points.length; i++) clusters[assign[i]].push(points[i]);
+
+    // Ensure all 4 clusters are non-empty by moving nearest points to empty clusters
+    function rehydrateEmptyClusters() {
+        for (let k = 0; k < K; k++) {
+            while (clusters[k].length < 2) {
+                // Find a donor cluster with > 2 points
+                let donor = -1;
+                let bestDist = Infinity;
+                let bestIdxInDonor = -1;
+                for (let j = 0; j < K; j++) {
+                    if (j === k || clusters[j].length <= 2) continue;
+                    // Pick the point in donor closest to center k
+                    for (let idx = 0; idx < clusters[j].length; idx++) {
+                        const d = dist2(clusters[j][idx], centers[k]);
+                        if (d < bestDist) { bestDist = d; donor = j; bestIdxInDonor = idx; }
+                    }
+                }
+                if (donor === -1) break; // cannot move more
+                const moved = clusters[donor].splice(bestIdxInDonor, 1)[0];
+                clusters[k].push(moved);
+            }
+        }
+    }
+    rehydrateEmptyClusters();
+    // If still not exactly 4 non-empty clusters, split the largest until we have 4
+    function ensureFourClusters() {
+        let nonEmpty = clusters.filter(c => c.length > 0).length;
+        while (nonEmpty < K) {
+            // find largest cluster
+            let li = clusters.reduce((bestIdx, c, idx, arr) => (arr[idx].length > arr[bestIdx].length ? idx : bestIdx), 0);
+            if (clusters[li].length <= 1) break;
+            // split by simple alternating pick
+            const a = []; const b = [];
+            clusters[li].forEach((pt, i) => (i % 2 === 0 ? a : b).push(pt));
+            clusters[li] = a;
+            const emptyIdx = clusters.findIndex(c => c.length === 0);
+            if (emptyIdx !== -1) clusters[emptyIdx] = b; else clusters.push(b);
+            nonEmpty = clusters.filter(c => c.length > 0).length;
+            if (clusters.length > K) clusters.length = K; // cap
+        }
+        // remove any accidental empties by moving nearest points
+        rehydrateEmptyClusters();
+    }
+    ensureFourClusters();
+    const starts = centers;
+    const orderedClusters = clusters.map((pts, idx) => nnOrder(pts, starts[idx]));
+
+    // 4) Snap each cluster path to roads using OSRM and smooth
+    // Helpers for bounds clamping to keep final 4 routes in same area as previous 24
+    const toRad = (deg) => deg * Math.PI / 180;
+    const metersToLat = (m) => m / 111320;
+    const metersToLng = (m, atLat) => m / (111320 * Math.cos(toRad(atLat)));
+    function clampPathToBounds(path, bounds, padMeters = 12) {
+        if (!bounds || !path || path.length === 0) return path;
+        const sw = bounds.getSouthWest ? bounds.getSouthWest() : { lat: bounds.minLat, lng: bounds.minLng };
+        const ne = bounds.getNorthEast ? bounds.getNorthEast() : { lat: bounds.maxLat, lng: bounds.maxLng };
+        const padLat = metersToLat(padMeters);
+        const midLat = (sw.lat + ne.lat) / 2;
+        const padLng = metersToLng(padMeters, midLat);
+        const minLat = sw.lat + padLat;
+        const maxLat = ne.lat - padLat;
+        const minLng = sw.lng + padLng;
+        const maxLng = ne.lng - padLng;
+        return path.map(([la, ln]) => [
+            Math.min(Math.max(la, minLat), maxLat),
+            Math.min(Math.max(ln, minLng), maxLng)
+        ]);
+    }
+
+    // Shift a path north/left by given meters, then clamp again
+    function shiftPathByMeters(path, northMeters = 0, westMeters = 0) {
+        if (!path || path.length === 0) return path;
+        const midLat = path.reduce((a,p)=>a+p[0],0)/path.length;
+        const dLat = metersToLat(northMeters);
+        const dLngMag = metersToLng(Math.abs(westMeters), midLat);
+        const dLng = westMeters >= 0 ? -dLngMag : dLngMag; // west = smaller longitude (more negative)
+        return path.map(([la, ln]) => [la + dLat, ln + dLng]);
+    }
+    async function osrmSnap(path) {
+        if (path.length < 2) return path;
+        const maxPerReq = 20; const out=[];
+        for (let i=0;i<path.length;i+=maxPerReq-1){
+            const slice = path.slice(i, Math.min(path.length, i+maxPerReq));
+            if (i>0) slice.unshift(path[i-1]);
+            const coordStr = slice.map(p=> `${p[1].toFixed(6)},${p[0].toFixed(6)}`).join(';');
+            const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson&continue_straight=true&alternatives=false`;
+            try{
+                const res = await fetch(url);
+                const json = await res.json();
+                const coords = json?.routes?.[0]?.geometry?.coordinates || [];
+                coords.forEach(([lng,lat])=> out.push([lat,lng]));
+            }catch(e){ slice.forEach(p=> out.push(p)); }
+        }
+        // simple dedupe
+        const simplified=[]; for(const p of out){ const last=simplified[simplified.length-1]; if(!last||Math.abs(last[0]-p[0])>1e-6||Math.abs(last[1]-p[1])>1e-6) simplified.push(p);} 
+        return simplified;
+    }
+
+    function chaikinSmoothClosed(pts, iters=1){
+        if (!pts || pts.length<3) return pts;
+        let p=pts.slice();
+        for(let t=0;t<iters;t++){
+            const out=[]; for(let i=0;i<p.length-1;i++){ const a=p[i], b=p[i+1]; out.push([0.75*a[0]+0.25*b[0],0.75*a[1]+0.25*b[1]]); out.push([0.25*a[0]+0.75*b[0],0.25*a[1]+0.75*b[1]]);} out.push(out[0]); p=out;
+        }
+        return p;
+    }
+
+    const colors = ['#DC3545','#DC3545','#DC3545','#DC3545']; // all red
+    const names = ['A','B','C','D'];
+    // Build quadrants over previous 24-routes bounds to prevent overlap and preserve coverage
+    function rectsFromBounds(bounds) {
+        if (!bounds) return null;
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const latMid = (ne.lat + sw.lat) / 2;
+        const lngMid = (ne.lng + sw.lng) / 2;
+        return [
+            // NW, NE, SW, SE
+            { minLat: latMid, maxLat: ne.lat, minLng: sw.lng, maxLng: lngMid },
+            { minLat: latMid, maxLat: ne.lat, minLng: lngMid, maxLng: ne.lng },
+            { minLat: sw.lat, maxLat: latMid, minLng: sw.lng, maxLng: lngMid },
+            { minLat: sw.lat, maxLat: latMid, minLng: lngMid, maxLng: ne.lng }
+        ];
+    }
+    function clampPathToRectMeters(path, rect, padMeters = 12) {
+        if (!rect || !path) return path;
+        const toRad = (deg) => deg * Math.PI / 180;
+        const metersToLat = (m) => m / 111320;
+        const metersToLng = (m, atLat) => m / (111320 * Math.cos(toRad(atLat)));
+        const midLat = (rect.minLat + rect.maxLat) / 2;
+        const padLat = metersToLat(padMeters);
+        const padLng = metersToLng(padMeters, midLat);
+        return path.map(([la, ln]) => [
+            Math.min(Math.max(la, rect.minLat + padLat), rect.maxLat - padLat),
+            Math.min(Math.max(ln, rect.minLng + padLng), rect.maxLng - padLng)
+        ]);
+    }
+    const rects = lastAIBounds ? rectsFromBounds(lastAIBounds) : null;
+    // Generate a consistent closed loop inside a rectangle with small wiggles
+    function buildTemplateLoop(rect, seed = 1) {
+        if (!rect) return [];
+        const toRad = (deg) => deg * Math.PI / 180;
+        const metersToLat = (m) => m / 111320;
+        const metersToLng = (m, atLat) => m / (111320 * Math.cos(toRad(atLat)));
+        const centerLat = (rect.minLat + rect.maxLat) / 2;
+        const insetM = 30; // ~30m inset from edges
+        const insetLat = metersToLat(insetM);
+        const insetLng = metersToLng(insetM, centerLat);
+        const top = rect.maxLat - insetLat;
+        const bottom = rect.minLat + insetLat;
+        const left = rect.minLng + insetLng;
+        const right = rect.maxLng - insetLng;
+        // Deterministic small wiggles
+        let s = seed * 9973;
+        const rand = () => {
+            s = Math.sin(s) * 10000; return s - Math.floor(s);
+        };
+        const ampLat = (rect.maxLat - rect.minLat) * 0.0025;
+        const ampLng = (rect.maxLng - rect.minLng) * 0.0025;
+        const pts = [];
+        const steps = 16; // per edge
+        // Top: left -> right
+        for (let i=0;i<=steps;i++){
+            const t=i/steps; const x = left + (right-left)*t; const y = top - ampLat*Math.sin((t+rand())*Math.PI*2);
+            pts.push([y,x]);
+        }
+        // Right: top -> bottom
+        for (let i=1;i<=steps;i++){
+            const t=i/steps; const y = top - (top-bottom)*t; const x = right - ampLng*Math.sin((t+rand())*Math.PI*2);
+            pts.push([y,x]);
+        }
+        // Bottom: right -> left
+        for (let i=1;i<=steps;i++){
+            const t=i/steps; const x = right - (right-left)*t; const y = bottom + ampLat*Math.sin((t+rand())*Math.PI*2);
+            pts.push([y,x]);
+        }
+        // Left: bottom -> top (exclude final point; closed later)
+        for (let i=1;i<steps;i++){
+            const t=i/steps; const y = bottom + (top-bottom)*t; const x = left + ampLng*Math.sin((t+rand())*Math.PI*2);
+            pts.push([y,x]);
+        }
+        pts.push(pts[0]);
+        return pts;
+    }
+    const snapped = [];
+    for (let k=0;k<K;k++){
+        // Prefer standardized template per quadrant to make routes similar
+        let candidatePath = (rects && rects[k]) ? buildTemplateLoop(rects[k], k+1) : orderedClusters[k];
+        let roadPath = await osrmSnap(candidatePath);
+        // Guarantee at least two coordinates for rendering/snapping fallback
+        if (!roadPath || roadPath.length < 2) {
+            const base = orderedClusters[k];
+            if (base && base.length >= 2) {
+                roadPath = base;
+            } else if (base && base.length === 1) {
+                const p = base[0];
+                // tiny offset ~15m east
+                roadPath = [p, [p[0], p[1] + 15 / (111320 * Math.cos(toRad(p[0])) )]];
+            } else {
+                // synthesize minimal segment near cluster center
+                const c = centers[k];
+                const off = 15 / (111320 * Math.cos(toRad(c[0])));
+                roadPath = [[c[0], c[1]], [c[0], c[1] + off]];
+            }
+        }
+        // Keep within previous 24-routes' overall area if available
+        if (lastAIBounds) roadPath = clampPathToBounds(roadPath, lastAIBounds, 12);
+        // Nudge northwest to better reflect routing (stay within bounds/quadrant)
+        roadPath = shiftPathByMeters(roadPath, 600, 800); // ~600m north, ~800m west
+        if (rects && rects[k]) {
+            roadPath = clampPathToRectMeters(roadPath, rects[k], 12);
+        } else if (lastAIBounds) {
+            roadPath = clampPathToBounds(roadPath, lastAIBounds, 12);
+        }
+        const smooth = chaikinSmoothClosed(roadPath, 1);
+        snapped.push({ name: names[k], color: colors[k], coords: smooth });
+    }
+    return snapped;
+}
+
+function renderOptimizedRoutesOnAI(mergedRoutes) {
+    // Clear existing layers
+    routeLayers.forEach(layer => {
+        try { map.removeLayer(layer.polyline); } catch(e) {}
+        (layer.markers || []).forEach(m => { try { map.removeLayer(m);} catch(e) {} });
+    });
+    routeLayers = [];
+
+    mergedRoutes.forEach(r => {
+        // ensure red rendering regardless of input color
+        const polyline = L.polyline(r.coords, { color: '#DC3545', weight: 5, opacity: 0.95 }).addTo(map);
+        const start = r.coords[0];
+        const iconHtml = `
+            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
+                <div style="color:#2563eb;font-weight:700;font-size:12px;">${r.name}</div>
+            </div>`;
+        const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
+        const idMarker = L.marker([start[0], start[1]], { icon: idIcon }).addTo(map);
+        const markers = [idMarker];
+        // sparse dots
+        const step = Math.max(1, Math.floor(r.coords.length / 18));
+        for (let i=0;i<r.coords.length;i+=step){ const pt=r.coords[i]; const dot=L.circleMarker(pt,{radius:4,color:'#fff',weight:2,fillColor:'#DC3545',fillOpacity:1}).addTo(map); markers.push(dot); }
+        routeLayers.push({ polyline, markers, id: r.name, color: '#DC3545' });
+    });
+    const group = L.featureGroup(routeLayers.map(l=>l.polyline));
+    if (lastAIBounds) {
+        map.fitBounds(lastAIBounds, { padding: [20,20] });
+    } else {
+        map.fitBounds(group.getBounds(), { padding: [20,20] });
+    }
+
+    // Expose output as GeoJSON-like objects
+    window.optimizedGeoJSON = {};
+    mergedRoutes.forEach(r => {
+        window.optimizedGeoJSON[r.name] = { type:'Feature', properties:{ id:r.name, color:'#DC3545' }, geometry:{ type:'LineString', coordinates: r.coords.map(([lat,lng])=>[lng,lat]) } };
+    });
 }
