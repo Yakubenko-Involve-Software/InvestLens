@@ -2004,7 +2004,7 @@ async function computeAndSnapOptimizedRoutes() {
         return p;
     }
 
-    const colors = ['#DC3545','#DC3545','#DC3545','#DC3545']; // all red
+    const colors = ['#28A745', '#0D6EFD', '#FFC107', '#DC3545'];
     const names = ['A','B','C','D'];
     // Build quadrants over previous 24-routes bounds to prevent overlap and preserve coverage
     function rectsFromBounds(bounds) {
@@ -2622,10 +2622,13 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         mergedRoutes = [...mergedRoutes, ...missingRoutes].slice(0, 4);
     }
 
-    mergedRoutes.forEach(r => {
+    mergedRoutes.forEach((r, idx) => {
         // Make geometry look more natural and slimmer
         const naturalCoords = buildNaturalPath(r.coords);
-        const polyline = L.polyline(naturalCoords, { color: '#DC3545', weight: 6, opacity: 1.0, lineJoin: 'round', lineCap: 'round' }).addTo(map);
+        // Choose color per route (fallback to r.color if provided)
+        const palette = ['#28A745', '#0D6EFD', '#FFC107', '#DC3545'];
+        const color = r.color || palette[idx % palette.length];
+        const polyline = L.polyline(naturalCoords, { color, weight: 6, opacity: 1.0, lineJoin: 'round', lineCap: 'round' }).addTo(map);
         const start = naturalCoords[0];
         const iconHtml = `
             <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
@@ -2634,8 +2637,15 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
         const idMarker = L.marker([start[0], start[1]], { icon: idIcon }).addTo(map);
         const markers = [idMarker];
-        // optional guide dots removed for cleaner, Google-like look
-        routeLayers.push({ polyline, markers, id: r.name, color: '#DC3545' });
+        // Add small vertex dots along the route similar to the screenshot
+        const vertices = (naturalCoords.length > 1 && naturalCoords[0][0] === naturalCoords[naturalCoords.length - 1][0] && naturalCoords[0][1] === naturalCoords[naturalCoords.length - 1][1]) ? naturalCoords.slice(0, -1) : naturalCoords;
+        const step = Math.max(1, Math.floor(vertices.length / 20));
+        for (let i = 0; i < vertices.length; i += step) {
+            const pt = vertices[i];
+            const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }).addTo(map);
+            markers.push(dot);
+        }
+        routeLayers.push({ polyline, markers, id: r.name, color });
     });
     const group = L.featureGroup(routeLayers.map(l=>l.polyline));
     if (lastAIBounds) {
@@ -2646,7 +2656,9 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
 
     // Expose output as GeoJSON-like objects
     window.optimizedGeoJSON = {};
-    mergedRoutes.forEach(r => {
-        window.optimizedGeoJSON[r.name] = { type:'Feature', properties:{ id:r.name, color:'#DC3545' }, geometry:{ type:'LineString', coordinates: r.coords.map(([lat,lng])=>[lng,lat]) } };
+    mergedRoutes.forEach((r, idx) => {
+        const palette = ['#28A745', '#0D6EFD', '#FFC107', '#DC3545'];
+        const color = r.color || palette[idx % palette.length];
+        window.optimizedGeoJSON[r.name] = { type:'Feature', properties:{ id:r.name, color }, geometry:{ type:'LineString', coordinates: r.coords.map(([lat,lng])=>[lng,lat]) } };
     });
 }

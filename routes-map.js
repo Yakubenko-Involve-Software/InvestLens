@@ -231,7 +231,7 @@ function addRoutesToRoutesMap(allRoutesData) {
     console.log('Generated routes data:', routesData);
     
     routesData.forEach((routeData, index) => {
-        const polyline = L.polyline(routeData.path, { color: routeData.color, weight: 4, opacity: 0.9 });
+        const polyline = L.polyline(routeData.path, { color: routeData.color, weight: 4, opacity: 0.95, lineJoin: 'round', lineCap: 'round' });
         
         polyline.on('click', () => {
             setActiveRoute(polyline, routeData, allRoutesData); 
