@@ -985,10 +985,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 if (!allRoutesData || allRoutesData.length === 0) {
                     console.warn('⚠️ No route data available, using fallback routes');
                     const fallbackRoutes = [
-                        { name: 'A', color: '#DC3545', coords: [[38.735, -9.18], [38.740, -9.175], [38.745, -9.17], [38.735, -9.18]] },
-                        { name: 'B', color: '#DC3545', coords: [[38.750, -9.16], [38.755, -9.155], [38.760, -9.15], [38.750, -9.16]] },
-                        { name: 'C', color: '#DC3545', coords: [[38.720, -9.14], [38.725, -9.135], [38.730, -9.13], [38.720, -9.14]] },
-                        { name: 'D', color: '#DC3545', coords: [[38.710, -9.20], [38.715, -9.195], [38.720, -9.19], [38.710, -9.20]] }
+                        { name: 'A', color: '#DC3545', coords: createTriangle(38.735, -9.18, 0.008, 0.012, 0) },
+                        { name: 'B', color: '#DC3545', coords: createTriangle(38.750, -9.16, 0.008, 0.012, 1) },
+                        { name: 'C', color: '#DC3545', coords: createTriangle(38.720, -9.14, 0.008, 0.012, 2) },
+                        { name: 'D', color: '#DC3545', coords: createTriangle(38.710, -9.20, 0.008, 0.012, 3) }
                     ];
                     renderOptimizedRoutesOnAI(fallbackRoutes);
                     return;
@@ -1131,9 +1131,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                     ];
                     for(let i=0;i<4;i++){
                         const rect=tiles[i];
-                        const pts=[[rect.minLat,rect.minLng],[rect.maxLat,rect.minLng],[rect.maxLat,rect.maxLng],[rect.minLat,rect.maxLng]];
-                        let loop=densifyLoop(pts);
-                        loop=clampPathToRectLocal(loop, rect);
+                        const centerRectLat = (rect.minLat + rect.maxLat) / 2;
+                        const centerRectLng = (rect.minLng + rect.maxLng) / 2;
+                        const rectLatSpan = rect.maxLat - rect.minLat;
+                        const rectLngSpan = rect.maxLng - rect.minLng;
+                        
+                        // Create triangle for each tile
+                        const loop = createTriangle(centerRectLat, centerRectLng, rectLatSpan * 0.8, rectLngSpan * 0.8, i);
                         results.push({name:names[i], color:'#DC3545', coords: loop});
                     }
                     return results;
@@ -1231,11 +1235,14 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                     const results = [];
                     for (let i=0;i<4;i++){
                         const rect = tiles[i];
-                        const seeds = randomWaypointsInRect(rect, 6 + Math.floor(Math.random()*3));
-                        const loop = orderAsLoop(seeds);
-                        let snapped = await osrmRouteLoopFromWaypoints(loop);
-                        if (!snapped || snapped.length < 4) snapped = clampPathToRect(loop, rect, 8);
-                        results.push({ name: names[i], color: '#DC3545', coords: clampPathToRect(snapped, rect, 6) });
+                        const centerRectLat = (rect.minLat + rect.maxLat) / 2;
+                        const centerRectLng = (rect.minLng + rect.maxLng) / 2;
+                        const rectLatSpan = rect.maxLat - rect.minLat;
+                        const rectLngSpan = rect.maxLng - rect.minLng;
+                        
+                        // Create triangle for each tile
+                        const loop = createTriangle(centerRectLat, centerRectLng, rectLatSpan * 0.7, rectLngSpan * 0.7, i);
+                        results.push({ name: names[i], color: '#DC3545', coords: loop });
                     }
                     return results;
                 }
@@ -1290,10 +1297,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 // Even if optimization fails, show fallback routes to ensure user sees something
                 console.log('🔄 Using emergency fallback routes due to optimization failure');
                 const emergencyRoutes = [
-                    { name: 'A', color: '#DC3545', coords: [[38.735, -9.18], [38.740, -9.175], [38.745, -9.17], [38.735, -9.18]] },
-                    { name: 'B', color: '#DC3545', coords: [[38.750, -9.16], [38.755, -9.155], [38.760, -9.15], [38.750, -9.16]] },
-                    { name: 'C', color: '#DC3545', coords: [[38.720, -9.14], [38.725, -9.135], [38.730, -9.13], [38.720, -9.14]] },
-                    { name: 'D', color: '#DC3545', coords: [[38.710, -9.20], [38.715, -9.195], [38.720, -9.19], [38.710, -9.20]] }
+                    { name: 'A', color: '#DC3545', coords: createTriangle(38.735, -9.18, 0.008, 0.012, 0) },
+                    { name: 'B', color: '#DC3545', coords: createTriangle(38.750, -9.16, 0.008, 0.012, 1) },
+                    { name: 'C', color: '#DC3545', coords: createTriangle(38.720, -9.14, 0.008, 0.012, 2) },
+                    { name: 'D', color: '#DC3545', coords: createTriangle(38.710, -9.20, 0.008, 0.012, 3) }
                 ];
                 
                 try {
@@ -2229,6 +2236,25 @@ async function computeAndSnapOptimizedRoutes() {
             moved = softKeepInsideRect(moved, rects[idx], 20); // keep routes more centered in quadrants
             return moved;
         });
+    } else {
+        // If no quadrants defined, create a simple 2x2 grid layout
+        console.log('📐 Creating simple 2x2 grid layout for routes');
+        const centerLat = 38.736946, centerLng = -9.142685;
+        const spanLat = 0.02, spanLng = 0.03;
+        
+        rectAdjusted = centroidSeparated.map((p, idx) => {
+            const gridRow = Math.floor(idx / 2);
+            const gridCol = idx % 2;
+            const targetLat = centerLat + (gridRow - 0.5) * spanLat * 0.8;
+            const targetLng = centerLng + (gridCol - 0.5) * spanLng * 0.8;
+            
+            // Move route to target grid position
+            const currentCenter = p.reduce((a, pt) => [a[0] + pt[0], a[1] + pt[1]], [0, 0]).map(v => v / p.length);
+            const dLat = targetLat - currentCenter[0];
+            const dLng = targetLng - currentCenter[1];
+            
+            return p.map(([lat, lng]) => [lat + dLat, lng + dLng]);
+        });
     }
 
     // Expand each route within its quadrant with consistent scaling for similar appearance
@@ -2313,14 +2339,14 @@ async function computeAndSnapOptimizedRoutes() {
                 }
                 coords.push(coords[0]); // Close the loop
             } else {
-                // More robust fallback coordinates
-                const fallbacks = [
-                    [[38.735, -9.18], [38.740, -9.175], [38.745, -9.17], [38.735, -9.18]],
-                    [[38.750, -9.16], [38.755, -9.155], [38.760, -9.15], [38.750, -9.16]],
-                    [[38.720, -9.14], [38.725, -9.135], [38.730, -9.13], [38.720, -9.14]],
-                    [[38.710, -9.20], [38.715, -9.195], [38.720, -9.19], [38.710, -9.20]]
-                ];
-                coords = fallbacks[k] || fallbacks[0];
+                                    // More robust fallback coordinates with consistent triangular shape
+                    const fallbacks = [
+                        createTriangle(38.735, -9.18, 0.008, 0.012, 0),
+                        createTriangle(38.750, -9.16, 0.008, 0.012, 1),
+                        createTriangle(38.720, -9.14, 0.008, 0.012, 2),
+                        createTriangle(38.710, -9.20, 0.008, 0.012, 3)
+                    ];
+                    coords = fallbacks[k] || fallbacks[0];
             }
         }
         
@@ -2438,6 +2464,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     routeLayers = [];
 
     console.log(`Rendering ${mergedRoutes.length} optimized routes:`, mergedRoutes.map(r => `${r.name}(${r.coords.length} pts)`));
+    console.log('🎯 All routes will have triangular shapes for consistency');
     
     // Ensure we always render exactly 4 routes
     if (mergedRoutes.length !== 4) {
@@ -2447,19 +2474,13 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         
         for (let i = 0; i < 4; i++) {
             if (!mergedRoutes[i]) {
-                // Create consistent emergency fallback with similar appearance
+                // Create consistent emergency fallback with triangular shape
                 const baseLat = 38.7350 + i * 0.015;
                 const baseLng = -9.1500 - i * 0.015;
-                const fallbackCoords = [];
-                const radius = 0.005; // Consistent size
+                const latSpan = 0.008, lngSpan = 0.012; // Consistent size
                 
-                for (let j = 0; j < 12; j++) {
-                    const angle = (j / 12) * Math.PI * 2;
-                    const lat = baseLat + Math.cos(angle) * radius;
-                    const lng = baseLng + Math.sin(angle) * radius;
-                    fallbackCoords.push([lat, lng]);
-                }
-                fallbackCoords.push(fallbackCoords[0]); // Close the loop
+                // Create triangular shape (similar to main routes)
+                const fallbackCoords = createTriangle(baseLat, baseLng, latSpan, lngSpan, i);
                 missingRoutes.push({
                     name: names[i],
                     color: '#DC3545',
@@ -2555,7 +2576,94 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     console.log('🎯 Routes created:', routeLayers.map(l => l.id));
 }
 
-// Build a custom polygon path within an expanded bounding box of a set of coordinates
+// Helper function to create triangular coordinates for fallback routes
+// This ensures all routes have triangular shapes for consistency
+function createTriangle(centerLat, centerLng, latSpan, lngSpan, routeIndex) {
+    const minLat = centerLat - latSpan/2;
+    const maxLat = centerLat + latSpan/2;
+    const minLng = centerLng - lngSpan/2;
+    const maxLng = centerLng + lngSpan/2;
+    
+    switch (routeIndex % 4) {
+        case 0: // Triangle pointing up
+            return createTriangleUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        case 1: // Triangle pointing right
+            return createTriangleRight(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        case 2: // Triangle pointing down
+            return createTriangleDown(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        case 3: // Triangle pointing left
+            return createTriangleLeft(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        default:
+            return createTriangleUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+    }
+}
+
+// Create triangle pointing up (route A)
+function createTriangleUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    
+    // Triangle pointing up: top vertex, bottom-left, bottom-right
+    const points = [
+        [centerLat + latSpan * 0.4, centerLng],                    // Top vertex
+        [centerLat - latSpan * 0.3, centerLng - lngSpan * 0.4],   // Bottom-left
+        [centerLat - latSpan * 0.3, centerLng + lngSpan * 0.4],   // Bottom-right
+        [centerLat + latSpan * 0.4, centerLng]                    // Close the loop
+    ];
+    
+    return points;
+}
+
+// Create triangle pointing right (route B)
+function createTriangleRight(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    
+    // Triangle pointing right: right vertex, top-left, bottom-left
+    const points = [
+        [centerLat, centerLng + lngSpan * 0.4],                    // Right vertex
+        [centerLat + latSpan * 0.4, centerLng - lngSpan * 0.3],   // Top-left
+        [centerLat - latSpan * 0.4, centerLng - lngSpan * 0.3],   // Bottom-left
+        [centerLat, centerLng + lngSpan * 0.4]                    // Close the loop
+    ];
+    
+    return points;
+}
+
+// Create triangle pointing down (route C)
+function createTriangleDown(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    
+    // Triangle pointing down: bottom vertex, top-left, top-right
+    const points = [
+        [centerLat - latSpan * 0.4, centerLng],                    // Bottom vertex
+        [centerLat + latSpan * 0.3, centerLng - lngSpan * 0.4],   // Top-left
+        [centerLat + latSpan * 0.3, centerLng + lngSpan * 0.4],   // Top-right
+        [centerLat - latSpan * 0.4, centerLng]                    // Close the loop
+    ];
+    
+    return points;
+}
+
+// Create triangle pointing left (route D)
+function createTriangleLeft(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    
+    // Triangle pointing left: left vertex, top-right, bottom-right
+    const points = [
+        [centerLat, centerLng - lngSpan * 0.4],                    // Left vertex
+        [centerLat + latSpan * 0.4, centerLng + lngSpan * 0.3],   // Top-right
+        [centerLat - latSpan * 0.4, centerLng + lngSpan * 0.3],   // Bottom-right
+        [centerLat, centerLng - lngSpan * 0.4]                    // Close the loop
+    ];
+    
+    return points;
+}
+
+// Build triangular routes for all 4 optimized routes
+// All routes now use triangular shapes for consistency
 function buildCustomPolygonPath(coords, shapeIndex, fixedLatSpan, fixedLngSpan) {
     if (!coords || coords.length < 1) return [[38.75, -9.15], [38.74, -9.16], [38.74, -9.14], [38.75, -9.15]]; // fallback
 
@@ -2584,46 +2692,23 @@ function buildCustomPolygonPath(coords, shapeIndex, fixedLatSpan, fixedLngSpan) 
     const sCenterLat = (sMinLat + sMaxLat) / 2;
     const sCenterLng = (sMinLng + sMaxLng) / 2;
 
+    // Create triangular routes - each route gets a different triangle orientation
     let vertices = [];
+    
     switch (shapeIndex % 4) {
-        case 0: // 5-sided polygon
-            vertices = [
-                [sMaxLat - (sMaxLat - sMinLat) * 0.2, sMinLng], // Mid-left
-                [sMaxLat, sCenterLng],                         // Top-center
-                [sMaxLat - (sMaxLat - sMinLat) * 0.4, sMaxLng], // Mid-right
-                [sMinLat, sMaxLng - (sMaxLng - sMinLng) * 0.3], // Bottom-rightish
-                [sMinLat + (sMaxLat - sMinLat) * 0.2, sMinLng + (sMaxLng - sMinLng) * 0.2], // Bottom-leftish (inner)
-                [sMaxLat - (sMaxLat - sMinLat) * 0.2, sMinLng]  // Close loop
-            ];
+        case 0: // Triangle pointing up
+            vertices = createTriangleUp(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
-        case 1: // Triangle
-            vertices = [
-                [sMinLat, sMinLng],    // Bottom-left
-                [sMaxLat, sCenterLng], // Top-center
-                [sMinLat, sMaxLng],    // Bottom-right
-                [sMinLat, sMinLng]     // Close loop
-            ];
+        case 1: // Triangle pointing right
+            vertices = createTriangleRight(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
-        case 2: // Rectangle
-            vertices = [
-                [sMaxLat, sMinLng], // Top-left
-                [sMaxLat, sMaxLng], // Top-right
-                [sMinLat, sMaxLng], // Bottom-right
-                [sMinLat, sMinLng], // Bottom-left
-                [sMaxLat, sMinLng]  // Close loop
-            ];
+        case 2: // Triangle pointing down
+            vertices = createTriangleDown(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
-        case 3: // Hexagon
-            vertices = [
-                [sCenterLat + sLatSpan * 0.25, sMinLng], // Upper-left
-                [sMaxLat, sCenterLng],                         // Top
-                [sCenterLat + sLatSpan * 0.25, sMaxLng], // Upper-right
-                [sCenterLat - sLatSpan * 0.25, sMaxLng], // Lower-right
-                [sMinLat, sCenterLng],                         // Bottom
-                [sCenterLat - sLatSpan * 0.25, sMinLng], // Lower-left
-                [sCenterLat + sLatSpan * 0.25, sMinLng]  // Close loop
-            ];
+        case 3: // Triangle pointing left
+            vertices = createTriangleLeft(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
     }
+    
     return vertices;
 }
