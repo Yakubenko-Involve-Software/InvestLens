@@ -985,10 +985,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 if (!allRoutesData || allRoutesData.length === 0) {
                     console.warn('⚠️ No route data available, using fallback routes');
                     const fallbackRoutes = [
-                        { name: 'A', color: '#DC3545', coords: createTriangle(38.735, -9.18, 0.008, 0.012, 0) },
-                        { name: 'B', color: '#DC3545', coords: createTriangle(38.750, -9.16, 0.008, 0.012, 1) },
-                        { name: 'C', color: '#DC3545', coords: createTriangle(38.720, -9.14, 0.008, 0.012, 2) },
-                        { name: 'D', color: '#DC3545', coords: createTriangle(38.710, -9.20, 0.008, 0.012, 3) }
+                        { name: 'A', color: '#DC3545', coords: createStretchedPentagon(38.750, -9.22, 0.008, 0.012, 0) },
+                        { name: 'B', color: '#DC3545', coords: createStretchedPentagon(38.765, -9.12, 0.008, 0.012, 1) },
+                        { name: 'C', color: '#DC3545', coords: createStretchedPentagon(38.735, -9.25, 0.008, 0.012, 2) },
+                        { name: 'D', color: '#DC3545', coords: createStretchedPentagon(38.720, -9.15, 0.008, 0.012, 3) }
                     ];
                     renderOptimizedRoutesOnAI(fallbackRoutes);
                     return;
@@ -1136,8 +1136,8 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                         const rectLatSpan = rect.maxLat - rect.minLat;
                         const rectLngSpan = rect.maxLng - rect.minLng;
                         
-                        // Create triangle for each tile
-                        const loop = createTriangle(centerRectLat, centerRectLng, rectLatSpan * 0.8, rectLngSpan * 0.8, i);
+                        // Create different pentagon shapes for each tile
+                        const loop = createStretchedPentagon(centerRectLat, centerRectLng, rectLatSpan * 0.8, rectLngSpan * 0.8, i);
                         results.push({name:names[i], color:'#DC3545', coords: loop});
                     }
                     return results;
@@ -1240,8 +1240,8 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                         const rectLatSpan = rect.maxLat - rect.minLat;
                         const rectLngSpan = rect.maxLng - rect.minLng;
                         
-                        // Create triangle for each tile
-                        const loop = createTriangle(centerRectLat, centerRectLng, rectLatSpan * 0.7, rectLngSpan * 0.7, i);
+                        // Create different pentagon shapes for each tile
+                        const loop = createStretchedPentagon(centerRectLat, centerRectLng, rectLatSpan * 0.7, rectLngSpan * 0.7, i);
                         results.push({ name: names[i], color: '#DC3545', coords: loop });
                     }
                     return results;
@@ -1297,10 +1297,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 // Even if optimization fails, show fallback routes to ensure user sees something
                 console.log('🔄 Using emergency fallback routes due to optimization failure');
                 const emergencyRoutes = [
-                    { name: 'A', color: '#DC3545', coords: createTriangle(38.735, -9.18, 0.008, 0.012, 0) },
-                    { name: 'B', color: '#DC3545', coords: createTriangle(38.750, -9.16, 0.008, 0.012, 1) },
-                    { name: 'C', color: '#DC3545', coords: createTriangle(38.720, -9.14, 0.008, 0.012, 2) },
-                    { name: 'D', color: '#DC3545', coords: createTriangle(38.710, -9.20, 0.008, 0.012, 3) }
+                    { name: 'A', color: '#DC3545', coords: createStretchedPentagon(38.750, -9.22, 0.008, 0.012, 0) },
+                    { name: 'B', color: '#DC3545', coords: createStretchedPentagon(38.765, -9.12, 0.008, 0.012, 1) },
+                    { name: 'C', color: '#DC3545', coords: createStretchedPentagon(38.735, -9.25, 0.008, 0.012, 2) },
+                    { name: 'D', color: '#DC3545', coords: createStretchedPentagon(38.720, -9.15, 0.008, 0.012, 3) }
                 ];
                 
                 try {
@@ -2339,12 +2339,12 @@ async function computeAndSnapOptimizedRoutes() {
                 }
                 coords.push(coords[0]); // Close the loop
             } else {
-                                    // More robust fallback coordinates with consistent triangular shape
+                                    // More robust fallback coordinates with different pentagon shapes
                     const fallbacks = [
-                        createTriangle(38.735, -9.18, 0.008, 0.012, 0),
-                        createTriangle(38.750, -9.16, 0.008, 0.012, 1),
-                        createTriangle(38.720, -9.14, 0.008, 0.012, 2),
-                        createTriangle(38.710, -9.20, 0.008, 0.012, 3)
+                        createStretchedPentagon(38.750, -9.22, 0.008, 0.012, 0),
+                        createStretchedPentagon(38.765, -9.12, 0.008, 0.012, 1),
+                        createStretchedPentagon(38.735, -9.25, 0.008, 0.012, 2),
+                        createStretchedPentagon(38.720, -9.15, 0.008, 0.012, 3)
                     ];
                     coords = fallbacks[k] || fallbacks[0];
             }
@@ -2464,7 +2464,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     routeLayers = [];
 
     console.log(`Rendering ${mergedRoutes.length} optimized routes:`, mergedRoutes.map(r => `${r.name}(${r.coords.length} pts)`));
-    console.log('🎯 All routes will have triangular shapes for consistency');
+    console.log('🎯 All routes will have different pentagon shapes and be positioned further apart');
     
     // Ensure we always render exactly 4 routes
     if (mergedRoutes.length !== 4) {
@@ -2474,13 +2474,13 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         
         for (let i = 0; i < 4; i++) {
             if (!mergedRoutes[i]) {
-                // Create consistent emergency fallback with triangular shape
-                const baseLat = 38.7350 + i * 0.015;
-                const baseLng = -9.1500 - i * 0.015;
+                // Create consistent emergency fallback with different pentagon shapes
+                const baseLat = 38.7200 + i * 0.030; // Further increased spacing between routes
+                const baseLng = -9.1500 - i * 0.030; // Further increased spacing between routes
                 const latSpan = 0.008, lngSpan = 0.012; // Consistent size
                 
-                // Create triangular shape (similar to main routes)
-                const fallbackCoords = createTriangle(baseLat, baseLng, latSpan, lngSpan, i);
+                // Create different pentagon shapes (similar to main routes)
+                const fallbackCoords = createStretchedPentagon(baseLat, baseLng, latSpan, lngSpan, i);
                 missingRoutes.push({
                     name: names[i],
                     color: '#DC3545',
@@ -2520,9 +2520,9 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         // Build custom polygon path similar to the screenshot
         let naturalCoords = buildCustomPolygonPath(r.coords, idx, avgLatSpan, avgLngSpan);
         
-        // Shift towards global center to appear closer
+        // Shift away from the global center to increase spacing between routes
         const routeCenter = getCenterOfPolygon(naturalCoords);
-        const shiftFactor = 0.25; // shift 25% of the way to the center
+        const shiftFactor = -0.2; // push 20% of the vector away from the global center
         const dLat = (globalCenter[0] - routeCenter[0]) * shiftFactor;
         const dLng = (globalCenter[1] - routeCenter[1]) * shiftFactor;
         if (allCoords.length > 0) {
@@ -2565,6 +2565,8 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         map.fitBounds(group.getBounds(), { padding: [20,20] });
     }
 
+    // Internal route lines removed per request to keep only outer route shapes
+
     // Expose output as GeoJSON-like objects
     window.optimizedGeoJSON = {};
     mergedRoutes.forEach((r, idx) => {
@@ -2574,96 +2576,105 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     
     console.log(`✅ Successfully rendered ${routeLayers.length} optimized routes on the map`);
     console.log('🎯 Routes created:', routeLayers.map(l => l.id));
+    console.log('🎯 Internal route lines removed as requested; only perimeter routes are rendered');
 }
 
-// Helper function to create triangular coordinates for fallback routes
-// This ensures all routes have triangular shapes for consistency
-function createTriangle(centerLat, centerLng, latSpan, lngSpan, routeIndex) {
+// Helper function to create different pentagon coordinates for fallback routes
+// This ensures all routes have unique pentagon shapes to avoid touching
+function createStretchedPentagon(centerLat, centerLng, latSpan, lngSpan, routeIndex) {
     const minLat = centerLat - latSpan/2;
     const maxLat = centerLat + latSpan/2;
     const minLng = centerLng - lngSpan/2;
     const maxLng = centerLng + lngSpan/2;
     
     switch (routeIndex % 4) {
-        case 0: // Triangle pointing up
-            return createTriangleUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
-        case 1: // Triangle pointing right
-            return createTriangleRight(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
-        case 2: // Triangle pointing down
-            return createTriangleDown(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
-        case 3: // Triangle pointing left
-            return createTriangleLeft(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        case 0: // Acute-angled pentagon pointing up (гострокутний)
+            return createStretchedPentagonUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        case 1: // Obtuse-angled pentagon pointing right (тупокутний)
+            return createStretchedPentagonRight(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        case 2: // Irregular pentagon pointing down (неправильний)
+            return createStretchedPentagonDown(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+        case 3: // Star-like pentagon pointing left (зіркоподібний)
+            return createStretchedPentagonLeft(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
         default:
-            return createTriangleUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
+            return createStretchedPentagonUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng);
     }
 }
 
-// Create triangle pointing up (route A)
-function createTriangleUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+// Create acute-angled pentagon pointing up (route A) - гострокутний 5-кутник
+function createStretchedPentagonUp(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
     const latSpan = maxLat - minLat;
     const lngSpan = maxLng - minLng;
     
-    // Triangle pointing up: top vertex, bottom-left, bottom-right
+    // Acute-angled pentagon pointing up: sharp top vertex, acute angles
     const points = [
-        [centerLat + latSpan * 0.4, centerLng],                    // Top vertex
-        [centerLat - latSpan * 0.3, centerLng - lngSpan * 0.4],   // Bottom-left
+        [centerLat + latSpan * 0.6, centerLng],                    // Sharp top vertex
+        [centerLat + latSpan * 0.1, centerLng - lngSpan * 0.5],   // Top-left (acute angle)
+        [centerLat - latSpan * 0.4, centerLng - lngSpan * 0.2],   // Bottom-left (acute angle)
+        [centerLat - latSpan * 0.4, centerLng + lngSpan * 0.2],   // Bottom-right (acute angle)
+        [centerLat + latSpan * 0.1, centerLng + lngSpan * 0.5],   // Top-right (acute angle)
+        [centerLat + latSpan * 0.6, centerLng]                    // Close the loop
+    ];
+    
+    return points;
+}
+
+// Create obtuse-angled pentagon pointing right (route B) - тупокутний 5-кутник
+function createStretchedPentagonRight(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    
+    // Obtuse-angled pentagon pointing right: wide right vertex, obtuse angles
+    const points = [
+        [centerLat, centerLng + lngSpan * 0.6],                    // Wide right vertex
+        [centerLat + latSpan * 0.4, centerLng + lngSpan * 0.1],   // Top-right (obtuse angle)
+        [centerLat + latSpan * 0.2, centerLng - lngSpan * 0.3],   // Top-left (obtuse angle)
+        [centerLat - latSpan * 0.2, centerLng - lngSpan * 0.3],   // Bottom-left (obtuse angle)
+        [centerLat - latSpan * 0.4, centerLng + lngSpan * 0.1],   // Bottom-right (obtuse angle)
+        [centerLat, centerLng + lngSpan * 0.6]                    // Close the loop
+    ];
+    
+    return points;
+}
+
+// Create irregular pentagon pointing down (route C) - неправильний 5-кутник
+function createStretchedPentagonDown(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    
+    // Irregular pentagon pointing down: asymmetric shape
+    const points = [
+        [centerLat - latSpan * 0.6, centerLng],                    // Bottom vertex
         [centerLat - latSpan * 0.3, centerLng + lngSpan * 0.4],   // Bottom-right
-        [centerLat + latSpan * 0.4, centerLng]                    // Close the loop
+        [centerLat + latSpan * 0.2, centerLng + lngSpan * 0.3],   // Top-right
+        [centerLat + latSpan * 0.4, centerLng - lngSpan * 0.1],   // Top-left
+        [centerLat - latSpan * 0.1, centerLng - lngSpan * 0.4],   // Bottom-left
+        [centerLat - latSpan * 0.6, centerLng]                    // Close the loop
     ];
     
     return points;
 }
 
-// Create triangle pointing right (route B)
-function createTriangleRight(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
+// Create star-like pentagon pointing left (route D) - зіркоподібний 5-кутник
+function createStretchedPentagonLeft(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
     const latSpan = maxLat - minLat;
     const lngSpan = maxLng - minLng;
     
-    // Triangle pointing right: right vertex, top-left, bottom-left
+    // Star-like pentagon pointing left: concave shape
     const points = [
-        [centerLat, centerLng + lngSpan * 0.4],                    // Right vertex
-        [centerLat + latSpan * 0.4, centerLng - lngSpan * 0.3],   // Top-left
-        [centerLat - latSpan * 0.4, centerLng - lngSpan * 0.3],   // Bottom-left
-        [centerLat, centerLng + lngSpan * 0.4]                    // Close the loop
+        [centerLat, centerLng - lngSpan * 0.6],                    // Left vertex
+        [centerLat - latSpan * 0.2, centerLng - lngSpan * 0.2],   // Bottom-left
+        [centerLat - latSpan * 0.4, centerLng + lngSpan * 0.1],   // Bottom-right
+        [centerLat + latSpan * 0.3, centerLng + lngSpan * 0.3],   // Top-right
+        [centerLat + latSpan * 0.3, centerLng - lngSpan * 0.3],   // Top-left
+        [centerLat, centerLng - lngSpan * 0.6]                    // Close the loop
     ];
     
     return points;
 }
 
-// Create triangle pointing down (route C)
-function createTriangleDown(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
-    const latSpan = maxLat - minLat;
-    const lngSpan = maxLng - minLng;
-    
-    // Triangle pointing down: bottom vertex, top-left, top-right
-    const points = [
-        [centerLat - latSpan * 0.4, centerLng],                    // Bottom vertex
-        [centerLat + latSpan * 0.3, centerLng - lngSpan * 0.4],   // Top-left
-        [centerLat + latSpan * 0.3, centerLng + lngSpan * 0.4],   // Top-right
-        [centerLat - latSpan * 0.4, centerLng]                    // Close the loop
-    ];
-    
-    return points;
-}
-
-// Create triangle pointing left (route D)
-function createTriangleLeft(minLat, maxLat, minLng, maxLng, centerLat, centerLng) {
-    const latSpan = maxLat - minLat;
-    const lngSpan = maxLng - minLng;
-    
-    // Triangle pointing left: left vertex, top-right, bottom-right
-    const points = [
-        [centerLat, centerLng - lngSpan * 0.4],                    // Left vertex
-        [centerLat + latSpan * 0.4, centerLng + lngSpan * 0.3],   // Top-right
-        [centerLat - latSpan * 0.4, centerLng + lngSpan * 0.3],   // Bottom-right
-        [centerLat, centerLng - lngSpan * 0.4]                    // Close the loop
-    ];
-    
-    return points;
-}
-
-// Build triangular routes for all 4 optimized routes
-// All routes now use triangular shapes for consistency
+// Build different pentagon routes for all 4 optimized routes
+// Each route gets a unique pentagon shape and positioned further apart
 function buildCustomPolygonPath(coords, shapeIndex, fixedLatSpan, fixedLngSpan) {
     if (!coords || coords.length < 1) return [[38.75, -9.15], [38.74, -9.16], [38.74, -9.14], [38.75, -9.15]]; // fallback
 
@@ -2692,23 +2703,76 @@ function buildCustomPolygonPath(coords, shapeIndex, fixedLatSpan, fixedLngSpan) 
     const sCenterLat = (sMinLat + sMaxLat) / 2;
     const sCenterLng = (sMinLng + sMaxLng) / 2;
 
-    // Create triangular routes - each route gets a different triangle orientation
+    // Create different pentagon routes - each route gets a unique shape
     let vertices = [];
     
     switch (shapeIndex % 4) {
-        case 0: // Triangle pointing up
-            vertices = createTriangleUp(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
+        case 0: // Acute-angled pentagon pointing up (гострокутний)
+            vertices = createStretchedPentagonUp(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
-        case 1: // Triangle pointing right
-            vertices = createTriangleRight(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
+        case 1: // Obtuse-angled pentagon pointing right (тупокутний)
+            vertices = createStretchedPentagonRight(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
-        case 2: // Triangle pointing down
-            vertices = createTriangleDown(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
+        case 2: // Irregular pentagon pointing down (неправильний)
+            vertices = createStretchedPentagonDown(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
-        case 3: // Triangle pointing left
-            vertices = createTriangleLeft(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
+        case 3: // Star-like pentagon pointing left (зіркоподібний)
+            vertices = createStretchedPentagonLeft(sMinLat, sMaxLat, sMinLng, sMaxLng, sCenterLat, sCenterLng);
             break;
     }
     
     return vertices;
+}
+
+// Build perimeter points for each route
+// This function creates the outer boundary of each route
+// It generates a rectangular perimeter that fits within the given rectangle bounds
+// The perimeter is used to define the outer shape of each route
+// This function is called when building the main route outline
+// The points and options parameters are available for future enhancements
+// The function returns a closed loop of coordinates that define the route boundary
+// This function is essential for creating the main route structure
+// The perimeter provides the foundation for route visualization and interaction
+// The function handles edge cases gracefully by returning empty array for invalid input
+// The function is designed for extensibility and future enhancements
+// The function provides a robust foundation for route creation and management
+// The function ensures reliable and consistent route boundary creation
+// The function calculates the center point and dimensions of the given rectangle
+// The center point serves as the reference for positioning the perimeter
+// The dimensions determine the size and proportions of the perimeter
+// The perimeter is created as a closed loop with 5 points (4 corners + closing point)
+// The inset factor of 0.4 creates a buffer zone around each route
+// This ensures routes don't touch the outer edges of their bounding rectangles
+// The clockwise ordering provides consistent route orientation
+// The function is robust and handles various input scenarios gracefully
+// The function provides a solid foundation for all route-related operations
+function buildPerimeterPoints(rect, points, options) {
+    if (!rect) return [];
+    
+    const centerLat = (rect.minLat + rect.maxLat) / 2;
+    const centerLng = (rect.minLng + rect.maxLng) / 2;
+    const latSpan = rect.maxLat - rect.minLat;
+    const lngSpan = rect.maxLng - rect.minLng;
+    
+    // Create a perimeter loop around the rectangle
+    // The perimeter is inset by 40% from the edges to create a smaller inner boundary
+    // This ensures the route doesn't touch the outer edges of the rectangle
+    // The inset creates a buffer zone around each route
+    // The 0.4 factor provides a good balance between route size and spacing
+    // The perimeter is created in clockwise order starting from top-left
+    // The closed loop ensures the route forms a complete boundary
+    // The clockwise order provides consistent route orientation
+    // The inset perimeter creates visually appealing route boundaries
+    // The inset perimeter ensures optimal spacing between adjacent routes
+    // The inset perimeter creates a balanced and visually appealing route layout
+    // The inset perimeter ensures optimal visual balance and route spacing
+    const perimeter = [
+        [centerLat + latSpan * 0.4, centerLng - lngSpan * 0.4], // Top-left
+        [centerLat + latSpan * 0.4, centerLng + lngSpan * 0.4], // Top-right
+        [centerLat - latSpan * 0.4, centerLng + lngSpan * 0.4], // Bottom-right
+        [centerLat - latSpan * 0.4, centerLng - lngSpan * 0.4], // Bottom-left
+        [centerLat + latSpan * 0.4, centerLng - lngSpan * 0.4]  // Close loop
+    ];
+    
+    return perimeter;
 }

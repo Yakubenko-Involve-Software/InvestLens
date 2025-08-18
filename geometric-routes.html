@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Routes with Diagonal Lines</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .routes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .route-item {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .route-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .route-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .route-description {
+            color: #718096;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .svg-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f7fafc;
+        }
+        
+        .legend {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border-left: 5px solid #4299e1;
+        }
+        
+        .legend h3 {
+            color: #2d3748;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .legend ul {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        
+        .legend li {
+            margin-bottom: 8px;
+        }
+        
+        .highlight {
+            background: #fed7d7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 CARNIDE District Delivery Routes</h1>
+        
+        <div class="routes-grid">
+            <!-- Route A: North-East Zone -->
+            <div class="route-item">
+                <div class="route-title">Route A</div>
+                <div class="route-description">North-East Delivery Zone</div>
+                <div class="svg-container">
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <!-- Route A: North-East zone - CARNIDE style -->
+                        <polygon 
+                            points="100,100 180,80 220,60 240,100 200,140 160,160 100,140" 
+                            fill="none" 
+                            stroke="#e53e3e" 
+                            stroke-width="4"
+                            stroke-linejoin="round"
+                        />
+
+                        <!-- Route A label -->
+                        <text x="170" y="110" font-family="Arial" font-size="16" font-weight="bold" fill="#e53e3e">A</text>
+                        <!-- Vertices markers -->
+                        <circle cx="100" cy="100" r="5" fill="#e53e3e"/>
+                        <circle cx="180" cy="80" r="5" fill="#e53e3e"/>
+                        <circle cx="220" cy="60" r="5" fill="#e53e3e"/>
+                        <circle cx="240" cy="100" r="5" fill="#e53e3e"/>
+                        <circle cx="200" cy="140" r="5" fill="#e53e3e"/>
+                        <circle cx="160" cy="160" r="5" fill="#e53e3e"/>
+                        <circle cx="100" cy="140" r="5" fill="#e53e3e"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Route B: North-West Zone -->
+            <div class="route-item">
+                <div class="route-title">Route B</div>
+                <div class="route-description">North-West Delivery Zone</div>
+                <div class="svg-container">
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <!-- Route B: North-West zone - CARNIDE style -->
+                        <polygon 
+                            points="100,100 20,80 -20,60 -40,100 -20,140 20,160 100,140" 
+                            fill="none" 
+                            stroke="#e53e3e" 
+                            stroke-width="4"
+                            stroke-linejoin="round"
+                        />
+
+                        <!-- Route B label -->
+                        <text x="30" y="110" font-family="Arial" font-size="16" font-weight="bold" fill="#e53e3e">B</text>
+                        <!-- Vertices markers -->
+                        <circle cx="100" cy="100" r="5" fill="#e53e3e"/>
+                        <circle cx="20" cy="80" r="5" fill="#e53e3e"/>
+                        <circle cx="-20" cy="60" r="5" fill="#e53e3e"/>
+                        <circle cx="-40" cy="100" r="5" fill="#e53e3e"/>
+                        <circle cx="-20" cy="140" r="5" fill="#e53e3e"/>
+                        <circle cx="20" cy="160" r="5" fill="#e53e3e"/>
+                        <circle cx="100" cy="140" r="5" fill="#e53e3e"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Route C: South-West Zone -->
+            <div class="route-item">
+                <div class="route-title">Route C</div>
+                <div class="route-description">South-West Delivery Zone</div>
+                <div class="svg-container">
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <!-- Route C: South-West zone - CARNIDE style -->
+                        <polygon 
+                            points="100,100 20,180 -20,200 -40,240 -20,280 20,300 100,280" 
+                            fill="none" 
+                            stroke="#e53e3e" 
+                            stroke-width="4"
+                            stroke-linejoin="round"
+                        />
+
+                        <!-- Route C label -->
+                        <text x="30" y="240" font-family="Arial" font-size="16" font-weight="bold" fill="#e53e3e">C</text>
+                        <!-- Vertices markers -->
+                        <circle cx="100" cy="100" r="5" fill="#e53e3e"/>
+                        <circle cx="20" cy="180" r="5" fill="#e53e3e"/>
+                        <circle cx="-20" cy="200" r="5" fill="#e53e3e"/>
+                        <circle cx="-40" cy="240" r="5" fill="#e53e3e"/>
+                        <circle cx="-20" cy="280" r="5" fill="#e53e3e"/>
+                        <circle cx="20" cy="300" r="5" fill="#e53e3e"/>
+                        <circle cx="100" cy="280" r="5" fill="#e53e3e"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Route D: South-East Zone -->
+            <div class="route-item">
+                <div class="route-title">Route D</div>
+                <div class="route-description">South-East Delivery Zone</div>
+                <div class="svg-container">
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <!-- Route D: South-East zone - CARNIDE style -->
+                        <polygon 
+                            points="100,100 180,180 220,200 240,240 200,280 160,300 100,280" 
+                            fill="none" 
+                            stroke="#e53e3e" 
+                            stroke-width="4"
+                            stroke-linejoin="round"
+                        />
+
+                        <!-- Route D label -->
+                        <text x="170" y="240" font-family="Arial" font-size="16" font-weight="bold" fill="#e53e3e">D</text>
+                        <!-- Vertices markers -->
+                        <circle cx="100" cy="100" r="5" fill="#e53e3e"/>
+                        <circle cx="180" cy="180" r="5" fill="#e53e3e"/>
+                        <circle cx="220" cy="200" r="5" fill="#e53e3e"/>
+                        <circle cx="240" cy="240" r="5" fill="#e53e3e"/>
+                        <circle cx="200" cy="280" r="5" fill="#e53e3e"/>
+                        <circle cx="160" cy="300" r="5" fill="#e53e3e"/>
+                        <circle cx="100" cy="280" r="5" fill="#e53e3e"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h3>🚗 CARNIDE District Features</h3>
+            <ul>
+                <li><strong>Route A (North-East):</strong> <span class="highlight">North-East delivery zone</span> in CARNIDE style with natural street-following shape</li>
+                <li><strong>Route B (North-West):</strong> <span class="highlight">North-West delivery zone</span> in CARNIDE style with natural street-following shape</li>
+                <li><strong>Route C (South-West):</strong> <span class="highlight">South-West delivery zone</span> in CARNIDE style with natural street-following shape</li>
+                <li><strong>Route D (South-East):</strong> <span class="highlight">South-East delivery zone</span> in CARNIDE style with natural street-following shape</li>
+                <li><strong>Central Connection:</strong> All 4 routes connect at one central point (100,100) like metro station</li>
+                <li><strong>CARNIDE Style:</strong> Routes follow natural street patterns with thick red lines and prominent red nodes</li>
+                <li><strong>Route Labels:</strong> Each zone has its own label (A, B, C, D) positioned at the center of the zone</li>
+                <li><strong>Natural Urban Shapes:</strong> Irregular polygons designed to look like real delivery zones in CARNIDE district</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
