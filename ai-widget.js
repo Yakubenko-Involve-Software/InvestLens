@@ -439,7 +439,7 @@ async function addRoutesToAIMap() {
             setTimeout(() => polyline.setStyle({ opacity: 0.95 }), 60);
             const startLatLng = L.latLng(finalPath[0][0], finalPath[0][1]);
             const idIconHtml = `
-                <div style=\"display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;\">\n                    <div style=\"color:#2563eb;font-weight:700;font-size:12px;\">${ids[idx]}</div>\n                </div>`;
+                <div style=\"display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #2563eb;\">\n                    <div style=\"color:#2563eb;font-weight:700;font-size:12px;\">${ids[idx]}</div>\n                </div>`;
             const idIcon = L.divIcon({ html: idIconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
             const idMarker = L.marker(startLatLng, { icon: idIcon }).addTo(map);
 
@@ -449,8 +449,7 @@ async function addRoutesToAIMap() {
                 const pt = finalPath[vi];
                 accum += haversineMeters(lastPt, pt);
                 if (accum >= 150) {
-                    const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }).addTo(map);
-                    markers.push(dot);
+                    // Removed old square markers - now using new round markers
                     accum = 0;
                 }
                 lastPt = pt;
@@ -585,7 +584,7 @@ async function addRoutesToAIMap() {
 
         const startLatLng = L.latLng(path[0][0], path[0][1]);
         const idIconHtml = `
-            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
+            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
                 <div style="color:#ffffff;font-weight:700;font-size:12px;line-height:1;">${routeInfo.id}</div>
             </div>`;
         const idIcon = L.divIcon({ html: idIconHtml, className: '', iconSize: [28,28], iconAnchor: [14,14] });
@@ -596,8 +595,7 @@ async function addRoutesToAIMap() {
         const step = isOptimized ? Math.ceil(vertices.length / 8) : 1; // fewer dots when optimized
         for (let vi = 0; vi < vertices.length; vi += step) {
             const pt = vertices[vi];
-            const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }).addTo(map);
-            markers.push(dot);
+            // Removed old square markers - now using new round markers
         }
 
         // When not optimized, sample some points so the later 4 routes can pass through them
@@ -1840,39 +1838,61 @@ style.innerHTML = `
 }
 
 .position-marker {
-    background: transparent;
-    border: none;
+    background: transparent !important;
+    border: none !important;
 }
 
-.position-dot {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #2563eb;
-    border: 2px solid #1d4ed8;
-    box-shadow: 0 0 0 2px #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
+.position-marker .position-dot {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    background: #2563eb !important;
+    border: 2px solid #1d4ed8 !important;
+    box-shadow: 0 0 0 2px #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
 }
 
-.position-number {
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 12px;
-    line-height: 1;
-    user-select: none;
+.position-marker .position-number {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    user-select: none !important;
 }
 
-.position-dot:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 0 4px #ffffff, 0 4px 12px rgba(37, 99, 235, 0.4);
+.position-marker .position-dot:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 0 0 4px #ffffff, 0 4px 12px rgba(37, 99, 235, 0.4) !important;
 }
 
-.position-dot.highlighted {
-    transform: scale(1.2);
-    box-shadow: 0 0 0 4px #3b82f6;
+.position-marker .position-dot.highlighted {
+    transform: scale(1.2) !important;
+    box-shadow: 0 0 0 4px #3b82f6 !important;
+}
+
+/* Override any Leaflet default styles */
+.leaflet-marker-icon {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Force circular shape for all markers */
+.leaflet-marker-icon div {
+    border-radius: 50% !important;
+}
+
+/* Ensure position markers are circular */
+.position-marker .position-dot {
+    border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+/* Override any inline styles that might cause squares */
+.leaflet-marker-icon div[style*="border-radius"] {
+    border-radius: 50% !important;
 }
 `;
 document.head.appendChild(style);
@@ -1999,7 +2019,7 @@ function drawRoutesLikeRoutesTabOnAI() {
         const polyline = L.polyline(path, { color, weight: 4, opacity: 0.9 }).addTo(map);
         const startLatLng = L.latLng(path[0][0], path[0][1]);
         const iconHtml = `
-            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
+            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
                 <div style="color:#ffffff;font-weight:700;font-size:12px;line-height:1;">${r.id}</div>
             </div>`;
         const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [28,28], iconAnchor: [14,14] });
@@ -2008,8 +2028,7 @@ function drawRoutesLikeRoutesTabOnAI() {
         const dots = (path[0][0] === path[path.length-1][0] && path[0][1] === path[path.length-1][1]) ? path.slice(0,-1) : path;
         const markers = [idMarker];
         dots.forEach(pt => {
-            const dot = L.circleMarker(pt, { radius: 4, color: '#ffffff', weight: 2, fillColor: color, fillOpacity: 1 }).addTo(map);
-            markers.push(dot);
+            // Removed old square markers - now using new round markers
         });
         routeLayers.push({ polyline, markers, id: r.id, color });
     });
@@ -3024,7 +3043,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const polyline = L.polyline(naturalCoords, { color, weight: 6, opacity: 1.0, lineJoin: 'round', lineCap: 'round' }).addTo(map);
         const start = naturalCoords[0];
         const iconHtml = `
-            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
+            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #2563eb;">
                 <div style="color:#2563eb;font-weight:700;font-size:12px;">${r.name}</div>
             </div>`;
         const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
@@ -3060,19 +3079,17 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             // Create position marker with number
             let markerText;
             if (index === 0) {
-                markerText = "1"; // First position
-            } else if (index === pointsForDots.length - 1) {
-                markerText = r.name; // Last marker shows route ID (A, B, C, D)
+                markerText = r.name; // First marker shows route ID (A, B, C, D)
             } else {
-                markerText = (index + 1).toString(); // Position numbers (2, 3, 4, 5, 6, 7)
+                markerText = index.toString(); // Position numbers (1, 2, 3, 4, 5, 6, 7)
             }
             
             const positionMarker = L.marker(pt, {
                 icon: L.divIcon({
                     className: 'position-marker',
                     html: `
-                        <div class="position-dot" data-route="${r.name}" data-index="${index}">
-                            <div class="position-number">${markerText}</div>
+                        <div class="position-dot" data-route="${r.name}" data-index="${index}" style="width: 24px; height: 24px; border-radius: 50%; background: #2563eb; border: 2px solid #1d4ed8; box-shadow: 0 0 0 2px #ffffff; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                            <div class="position-number" style="color: #ffffff; font-weight: 700; font-size: 12px; line-height: 1; user-select: none;">${markerText}</div>
                         </div>
                     `,
                     iconSize: [24, 24],
