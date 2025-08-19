@@ -3100,13 +3100,26 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             showTimelinePanel(route);
         });
         
-        // Add dots at vertices and midpoints
-        const vertices = naturalCoords.slice(0, -1);
-        const pointsForDots = [...vertices];
-        for (let i = 0; i < vertices.length; i++) {
-            const p1 = vertices[i];
-            const p2 = vertices[(i + 1) % vertices.length];
-            pointsForDots.push([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]);
+        // Create evenly spaced points along the route in clockwise order
+        const numPoints = 8; // Total number of markers (1 route ID + 7 positions)
+        const pointsForDots = [];
+        
+        // Add starting point
+        pointsForDots.push(naturalCoords[0]);
+        
+        // Add evenly spaced points along the route
+        for (let i = 1; i < numPoints; i++) {
+            const t = i / (numPoints - 1);
+            const index = Math.floor(t * (naturalCoords.length - 1));
+            const nextIndex = Math.min(index + 1, naturalCoords.length - 1);
+            const progress = t * (naturalCoords.length - 1) - index;
+            
+            const p1 = naturalCoords[index];
+            const p2 = naturalCoords[nextIndex];
+            const lat = p1[0] + (p2[0] - p1[0]) * progress;
+            const lng = p1[1] + (p2[1] - p1[1]) * progress;
+            
+            pointsForDots.push([lat, lng]);
         }
 
         pointsForDots.forEach((pt, index) => {
@@ -3117,6 +3130,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             if (index === 0) {
                 markerText = r.name; // First marker shows route ID (A, B, C, D)
             } else {
+                // Number positions sequentially along the route
                 markerText = (index).toString(); // Position numbers (1, 2, 3, 4, 5, 6, 7)
             }
             
