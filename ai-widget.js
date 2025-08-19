@@ -1695,25 +1695,42 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         
         // Find the route layer and highlight the specific position marker
         const routeLayer = routeLayers.find(layer => layer.id === routeName);
+        console.log(`🔍 Looking for route layer: ${routeName}`);
+        console.log(`🔍 Available route layers:`, routeLayers.map(l => l.id));
+        
         if (routeLayer && routeLayer.markers) {
+            console.log(`🔍 Found route layer with ${routeLayer.markers.length} markers`);
+            
             // Find the marker with the correct position number
             let selectedMarker = null;
             let markerIndex = -1;
+            
+            // Log all markers to debug
+            routeLayer.markers.forEach((marker, idx) => {
+                if (marker.getElement) {
+                    const positionNumber = marker.getElement().querySelector('.position-number');
+                    console.log(`🔍 Marker ${idx}:`, positionNumber ? positionNumber.textContent : 'No position number');
+                }
+            });
             
             // Skip the first marker (route ID) and search for position number
             for (let i = 1; i < routeLayer.markers.length; i++) {
                 const marker = routeLayer.markers[i];
                 if (marker.getElement) {
                     const positionNumber = marker.getElement().querySelector('.position-number');
+                    console.log(`🔍 Checking marker ${i}: ${positionNumber ? positionNumber.textContent : 'No position number'} vs ${(positionIndex + 1).toString()}`);
                     if (positionNumber && positionNumber.textContent === (positionIndex + 1).toString()) {
                         selectedMarker = marker;
                         markerIndex = i;
+                        console.log(`✅ Found matching marker at index ${i}`);
                         break;
                     }
                 }
             }
             
             if (selectedMarker) {
+                console.log(`🎯 Highlighting marker at index ${markerIndex}`);
+                
                 // Reset all markers to normal style
                 routeLayer.markers.forEach(marker => {
                     if (marker.getElement) {
@@ -1734,9 +1751,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                     }
                 }
                 
-                // Center map on the selected position
+                // Center map on the selected position with smooth animation
                 const markerLatLng = selectedMarker.getLatLng();
-                map.setView(markerLatLng, 16);
+                console.log(`🗺️ Centering map on:`, markerLatLng);
+                map.flyTo(markerLatLng, 16, {
+                    duration: 1.0,
+                    easeLinearity: 0.25
+                });
                 
                 // Show popup for the selected position
                 const popupContent = `
@@ -1751,9 +1772,24 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 console.log(`✅ Position ${positionIndex + 1} highlighted on map for Route ${routeName}`);
             } else {
                 console.warn(`❌ Marker for position ${positionIndex + 1} not found in route ${routeName}`);
+                console.warn(`❌ Available markers:`, routeLayer.markers.length);
+                
+                // Fallback: center map on the provided coordinates
+                console.log(`🔄 Fallback: centering map on provided coordinates [${lat}, ${lng}]`);
+                map.flyTo([lat, lng], 16, {
+                    duration: 1.0,
+                    easeLinearity: 0.25
+                });
             }
         } else {
             console.warn(`❌ Route layer not found for ${routeName}`);
+            
+            // Fallback: center map on the provided coordinates
+            console.log(`🔄 Fallback: centering map on provided coordinates [${lat}, ${lng}]`);
+            map.flyTo([lat, lng], 16, {
+                duration: 1.0,
+                easeLinearity: 0.25
+            });
         }
         
         // Highlight the corresponding position in Timeline
@@ -3134,6 +3170,8 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
                 markerText = (index).toString(); // Position numbers (1, 2, 3, 4, 5, 6, 7)
             }
             
+            console.log(`🎯 Creating marker for Route ${r.name}, Position ${index}: ${markerText} at [${pt[0]}, ${pt[1]}]`);
+            
             const positionMarker = L.marker(pt, {
                 icon: L.divIcon({
                     className: 'position-marker',
@@ -3185,7 +3223,12 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         });
 
         routeLayers.push({ polyline, markers, id: r.name, color });
+        console.log(`🎯 Route ${r.name} added to routeLayers with ${markers.length} markers`);
     });
+    
+    console.log(`🎯 Total routeLayers created:`, routeLayers.length);
+    console.log(`🎯 routeLayers details:`, routeLayers.map(l => ({ id: l.id, markersCount: l.markers.length })));
+    
     const group = L.featureGroup(routeLayers.map(l=>l.polyline));
     if (lastAIBounds) {
         map.fitBounds(lastAIBounds, { padding: [20,20] });
