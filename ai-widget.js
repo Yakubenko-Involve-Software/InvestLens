@@ -702,12 +702,14 @@ function initAISorting() {
             // Update sort icons
             sortableHeaders.forEach(header => {
                 const icon = header.querySelector('i');
-                if (header.dataset.sortKey === currentSort.key) {
-                    icon.className = currentSort.asc 
-                        ? 'ri-arrow-up-line ml-1 align-middle text-gray-800' 
-                        : 'ri-arrow-down-line ml-1 align-middle text-gray-800';
-                } else {
-                    icon.className = 'ri-arrow-up-down-line ml-1 align-middle text-gray-400';
+                if (icon) { // Only update if icon exists
+                    if (header.dataset.sortKey === currentSort.key) {
+                        icon.className = currentSort.asc 
+                            ? 'ri-arrow-up-line ml-1 align-middle text-gray-800' 
+                            : 'ri-arrow-down-line ml-1 align-middle text-gray-800';
+                    } else {
+                        icon.className = 'ri-arrow-up-down-line ml-1 align-middle text-gray-400';
+                    }
                 }
             });
 
@@ -1425,9 +1427,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         // Make the courier header clickable with dropdown for route selection
         timelineCourier.innerHTML = `
             <div class="relative">
-                <button onclick="toggleRouteDropdown()" class="flex items-center space-x-2 text-base font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer" title="Click to select route">
+                <button onclick="toggleRouteDropdown()" class="group flex items-center space-x-2 text-base font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer" title="Click to select route">
                     <span>${routeData.name}</span>
-                    <svg id="route-arrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-gray-500 group-hover:text-blue-600 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
@@ -1602,19 +1604,24 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     // Global function to toggle route dropdown
     window.toggleRouteDropdown = function() {
         const dropdown = document.getElementById('route-dropdown');
-        const arrow = document.getElementById('route-arrow');
+        const routeButton = event.target.closest('button');
+        const arrow = routeButton?.querySelector('svg');
         
-        if (dropdown && arrow) {
+        if (dropdown) {
             const isHidden = dropdown.classList.contains('hidden');
             
             if (isHidden) {
                 // Opening dropdown - rotate arrow up
                 dropdown.classList.remove('hidden');
-                arrow.style.transform = 'rotate(180deg)';
+                if (arrow) {
+                    arrow.style.transform = 'rotate(180deg)';
+                }
             } else {
                 // Closing dropdown - rotate arrow down
                 dropdown.classList.add('hidden');
-                arrow.style.transform = 'rotate(0deg)';
+                if (arrow) {
+                    arrow.style.transform = 'rotate(0deg)';
+                }
             }
         }
     };
@@ -1633,7 +1640,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         
         // Close dropdown and reset arrow after selection
         const dropdown = document.getElementById('route-dropdown');
-        const arrow = document.getElementById('route-arrow');
+        const routeButton = document.querySelector('button[onclick="toggleRouteDropdown()"]');
+        const arrow = routeButton?.querySelector('svg');
+        
         if (dropdown) {
             dropdown.classList.add('hidden');
         }
@@ -1655,10 +1664,11 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     document.addEventListener('click', function(event) {
         const dropdown = document.getElementById('route-dropdown');
         const routeButton = event.target.closest('button');
-        const arrow = document.getElementById('route-arrow');
         
         if (dropdown && !routeButton) {
             dropdown.classList.add('hidden');
+            // Reset arrow rotation
+            const arrow = document.querySelector('button[onclick="toggleRouteDropdown()"] svg');
             if (arrow) {
                 arrow.style.transform = 'rotate(0deg)';
             }
@@ -1687,59 +1697,23 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     
     // Function to show position on map when Timeline position is clicked
     window.showPositionOnMap = function(routeName, positionIndex, lat, lng) {
-        console.log(`📍 Showing position ${positionIndex + 1} for route ${routeName}`);
-        console.log(`🌍 Coordinates: lat=${lat}, lng=${lng}`);
-        console.log(`🔍 Data types: lat=${typeof lat}, lng=${typeof lng}`);
+        console.log(`📍 Timeline position ${positionIndex + 1} clicked for route ${routeName}`);
         
-        // Clear any existing position markers
+        // Clear any existing position markers from map
         if (window.currentMarker) {
             map.removeLayer(window.currentMarker);
+            window.currentMarker = null;
         }
-        
-        // Create a new marker for the selected position
-        console.log(`🎯 Creating marker at [${lat}, ${lng}]`);
-        const positionMarker = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: 'position-marker',
-                html: `<div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">${positionIndex + 1}</div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
-            })
-        }).addTo(map);
-        console.log(`✅ Marker created and added to map`);
-        
-        // Store reference to current marker
-        window.currentMarker = positionMarker;
-        
-        // Center map on the selected position
-        map.setView([lat, lng], 16);
-        
-        // Add popup with position information
-        const routeData = generateRouteData(routeName);
-        const stop = routeData.stops[positionIndex];
-        positionMarker.bindPopup(`
-            <div class="text-center">
-                <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
-                <div class="text-sm text-gray-600">${stop.time} - ${stop.location}</div>
-                <div class="text-xs text-gray-500 mt-1">Route ${routeName} - ${getDistrictName(routeName)}</div>
-            </div>
-        `);
         
         // Highlight the route on the map and update timeline
         console.log(`🔄 Calling setFocus for route: ${routeName}`);
         setFocus(routeName);
         
-        // Show popup automatically
-        positionMarker.openPopup();
-        
-        // Highlight the corresponding position on the map
-        highlightMapPosition(routeName, positionIndex);
-        
-        // Also highlight the corresponding position in Timeline
+        // Only highlight the corresponding position in Timeline (no map markers)
         highlightTimelinePosition(positionIndex);
         
-        console.log(`✅ Position ${positionIndex + 1} displayed on map for Route ${routeName}`);
-        console.log(`🎯 Timeline should now show Route ${routeName} with ${routeData.totalStops} stops`);
+        console.log(`✅ Timeline position ${positionIndex + 1} highlighted for Route ${routeName}`);
+        console.log(`🎯 No map markers or popups displayed`);
     };
     
     // Function to highlight position in Timeline
@@ -1764,60 +1738,11 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         }
     }
     
-    // Function to highlight map position when Timeline position is clicked
+    // Function to highlight map position when Timeline position is clicked (disabled)
     function highlightMapPosition(routeName, positionIndex) {
-        console.log(`🎯 Highlighting map position ${positionIndex} for route ${routeName}`);
-        
-        // Find the route layer
-        const routeLayer = routeLayers.find(layer => layer.id === routeName);
-        if (!routeLayer) {
-            console.warn(`❌ Route layer not found for ${routeName}`);
-            return;
-        }
-        
-        // Reset all position markers to normal style
-        routeLayer.markers.forEach(marker => {
-            if (marker instanceof L.Marker) {
-                const positionNumber = marker.getElement()?.querySelector('.position-number');
-                if (positionNumber) {
-                    positionNumber.classList.remove('highlighted');
-                }
-            }
-        });
-        
-        // Highlight the specific position marker
-        if (routeLayer.markers[positionIndex + 1]) { // +1 because first marker is the route name
-            const marker = routeLayer.markers[positionIndex + 1];
-            if (marker instanceof L.Marker) {
-                const positionNumber = marker.getElement()?.querySelector('.position-number');
-                if (positionNumber) {
-                    positionNumber.classList.add('highlighted');
-                    
-                    // Reset after 3 seconds
-                    setTimeout(() => {
-                        positionNumber.classList.remove('highlighted');
-                    }, 3000);
-                }
-            }
-        }
-        
-        // Also highlight the route polyline
-        if (routeLayer.polyline) {
-            routeLayer.polyline.setStyle({ 
-                weight: 8, 
-                opacity: 0.8,
-                color: '#fbbf24'
-            });
-            
-            // Reset after 3 seconds
-            setTimeout(() => {
-                routeLayer.polyline.setStyle({ 
-                    weight: 6, 
-                    opacity: 1.0,
-                    color: '#2563eb'
-                });
-            }, 3000);
-        }
+        console.log(`🎯 Map highlighting disabled for Timeline position ${positionIndex} on route ${routeName}`);
+        // This function is disabled to prevent map markers and popups when clicking Timeline positions
+        return;
     }
     
     console.log('Toggle buttons initialization complete');
@@ -2999,10 +2924,10 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const polyline = L.polyline(naturalCoords, { color, weight: 6, opacity: 1.0, lineJoin: 'round', lineCap: 'round' }).addTo(map);
         const start = naturalCoords[0];
         const iconHtml = `
-            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
-                <div style="color:#2563eb;font-weight:700;font-size:12px;">${r.name}</div>
+            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
+                <div style="color:#ffffff;font-weight:700;font-size:12px;line-height:1;">${r.name}</div>
             </div>`;
-        const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
+        const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [28,28], iconAnchor: [14,14] });
         const idMarker = L.marker([start[0], start[1]], { icon: idIcon }).addTo(map);
         const markers = [idMarker];
         
@@ -3020,48 +2945,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             showTimelinePanel(route);
         });
         
-        // Add dots at vertices and midpoints
-        const vertices = naturalCoords.slice(0, -1);
-        const pointsForDots = [...vertices];
-        for (let i = 0; i < vertices.length; i++) {
-            const p1 = vertices[i];
-            const p2 = vertices[(i + 1) % vertices.length];
-            pointsForDots.push([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]);
-        }
 
-        pointsForDots.forEach((pt, index) => {
-            if (Math.abs(pt[0] - start[0]) < 1e-6 && Math.abs(pt[1] - start[1]) < 1e-6) return;
-            
-            // Create position marker with number
-            const positionMarker = L.marker(pt, {
-                icon: L.divIcon({
-                    className: 'position-marker',
-                    html: `
-                        <div class="position-dot" data-route="${r.name}" data-index="${index}">
-                            <div class="position-number">${index + 1}</div>
-                        </div>
-                    `,
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
-                })
-            }).addTo(map);
-            
-            // Add click event to show position in timeline
-            positionMarker.on('click', () => {
-                showPositionOnMap(r.name, index, pt[0], pt[1]);
-            });
-            
-            // Add hover effect
-            positionMarker.on('mouseover', () => {
-                positionMarker.getElement()?.querySelector('.position-number')?.classList.add('hover');
-            });
-            
-            positionMarker.on('mouseout', () => {
-                positionMarker.getElement()?.querySelector('.position-number')?.classList.remove('hover');
-            });
-            
-            markers.push(positionMarker);
-        });
 
         routeLayers.push({ polyline, markers, id: r.name, color });
     });
@@ -3084,7 +2968,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     console.log(`✅ Successfully rendered ${routeLayers.length} optimized routes on the map`);
     console.log('🎯 Routes created:', routeLayers.map(l => l.id));
     console.log('🎯 Internal route lines removed as requested; only perimeter routes are rendered');
-    console.log('🎯 Position markers numbered and clickable for timeline navigation');
+    console.log('🎯 Position markers removed as requested');
     console.log('🎯 Route spacing optimized: All routes have uniform distance, route C is highest, route D is slightly lower than C');
     console.log('🎯 Timeline updated with project styling - route selector in header, improved card design');
     console.log('🎯 Routes are now deterministic and will not change on refresh');
