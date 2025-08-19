@@ -2945,7 +2945,48 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             showTimelinePanel(route);
         });
         
-
+        // Add numbered blue dots along the route
+        const numDots = 8; // Number of dots to place along the route
+        for (let i = 0; i < numDots; i++) {
+            const t = i / (numDots - 1); // Parameter from 0 to 1
+            const index = Math.floor(t * (naturalCoords.length - 1));
+            const nextIndex = Math.min(index + 1, naturalCoords.length - 1);
+            const progress = t * (naturalCoords.length - 1) - index;
+            
+            // Interpolate between two points
+            const p1 = naturalCoords[index];
+            const p2 = naturalCoords[nextIndex];
+            const lat = p1[0] + (p2[0] - p1[0]) * progress;
+            const lng = p1[1] + (p2[1] - p1[1]) * progress;
+            
+            // Create blue numbered marker
+            // First marker shows position 1, last marker shows route ID (A, B, C, D)
+            let markerText;
+            if (i === 0) {
+                markerText = "1"; // First position
+            } else if (i === numDots - 1) {
+                markerText = r.name; // Last marker shows route ID (A, B, C, D)
+            } else {
+                markerText = (i + 1).toString(); // Position numbers (2, 3, 4, 5, 6)
+            }
+            
+            const markerHtml = `
+                <div style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:9999px;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
+                    <div style="color:#ffffff;font-weight:700;font-size:10px;line-height:1;">${markerText}</div>
+                </div>`;
+            
+            const markerIcon = L.divIcon({ 
+                html: markerHtml, 
+                className: '', 
+                iconSize: [20, 20], 
+                iconAnchor: [10, 10] 
+            });
+            
+            const numberedMarker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
+            
+            // Add to markers array
+            markers.push(numberedMarker);
+        }
 
         routeLayers.push({ polyline, markers, id: r.name, color });
     });
