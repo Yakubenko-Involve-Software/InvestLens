@@ -734,7 +734,8 @@ async function setFocus(routeId) {
     // Highlight route on map
     highlightRouteOnMap(routeId);
 
-    // Render timeline
+    // Render timeline for the selected route
+    const route = { name: routeId, id: routeId };
     renderTimeline(routeId);
 }
 
@@ -750,7 +751,7 @@ function highlightRouteOnMap(routeId) {
     // Highlight selected route
     const selectedLayer = routeLayers.find(layer => layer.id === routeId);
     if (selectedLayer) {
-        selectedLayer.polyline.setStyle({ weight: 4, opacity: 1 });
+        selectedLayer.polyline.setStyle({ weight: 6, opacity: 1 });
         selectedLayer.markers.forEach(marker => {
             marker.setStyle({ opacity: 1 });
         });
@@ -1338,24 +1339,171 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     const timelineContent = document.getElementById('timeline-panel-content');
     const timelineClosePanel = document.getElementById('timeline-close-panel');
  
+        // Generate route data for Timeline based on stopsDataAll (like Routes tab)
+    function generateRouteData(routeName) {
+        // Get stops data from stopsDataAll (same as Routes tab)
+        const stops = stopsDataAll[routeName];
+        if (!stops || stops.length === 0) {
+            console.warn(`No stops data found for route ${routeName}`);
+            return getDefaultRouteData(routeName);
+        }
+        
+        // Convert stops data to timeline format
+        const timelineStops = stops.map((stop, index) => {
+            const isFirst = index === 0;
+            const isLast = index === stops.length - 1;
+            
+            let type, status, statusIcon;
+            if (isFirst) {
+                type = 'warehouse';
+                status = 'start';
+                statusIcon = '🚀';
+            } else if (isLast) {
+                type = 'warehouse';
+                status = 'end';
+                statusIcon = '✅';
+            } else {
+                type = 'delivery';
+                status = 'active';
+                statusIcon = '📦';
+            }
+            
+            return {
+                id: stop.id,
+                time: stop.eta,
+                location: stop.addr,
+                type: type,
+                status: status,
+                statusIcon: statusIcon,
+                coordinates: [stop.lat, stop.lon],
+                index: index,
+                // Additional data from stopsDataAll
+                originalData: stop
+            };
+        });
+        
+        // Calculate route statistics
+        const totalDistance = calculateRouteDistanceFromStops(stops);
+        const totalStops = stops.length;
+        
+        return {
+            name: `Route ${routeName} - ${getDistrictName(routeName)}`,
+            stops: timelineStops,
+            totalDistance: totalDistance,
+            totalStops: totalStops,
+            originalStops: stops
+        };
+    }
+
     function renderTimelineItems(route) {
         if (!timelineContent) return;
-        const stops = (stopsData[route.id] || []).slice(0, 12);
-        timelineCourier.textContent = route.name || `Courier ${route.id}`;
-        timelineContent.innerHTML = stops.map((stop, idx) => {
-            const base = 'rounded-lg border p-3';
-            const accent = idx === 0 || idx === stops.length - 1 ? 'bg-blue-50 border-blue-200' : (stop.optimised ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200');
-            const badge = stop.optimised ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Optimised by AI</span>' : '';
-            const warn = stop.warning ? `<div class="text-xs text-amber-600 mt-1"><i class="ri-alert-line mr-1"></i>${stop.warning}</div>` : '';
-            const placeBadge = stop.type === 'warehouse' ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">Warehouse</span>' : '';
+        
+        const routeData = generateRouteData(route.name);
+        
+        // Make the courier header clickable with dropdown for route selection
+        timelineCourier.innerHTML = `
+            <div class="relative">
+                <button onclick="toggleRouteDropdown()" class="flex items-center space-x-2 text-base font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer" title="Click to select route">
+                    <span>${routeData.name}</span>
+                    <svg id="route-arrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="route-dropdown" class="hidden absolute top-full left-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                    <div onclick="selectRoute('A')" class="px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer border-b border-gray-100 ${route.name === 'A' ? 'bg-blue-50 text-blue-700' : ''}">
+                        <div class="font-medium">Route A - North District</div>
+                        <div class="text-xs text-gray-500 mt-1">North area delivery route</div>
+                    </div>
+                    <div onclick="selectRoute('B')" class="px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer border-b border-gray-100 ${route.name === 'B' ? 'bg-blue-50 text-blue-700' : ''}">
+                        <div class="font-medium">Route B - East District</div>
+                        <div class="text-xs text-gray-500 mt-1">East area delivery route</div>
+                    </div>
+                    <div onclick="selectRoute('C')" class="px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer border-b border-gray-100 ${route.name === 'C' ? 'bg-blue-50 text-blue-700' : ''}">
+                        <div class="font-medium">Route C - South District</div>
+                        <div class="text-xs text-gray-500 mt-1">South area delivery route</div>
+                    </div>
+                    <div onclick="selectRoute('D')" class="px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer ${route.name === 'D' ? 'bg-blue-50 text-blue-700' : ''}">
+                        <div class="font-medium">Route D - West District</div>
+                        <div class="text-xs text-gray-500 mt-1">West area delivery route</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add route summary information with project styling
+        const summaryHtml = `
+            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-semibold text-gray-800">Total Stops:</span> 
+                            <span class="ml-1 text-blue-600 font-medium">${routeData.totalStops}</span>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="font-semibold text-gray-800">Total Distance:</span> 
+                            <span class="ml-1 text-green-600 font-medium">${routeData.totalDistance}m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const stopsHtml = routeData.stops.map((stop, idx) => {
+            const base = 'rounded-lg border p-4 mb-3 shadow-sm';
+            let accent, statusText, statusColor;
+            
+            if (stop.status === 'start') {
+                accent = 'bg-blue-50 border-blue-200';
+                statusText = 'Start Point';
+                statusColor = 'text-blue-700';
+            } else if (stop.status === 'end') {
+                accent = 'bg-green-50 border-green-200';
+                statusText = 'End Point';
+                statusColor = 'text-green-700';
+            } else {
+                accent = 'bg-amber-50 border-amber-200';
+                statusText = 'Delivery Stop';
+                statusColor = 'text-amber-700';
+            }
+            
+            const typeBadge = stop.type === 'warehouse' ? 
+                '<span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 font-medium">Warehouse</span>' : 
+                '<span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">Delivery</span>';
+            
+            // Add coordinates and additional info with better styling
+            const coordinatesInfo = stop.coordinates ? 
+                `<div class="text-xs text-gray-500 mt-2 font-mono bg-gray-50 px-2 py-1 rounded">Coordinates: ${stop.coordinates[0].toFixed(4)}, ${stop.coordinates[1].toFixed(4)}</div>` : '';
+            
+            // Add stop ID and index with better styling
+            const stopInfo = `<div class="text-xs text-gray-600 mt-2 flex items-center space-x-3">
+                <span class="bg-gray-100 px-2 py-1 rounded text-gray-700">Stop ID: ${stop.id}</span>
+                <span class="bg-blue-100 px-2 py-1 rounded text-blue-700">Position: ${stop.index + 1}/${routeData.totalStops}</span>
+            </div>`;
+            
             return `
-                <div class="${base} ${accent}">
-                    <div class="text-sm font-semibold text-gray-900">${stop.eta || stop.time || ''} ${stop.addr || stop.address || 'Stop'}</div>
-                    <div class="text-xs text-gray-500 mt-1 flex items-center">${placeBadge}${badge}</div>
-                    ${warn}
+                <div class="${base} ${accent} hover:shadow-md transition-shadow duration-200">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <span class="text-2xl">${stop.statusIcon}</span>
+                                <div>
+                                    <div class="text-lg font-bold text-gray-900">${stop.time}</div>
+                                    <div class="text-sm text-gray-600">${stop.location}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-sm font-medium ${statusColor}">${statusText}</span>
+                                ${typeBadge}
+                            </div>
+                            ${stopInfo}
+                            ${coordinatesInfo}
+                        </div>
+                    </div>
                 </div>
             `;
         }).join('');
+        
+        timelineContent.innerHTML = summaryHtml + stopsHtml;
     }
  
     function showTimelinePanel(route) {
@@ -1364,7 +1512,71 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         resultsView.classList.add('hidden');
         timelineView.classList.remove('hidden');
         timelineView.classList.add('flex');
+        
+
     }
+    
+
+    
+
+    
+    // Global function to toggle route dropdown
+    window.toggleRouteDropdown = function() {
+        const dropdown = document.getElementById('route-dropdown');
+        const arrow = document.getElementById('route-arrow');
+        
+        if (dropdown && arrow) {
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Opening dropdown - rotate arrow up
+                dropdown.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                // Closing dropdown - rotate arrow down
+                dropdown.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    };
+    
+    // Global function to select a specific route
+    window.selectRoute = function(routeName) {
+        const route = { name: routeName, id: routeName };
+        setFocus(route.id);
+        renderTimelineItems(route);
+        
+        // Close dropdown and reset arrow after selection
+        const dropdown = document.getElementById('route-dropdown');
+        const arrow = document.getElementById('route-arrow');
+        if (dropdown) {
+            dropdown.classList.add('hidden');
+        }
+        if (arrow) {
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    };
+    
+    // Global function to switch between routes in timeline (kept for compatibility)
+    window.switchToRoute = function(routeName) {
+        const route = { name: routeName, id: routeName };
+        setFocus(route.id);
+        renderTimelineItems(route);
+    };
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('route-dropdown');
+        const routeButton = event.target.closest('button');
+        const arrow = document.getElementById('route-arrow');
+        
+        if (dropdown && !routeButton) {
+            dropdown.classList.add('hidden');
+            if (arrow) {
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    });
 
     function hideTimelinePanel() {
         if (!resultsView || !timelineView) return;
@@ -1378,13 +1590,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     if (timelineBtn) {
         timelineBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            const firstRoute = allRoutes && allRoutes.length ? allRoutes[0] : null;
-            if (firstRoute) {
-                setFocus(firstRoute.id);
-                showTimelinePanel(firstRoute);
-            } else {
-                console.warn('No routes available to show timeline');
-            }
+            // Show timeline for the first available route (usually Route A)
+            const firstRoute = { name: 'A', id: 'A' };
+            setFocus(firstRoute.id);
+            showTimelinePanel(firstRoute);
         });
     }
     
@@ -2559,6 +2768,20 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const idMarker = L.marker([start[0], start[1]], { icon: idIcon }).addTo(map);
         const markers = [idMarker];
         
+        // Add click event to marker to switch timeline to this route
+        idMarker.on('click', () => {
+            const route = { name: r.name, id: r.name };
+            setFocus(r.name);
+            showTimelinePanel(route);
+        });
+        
+        // Add click event to polyline to switch timeline to this route
+        polyline.on('click', () => {
+            const route = { name: r.name, id: r.name };
+            setFocus(r.name);
+            showTimelinePanel(route);
+        });
+        
         // Add dots at vertices and midpoints
         const vertices = naturalCoords.slice(0, -1);
         const pointsForDots = [...vertices];
@@ -2596,6 +2819,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     console.log('🎯 Routes created:', routeLayers.map(l => l.id));
     console.log('🎯 Internal route lines removed as requested; only perimeter routes are rendered');
     console.log('🎯 Route spacing optimized: All routes have uniform distance, route C is highest, route D is slightly lower than C');
+    console.log('🎯 Timeline updated with project styling - route selector in header, improved card design');
     console.log('🎯 Routes are now deterministic and will not change on refresh');
 }
 
@@ -2795,4 +3019,52 @@ function buildPerimeterPoints(rect, points, options) {
     ];
     
     return perimeter;
+}
+
+// Helper function to get default route data if stopsDataAll is unavailable
+function getDefaultRouteData(routeName) {
+    const defaultData = {
+        'A': { name: 'Route A - North District', stops: [] },
+        'B': { name: 'Route B - East District', stops: [] },
+        'C': { name: 'Route C - South District', stops: [] },
+        'D': { name: 'Route D - West District', stops: [] }
+    };
+    return defaultData[routeName] || defaultData['A'];
+}
+
+// Calculate route distance from stops data
+function calculateRouteDistanceFromStops(stops) {
+    if (stops.length < 2) return 0;
+    
+    let totalDistance = 0;
+    for (let i = 0; i < stops.length - 1; i++) {
+        const stop1 = stops[i];
+        const stop2 = stops[i + 1];
+        totalDistance += calculateDistance(stop1.lat, stop1.lon, stop2.lat, stop2.lon);
+    }
+    
+    return Math.round(totalDistance);
+}
+
+// Calculate distance between two points using Haversine formula
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// Get district name for route
+function getDistrictName(routeName) {
+    const districts = {
+        'A': 'North District',
+        'B': 'East District', 
+        'C': 'South District',
+        'D': 'West District'
+    };
+    return districts[routeName] || 'Unknown District';
 }

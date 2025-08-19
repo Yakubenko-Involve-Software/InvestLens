@@ -623,15 +623,10 @@ const templates = {
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-1">
                             <span id="timeline-panel-courier" class="text-base font-semibold text-gray-900">Courier</span>
-                            <i class="ri-arrow-down-s-line text-gray-500"></i>
                         </div>
                         <button id="timeline-close-panel" class="p-2 rounded hover:bg-gray-100" title="Close"><i class="ri-close-line text-xl text-gray-600"></i></button>
                     </div>
-                    <button class="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 mb-3 self-start">Show All Days</button>
-                    <div class="rounded-lg border border-blue-200 bg-blue-50/30 p-3">
-                        <div class="text-sm font-semibold text-blue-700 mb-3"><i class="ri-record-circle-line mr-1 align-middle"></i> Today (solid)</div>
-                        <div id="timeline-panel-content" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
-                    </div>
+                    <div id="timeline-panel-content" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
                 </div>
             </div>
         </div>
