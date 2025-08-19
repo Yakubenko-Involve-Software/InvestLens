@@ -2520,13 +2520,20 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         // Build custom polygon path similar to the screenshot
         let naturalCoords = buildCustomPolygonPath(r.coords, idx, avgLatSpan, avgLngSpan);
         
-        // Shift away from the global center to increase spacing between routes
+        // Shift all routes equally from the global center for uniform spacing
         const routeCenter = getCenterOfPolygon(naturalCoords);
-        const shiftFactor = -0.2; // push 20% of the vector away from the global center
+        const shiftFactor = -0.2; // All routes pushed 20% away from global center for equal spacing
         const dLat = (globalCenter[0] - routeCenter[0]) * shiftFactor;
         const dLng = (globalCenter[1] - routeCenter[1]) * shiftFactor;
+        
+        // Additional upward shift for routes C and D (indices 2 and 3)
+        let additionalLatShift = 0;
+        if (idx >= 2) {
+            additionalLatShift = 0.01; // Shift routes C and D much higher (north) on Y axis
+        }
+        
         if (allCoords.length > 0) {
-            naturalCoords = naturalCoords.map(([lat, lng]) => [lat + dLat, lng + dLng]);
+            naturalCoords = naturalCoords.map(([lat, lng]) => [lat + dLat + additionalLatShift, lng + dLng]);
         }
 
         // All optimized routes are red
@@ -2577,6 +2584,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     console.log(`✅ Successfully rendered ${routeLayers.length} optimized routes on the map`);
     console.log('🎯 Routes created:', routeLayers.map(l => l.id));
     console.log('🎯 Internal route lines removed as requested; only perimeter routes are rendered');
+    console.log('🎯 Route spacing optimized: All routes have uniform distance, routes C and D are shifted higher on Y axis');
 }
 
 // Helper function to create different pentagon coordinates for fallback routes
