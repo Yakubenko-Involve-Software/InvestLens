@@ -730,34 +730,26 @@ function backToOverview() {
 
 async function setFocus(routeId) {
     console.log(`🎯 Setting focus to route ${routeId}`);
-    console.log(`📊 Current timeline route: ${window.currentTimelineRoute}`);
     
     // Highlight route on map
     highlightRouteOnMap(routeId);
 
-<<<<<<< HEAD
     // Only render timeline if it's not already being rendered for this route
     if (!window.currentTimelineRoute || window.currentTimelineRoute !== routeId) {
         console.log(`📋 Rendering timeline for route: ${routeId}`);
         const route = { name: routeId, id: routeId };
         renderTimelineItems(route);
         window.currentTimelineRoute = routeId;
-        console.log(`✅ Timeline updated for route: ${routeId}`);
     } else {
         console.log(`⏭️ Timeline already rendered for route: ${routeId}`);
     }
     
     console.log(`✅ Focus set to route ${routeId}`);
-=======
-    // Render timeline
-    renderTimeline(routeId);
->>>>>>> parent of cdb66a9 (I31)
 }
 
 function highlightRouteOnMap(routeId) {
     console.log(`🎯 Highlighting route: ${routeId}`);
     console.log(`📊 Available route layers:`, routeLayers.map(l => l.id));
-    console.log(`🔍 Looking for route ID: ${routeId}`);
     
     // Reset all routes to default style
     routeLayers.forEach(layer => {
@@ -770,12 +762,8 @@ function highlightRouteOnMap(routeId) {
     // Highlight selected route
     const selectedLayer = routeLayers.find(layer => layer.id === routeId);
     if (selectedLayer) {
-<<<<<<< HEAD
         console.log(`✅ Found route layer for ${routeId}`);
         selectedLayer.polyline.setStyle({ weight: 6, opacity: 1 });
-=======
-        selectedLayer.polyline.setStyle({ weight: 4, opacity: 1 });
->>>>>>> parent of cdb66a9 (I31)
         selectedLayer.markers.forEach(marker => {
             marker.setStyle({ opacity: 1 });
         });
@@ -786,9 +774,6 @@ function highlightRouteOnMap(routeId) {
         console.log(`🗺️ Map centered on route ${routeId}`);
     } else {
         console.warn(`❌ Route layer not found for ${routeId}`);
-        console.log(`🔍 Available route IDs:`, routeLayers.map(l => l.id));
-        console.log(`🔍 Looking for route ID: ${routeId}`);
-        console.log(`🔍 Route layers details:`, routeLayers);
     }
 }
 
@@ -1369,7 +1354,6 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     const timelineContent = document.getElementById('timeline-panel-content');
     const timelineClosePanel = document.getElementById('timeline-close-panel');
  
-<<<<<<< HEAD
         // Generate route data for Timeline based on stopsDataAll (like Routes tab)
     function generateRouteData(routeName) {
         console.log(`🔍 Generating route data for: ${routeName}`);
@@ -1412,7 +1396,6 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             };
             
             console.log(`📍 Stop ${index + 1}: ${stop.addr} at [${stop.lat}, ${stop.lon}]`);
-            console.log(`🔗 Click handler will be: showPositionOnMap('${routeName}', ${index}, ${stop.lat}, ${stop.lon})`);
             return timelineStop;
         });
         
@@ -1600,42 +1583,16 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         timelineContent.innerHTML = summaryHtml + stopsHtml;
         
         console.log(`✅ Timeline rendered for Route ${route.name} with ${routeData.totalStops} stops`);
-        console.log(`📋 Timeline content updated with ${routeData.stops.length} stop cards`);
-        console.log(`🎯 Each stop card is clickable and will show position on map`);
-=======
-    function renderTimelineItems(route) {
-        if (!timelineContent) return;
-        const stops = (stopsData[route.id] || []).slice(0, 12);
-        timelineCourier.textContent = route.name || `Courier ${route.id}`;
-        timelineContent.innerHTML = stops.map((stop, idx) => {
-            const base = 'rounded-lg border p-3';
-            const accent = idx === 0 || idx === stops.length - 1 ? 'bg-blue-50 border-blue-200' : (stop.optimised ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200');
-            const badge = stop.optimised ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Optimised by AI</span>' : '';
-            const warn = stop.warning ? `<div class="text-xs text-amber-600 mt-1"><i class="ri-alert-line mr-1"></i>${stop.warning}</div>` : '';
-            const placeBadge = stop.type === 'warehouse' ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">Warehouse</span>' : '';
-            return `
-                <div class="${base} ${accent}">
-                    <div class="text-sm font-semibold text-gray-900">${stop.eta || stop.time || ''} ${stop.addr || stop.address || 'Stop'}</div>
-                    <div class="text-xs text-gray-500 mt-1 flex items-center">${placeBadge}${badge}</div>
-                    ${warn}
-                </div>
-            `;
-        }).join('');
->>>>>>> parent of cdb66a9 (I31)
     }
  
     function showTimelinePanel(route) {
         if (!resultsView || !timelineView) return;
-        
-        console.log(`📋 Showing timeline panel for route: ${route.name}`);
         renderTimelineItems(route);
-        
         resultsView.classList.add('hidden');
         timelineView.classList.remove('hidden');
         timelineView.classList.add('flex');
-<<<<<<< HEAD
         
-        console.log(`✅ Timeline panel displayed for route: ${route.name}`);
+
     }
     
 
@@ -1652,33 +1609,26 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             
             if (isHidden) {
                 // Opening dropdown - rotate arrow up
-                console.log(`📋 Opening route dropdown`);
                 dropdown.classList.remove('hidden');
                 arrow.style.transform = 'rotate(180deg)';
             } else {
                 // Closing dropdown - rotate arrow down
-                console.log(`📋 Closing route dropdown`);
                 dropdown.classList.add('hidden');
                 arrow.style.transform = 'rotate(0deg)';
             }
-        } else {
-            console.warn(`❌ Dropdown or arrow element not found`);
         }
     };
     
     // Global function to select a specific route
     window.selectRoute = function(routeName) {
         console.log(`🔄 Switching to route: ${routeName}`);
-        console.log(`📊 Previous timeline route: ${window.currentTimelineRoute}`);
         const route = { name: routeName, id: routeName };
         
         // Update timeline for the new route
-        console.log(`📋 Updating timeline for route: ${routeName}`);
         renderTimelineItems(route);
         
         // Highlight route on map (without re-rendering timeline)
         window.currentTimelineRoute = routeName; // Prevent timeline re-render
-        console.log(`🎯 Highlighting route on map: ${routeName}`);
         highlightRouteOnMap(route.id);
         
         // Close dropdown and reset arrow after selection
@@ -1692,16 +1642,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         }
         
         console.log(`✅ Successfully switched to Route ${routeName}`);
-        console.log(`📊 New timeline route: ${window.currentTimelineRoute}`);
     };
     
     // Global function to switch between routes in timeline (kept for compatibility)
     window.switchToRoute = function(routeName) {
-        console.log(`🔄 Switching to route (compatibility): ${routeName}`);
         const route = { name: routeName, id: routeName };
         setFocus(route.id);
         renderTimelineItems(route);
-        console.log(`✅ Route switched (compatibility): ${routeName}`);
     };
     
     // Close dropdown when clicking outside
@@ -1717,19 +1664,12 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             }
         }
     });
-=======
-    }
->>>>>>> parent of cdb66a9 (I31)
 
     function hideTimelinePanel() {
         if (!resultsView || !timelineView) return;
-        
-        console.log(`📋 Hiding timeline panel`);
         timelineView.classList.add('hidden');
         timelineView.classList.remove('flex');
         resultsView.classList.remove('hidden');
-        
-        console.log(`✅ Timeline panel hidden`);
     }
 
     if (timelineClosePanel) timelineClosePanel.addEventListener('click', hideTimelinePanel);
@@ -1737,93 +1677,71 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     if (timelineBtn) {
         timelineBtn.addEventListener('click', (e) => {
             e.preventDefault();
-<<<<<<< HEAD
             // Show timeline for the first available route (usually Route A)
             const firstRoute = { name: 'A', id: 'A' };
             window.currentTimelineRoute = 'A'; // Set current route
             setFocus(firstRoute.id);
             showTimelinePanel(firstRoute);
-=======
-            const firstRoute = allRoutes && allRoutes.length ? allRoutes[0] : null;
-            if (firstRoute) {
-                setFocus(firstRoute.id);
-                showTimelinePanel(firstRoute);
-            } else {
-                console.warn('No routes available to show timeline');
-            }
->>>>>>> parent of cdb66a9 (I31)
         });
     }
     
-    // Position info function removed - positions are no longer displayed on map
-
-    // Function to show route overview when clicking on route line
-    function showRouteOverview(routeName, routeCoords) {
-        console.log(`🗺️ Showing route overview for ${routeName}`);
+    // Function to show position on map when Timeline position is clicked
+    window.showPositionOnMap = function(routeName, positionIndex, lat, lng) {
+        console.log(`📍 Showing position ${positionIndex + 1} for route ${routeName}`);
+        console.log(`🌍 Coordinates: lat=${lat}, lng=${lng}`);
+        console.log(`🔍 Data types: lat=${typeof lat}, lng=${typeof lng}`);
         
-        // Clear any existing popup
-        if (window.currentPositionPopup) {
-            map.closePopup();
-            window.currentPositionPopup = null;
+        // Clear any existing position markers
+        if (window.currentMarker) {
+            map.removeLayer(window.currentMarker);
         }
         
-        // Get route data
+        // Create a new marker for the selected position
+        console.log(`🎯 Creating marker at [${lat}, ${lng}]`);
+        const positionMarker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'position-marker',
+                html: `<div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">${positionIndex + 1}</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            })
+        }).addTo(map);
+        console.log(`✅ Marker created and added to map`);
+        
+        // Store reference to current marker
+        window.currentMarker = positionMarker;
+        
+        // Center map on the selected position
+        map.setView([lat, lng], 16);
+        
+        // Add popup with position information
         const routeData = generateRouteData(routeName);
-        const routeCenter = routeCoords.reduce((acc, [lat, lng]) => [acc[0] + lat, acc[1] + lng], [0, 0]);
-        routeCenter[0] /= routeCoords.length;
-        routeCenter[1] /= routeCoords.length;
-        
-        // Create route overview popup
-        const popupContent = `
-            <div class="p-4 max-w-sm">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-lg font-bold text-gray-900">Route ${routeName} Overview</h3>
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Active</span>
-                </div>
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Total Stops:</span>
-                        <span class="font-medium text-gray-900">${routeData.totalStops}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Total Distance:</span>
-                        <span class="font-medium text-gray-900">${routeData.totalDistance}m</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">District:</span>
-                        <span class="font-medium text-gray-900">${getDistrictName(routeName)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Courier:</span>
-                        <span class="font-medium text-gray-900">${getCourierName(routeName)}</span>
-                    </div>
-                </div>
-                <div class="mt-3 pt-3 border-t border-gray-200 flex space-x-2">
-                    <button onclick="showTimelinePanel({name: '${routeName}', id: '${routeName}'})" 
-                            class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
-                        View Timeline
-                    </button>
-                    <button onclick="map.closePopup()" 
-                            class="px-3 py-2 text-gray-600 hover:text-gray-800 transition-colors">
-                        ✕
-                    </button>
-                </div>
+        const stop = routeData.stops[positionIndex];
+        positionMarker.bindPopup(`
+            <div class="text-center">
+                <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
+                <div class="text-sm text-gray-600">${stop.time} - ${stop.location}</div>
+                <div class="text-xs text-gray-500 mt-1">Route ${routeName} - ${getDistrictName(routeName)}</div>
             </div>
-        `;
+        `);
         
-        // Create and show popup
-        const popup = L.popup({
-            maxWidth: 400,
-            className: 'position-info-popup'
-        })
-        .setLatLng(routeCenter)
-        .setContent(popupContent)
-        .openOn(map);
+        // Highlight the route on the map and update timeline
+        console.log(`🔄 Calling setFocus for route: ${routeName}`);
+        setFocus(routeName);
         
-        // Store reference to current popup
-        window.currentPositionPopup = popup;
-    }
-
+        // Show popup automatically
+        positionMarker.openPopup();
+        
+        // Highlight the corresponding position on the map
+        highlightMapPosition(routeName, positionIndex);
+        
+        // Also highlight the corresponding position in Timeline
+        highlightTimelinePosition(positionIndex);
+        
+        console.log(`✅ Position ${positionIndex + 1} displayed on map for Route ${routeName}`);
+        console.log(`🎯 Timeline should now show Route ${routeName} with ${routeData.totalStops} stops`);
+    };
+    
     // Function to highlight position in Timeline
     function highlightTimelinePosition(positionIndex) {
         console.log(`🎯 Highlighting position ${positionIndex} in Timeline`);
@@ -1845,8 +1763,8 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             });
         }
     }
-
-        // Function to highlight map position when Timeline position is clicked
+    
+    // Function to highlight map position when Timeline position is clicked
     function highlightMapPosition(routeName, positionIndex) {
         console.log(`🎯 Highlighting map position ${positionIndex} for route ${routeName}`);
         
@@ -1857,43 +1775,29 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             return;
         }
         
-        // Reset all dots to normal style
+        // Reset all position markers to normal style
         routeLayer.markers.forEach(marker => {
-            if (marker instanceof L.CircleMarker) {
-                marker.setStyle({ 
-                    radius: 4, 
-                    weight: 2, 
-                    fillColor: '#2563eb', 
-                    color: '#ffffff' 
-                });
-                marker.getElement()?.classList.remove('highlighted');
+            if (marker instanceof L.Marker) {
+                const positionNumber = marker.getElement()?.querySelector('.position-number');
+                if (positionNumber) {
+                    positionNumber.classList.remove('highlighted');
+                }
             }
         });
         
-        // Highlight the specific position dot
+        // Highlight the specific position marker
         if (routeLayer.markers[positionIndex + 1]) { // +1 because first marker is the route name
-            const dot = routeLayer.markers[positionIndex + 1];
-            if (dot instanceof L.CircleMarker) {
-                dot.setStyle({ 
-                    radius: 8, 
-                    weight: 4, 
-                    fillColor: '#fbbf24',
-                    color: '#ffffff'
-                });
-                
-                // Add highlighted class for CSS animation
-                dot.getElement()?.classList.add('highlighted');
-                
-                // Reset after 3 seconds
-                setTimeout(() => {
-                    dot.setStyle({ 
-                        radius: 4, 
-                        weight: 2, 
-                        fillColor: '#2563eb', 
-                        color: '#ffffff' 
-                    });
-                    dot.getElement()?.classList.remove('highlighted');
-                }, 3000);
+            const marker = routeLayer.markers[positionIndex + 1];
+            if (marker instanceof L.Marker) {
+                const positionNumber = marker.getElement()?.querySelector('.position-number');
+                if (positionNumber) {
+                    positionNumber.classList.add('highlighted');
+                    
+                    // Reset after 3 seconds
+                    setTimeout(() => {
+                        positionNumber.classList.remove('highlighted');
+                    }, 3000);
+                }
             }
         }
         
@@ -1915,185 +1819,6 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             }, 3000);
         }
     }
-
-    // Function to show position on map when Timeline position is clicked
-    window.showPositionOnMap = function(routeName, positionIndex, lat, lng) {
-        console.log(`📍 Showing position ${positionIndex + 1} for route ${routeName}`);
-        console.log(`🌍 Coordinates: lat=${lat}, lng=${lng}`);
-        console.log(`🔍 Data types: lat=${typeof lat}, lng=${typeof lng}`);
-        console.log(`🔍 Function parameters: routeName=${routeName}, positionIndex=${positionIndex}`);
-        
-        // Clear any existing position markers
-        if (window.currentMarker) {
-            console.log(`🗑️ Removing previous position marker`);
-            map.removeLayer(window.currentMarker);
-            window.currentMarker = null;
-        } else {
-            console.log(`✅ No previous position marker to remove`);
-        }
-        
-        // Create a new marker for the selected position
-        console.log(`🎯 Creating marker at [${lat}, ${lng}]`);
-        console.log(`🔍 Marker data: positionIndex=${positionIndex}, routeName=${routeName}`);
-        console.log(`🔍 Marker icon HTML: Position ${positionIndex + 1}`);
-        
-        const positionMarker = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: 'position-marker',
-                html: `<div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">${positionIndex + 1}</div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
-            })
-        }).addTo(map);
-        console.log(`✅ Marker created and added to map`);
-        
-        // Store reference to current marker
-        window.currentMarker = positionMarker;
-        console.log(`💾 Position marker stored as window.currentMarker`);
-        
-        // Center map on the selected position
-        console.log(`🗺️ Centering map on position [${lat}, ${lng}] at zoom level 16`);
-        console.log(`🔍 Map object:`, map);
-        console.log(`🔍 Map center before:`, map.getCenter());
-        console.log(`🔍 Map zoom before:`, map.getZoom());
-        console.log(`🔍 Target coordinates: [${lat}, ${lng}]`);
-        console.log(`🔍 Coordinate validation: lat is ${typeof lat === 'number' ? 'valid' : 'invalid'}, lng is ${typeof lng === 'number' ? 'valid' : 'invalid'}`);
-        console.log(`🔍 Coordinate range: lat=${lat >= -90 && lat <= 90 ? 'valid' : 'invalid'}, lng=${lng >= -180 && lng <= 180 ? 'valid' : 'invalid'}`);
-        console.log(`🔍 Map bounds before:`, map.getBounds());
-        console.log(`🔍 Map size:`, map.getSize());
-        console.log(`🔍 Map container:`, map.getContainer());
-        console.log(`🔍 Map events:`, map._events);
-        console.log(`🔍 Map layers:`, map._layers);
-        console.log(`🔍 Map panes:`, map._panes);
-        console.log(`🔍 Map target:`, map._target);
-        console.log(`🔍 Map options:`, map.options);
-        console.log(`🔍 Map zoom control:`, map.zoomControl);
-        console.log(`🔍 Map attribution control:`, map.attributionControl);
-        console.log(`🔍 Map scale control:`, map.scaleControl);
-        console.log(`🔍 Map fullscreen control:`, map.fullscreenControl);
-        console.log(`🔍 Map keyboard:`, map.keyboard);
-        console.log(`🔍 Map dragging:`, map.dragging);
-        console.log(`🔍 Map touch zoom:`, map.touchZoom);
-        console.log(`🔍 Map double click zoom:`, map.doubleClickZoom);
-        console.log(`🔍 Map scroll wheel zoom:`, map.scrollWheelZoom);
-        console.log(`🔍 Map box zoom:`, map.boxZoom);
-        console.log(`🔍 Map tap:`, map.tap);
-        console.log(`🔍 Map tap tolerance:`, map.tapTolerance);
-        console.log(`🔍 Map world copy jump:`, map.worldCopyJump);
-        console.log(`🔍 Map max bounds:`, map.maxBounds);
-        console.log(`🔍 Map min zoom:`, map.getMinZoom());
-        console.log(`🔍 Map max zoom:`, map.getMaxZoom());
-        console.log(`🔍 Map zoom snap:`, map.zoomSnap);
-        console.log(`🔍 Map zoom delta:`, map.zoomDelta);
-        map.setView([lat, lng], 16);
-        console.log(`🔍 Map center after:`, map.getCenter());
-        console.log(`🔍 Map zoom after:`, map.getZoom());
-        console.log(`🔍 Map bounds after:`, map.getBounds());
-        console.log(`🔍 Map size:`, map.getSize());
-        console.log(`🔍 Map container:`, map.getContainer());
-        console.log(`🔍 Map events:`, map._events);
-        console.log(`🔍 Map layers:`, map._layers);
-        console.log(`🔍 Map panes:`, map._panes);
-        console.log(`🔍 Map target:`, map._target);
-        console.log(`🔍 Map options:`, map.options);
-        console.log(`🔍 Map zoom control:`, map.zoomControl);
-        console.log(`🔍 Map attribution control:`, map.attributionControl);
-        console.log(`🔍 Map scale control:`, map.scaleControl);
-        console.log(`🔍 Map fullscreen control:`, map.fullscreenControl);
-        console.log(`🔍 Map keyboard:`, map.keyboard);
-        console.log(`🔍 Map dragging:`, map.dragging);
-        console.log(`🔍 Map touch zoom:`, map.touchZoom);
-        console.log(`🔍 Map double click zoom:`, map.doubleClickZoom);
-        console.log(`🔍 Map scroll wheel zoom:`, map.scrollWheelZoom);
-        console.log(`🔍 Map box zoom:`, map.boxZoom);
-        console.log(`🔍 Map tap:`, map.tap);
-        console.log(`🔍 Map tap tolerance:`, map.tapTolerance);
-        console.log(`🔍 Map world copy jump:`, map.worldCopyJump);
-        console.log(`🔍 Map max bounds:`, map.maxBounds);
-        console.log(`🔍 Map min zoom:`, map.getMinZoom());
-        console.log(`🔍 Map max zoom:`, map.getMaxZoom());
-        console.log(`🔍 Map zoom snap:`, map.zoomSnap);
-        console.log(`🔍 Map zoom delta:`, map.zoomDelta);
-        console.log(`🔍 Map wheel debounce time:`, map.wheelDebounceTime);
-        console.log(`🔍 Map wheel pause time:`, map.wheelPauseTime);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        console.log(`🔍 Map wheel sensitivity:`, map.wheelSensitivity);
-        
-        // Add popup with position information
-        console.log(`📋 Creating popup for position ${positionIndex + 1}`);
-        const routeData = generateRouteData(routeName);
-        const stop = routeData.stops[positionIndex];
-        
-        if (stop) {
-            console.log(`✅ Stop data found: ${stop.time} - ${stop.location}`);
-            const popupContent = `
-                <div class="text-center">
-                    <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
-                    <div class="text-sm text-gray-600">${stop.time} - ${stop.location}</div>
-                    <div class="text-xs text-gray-500 mt-1">Route ${routeName} - ${getDistrictName(routeName)}</div>
-                </div>
-            `;
-            console.log(`📋 Popup content:`, popupContent);
-            positionMarker.bindPopup(popupContent);
-            console.log(`✅ Popup created and bound to marker`);
-        } else {
-            console.warn(`❌ Stop data not found for position ${positionIndex + 1}`);
-            console.warn(`❌ Route data:`, routeData);
-            console.warn(`❌ Position index: ${positionIndex}`);
-        }
-        
-        // Highlight the route on the map and update timeline
-        console.log(`🔄 Calling setFocus for route: ${routeName}`);
-        console.log(`🎯 Current route layers:`, routeLayers.map(l => l.id));
-        console.log(`🔍 Route layers count: ${routeLayers.length}`);
-        setFocus(routeName);
-        
-        // Highlight the corresponding position in Timeline
-        highlightTimelinePosition(positionIndex);
-        
-        // Also highlight the corresponding dot on the map
-        highlightMapPosition(routeName, positionIndex);
-        
-        // Show popup automatically
-        console.log(`📋 Opening popup automatically`);
-        positionMarker.openPopup();
-        
-        console.log(`✅ Position ${positionIndex + 1} displayed on map for Route ${routeName}`);
-        console.log(`🎯 Timeline should now show Route ${routeName} with ${routeData.totalStops} stops`);
-        console.log(`📍 Marker placed at coordinates: [${lat}, ${lng}]`);
-        console.log(`🎯 Route highlighting and timeline update completed`);
-    };
     
     console.log('Toggle buttons initialization complete');
 }
@@ -3281,15 +3006,11 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const idMarker = L.marker([start[0], start[1]], { icon: idIcon }).addTo(map);
         const markers = [idMarker];
         
-<<<<<<< HEAD
         // Add click event to marker to switch timeline to this route
         idMarker.on('click', () => {
             const route = { name: r.name, id: r.name };
             setFocus(r.name);
             showTimelinePanel(route);
-            
-            // Show route overview popup
-            showRouteOverview(r.name, r.coords);
         });
         
         // Add click event to polyline to switch timeline to this route
@@ -3297,54 +3018,8 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             const route = { name: r.name, id: r.name };
             setFocus(r.name);
             showTimelinePanel(route);
-            
-            // Show route overview popup
-            showRouteOverview(r.name, r.coords);
         });
         
-        // Add dots along the route path for position tracking
-        const routePoints = naturalCoords.slice(0, -1); // Remove duplicate closing point
-        
-        // Add dots at regular intervals along the route
-        let accum = 0;
-        let lastPt = routePoints[0];
-        let positionIndex = 0;
-        
-        for (let vi = 1; vi < routePoints.length; vi++) {
-            const pt = routePoints[vi];
-            accum += haversineMeters(lastPt, pt);
-            
-            // Add dot every 150 meters or at vertices
-            if (accum >= 150 || vi === routePoints.length - 1) {
-                const dot = L.circleMarker(pt, { 
-                    radius: 4, 
-                    color: '#ffffff', 
-                    weight: 2, 
-                    fillColor: color, 
-                    fillOpacity: 1,
-                    className: 'route-position-dot'
-                }).addTo(map);
-                
-                // Add click event to show position in timeline
-                dot.on('click', () => {
-                    showPositionOnMap(r.name, positionIndex, pt[0], pt[1]);
-                });
-                
-                // Add hover effect
-                dot.on('mouseover', () => {
-                    dot.setStyle({ radius: 6, weight: 3 });
-                });
-                
-                dot.on('mouseout', () => {
-                    dot.setStyle({ radius: 4, weight: 2 });
-                });
-                
-                markers.push(dot);
-                positionIndex++;
-                accum = 0;
-            }
-            lastPt = pt;
-=======
         // Add dots at vertices and midpoints
         const vertices = naturalCoords.slice(0, -1);
         const pointsForDots = [...vertices];
@@ -3352,8 +3027,41 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             const p1 = vertices[i];
             const p2 = vertices[(i + 1) % vertices.length];
             pointsForDots.push([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]);
->>>>>>> parent of cdb66a9 (I31)
         }
+
+        pointsForDots.forEach((pt, index) => {
+            if (Math.abs(pt[0] - start[0]) < 1e-6 && Math.abs(pt[1] - start[1]) < 1e-6) return;
+            
+            // Create position marker with number
+            const positionMarker = L.marker(pt, {
+                icon: L.divIcon({
+                    className: 'position-marker',
+                    html: `
+                        <div class="position-dot" data-route="${r.name}" data-index="${index}">
+                            <div class="position-number">${index + 1}</div>
+                        </div>
+                    `,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                })
+            }).addTo(map);
+            
+            // Add click event to show position in timeline
+            positionMarker.on('click', () => {
+                showPositionOnMap(r.name, index, pt[0], pt[1]);
+            });
+            
+            // Add hover effect
+            positionMarker.on('mouseover', () => {
+                positionMarker.getElement()?.querySelector('.position-number')?.classList.add('hover');
+            });
+            
+            positionMarker.on('mouseout', () => {
+                positionMarker.getElement()?.querySelector('.position-number')?.classList.remove('hover');
+            });
+            
+            markers.push(positionMarker);
+        });
 
         routeLayers.push({ polyline, markers, id: r.name, color });
     });
@@ -3376,8 +3084,9 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     console.log(`✅ Successfully rendered ${routeLayers.length} optimized routes on the map`);
     console.log('🎯 Routes created:', routeLayers.map(l => l.id));
     console.log('🎯 Internal route lines removed as requested; only perimeter routes are rendered');
-    console.log('🎯 Position dots added along routes for timeline navigation');
+    console.log('🎯 Position markers numbered and clickable for timeline navigation');
     console.log('🎯 Route spacing optimized: All routes have uniform distance, route C is highest, route D is slightly lower than C');
+    console.log('🎯 Timeline updated with project styling - route selector in header, improved card design');
     console.log('🎯 Routes are now deterministic and will not change on refresh');
 }
 
@@ -3578,7 +3287,6 @@ function buildPerimeterPoints(rect, points, options) {
     
     return perimeter;
 }
-<<<<<<< HEAD
 
 // Helper function to get default route data if stopsDataAll is unavailable
 function getDefaultRouteData(routeName) {
@@ -3663,5 +3371,3 @@ function getDistrictName(routeName) {
     };
     return districts[routeName] || 'Unknown District';
 }
-=======
->>>>>>> parent of cdb66a9 (I31)
