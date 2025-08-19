@@ -259,18 +259,18 @@ const templates = {
                 <p class="text-xs text-gray-400 mt-1">Peak: 24</p>
             </div>
 
-            <!-- First-Attempt Success -->
+            <!-- Success Rate -->
             <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <p class="text-sm font-medium text-gray-600">First-Attempt Success</p>
+                <p class="text-sm font-medium text-gray-600">Success Rate</p>
                 <p class="text-3xl font-bold text-gray-900 mt-1">92.4%</p>
                 <p class="text-xs text-gray-400 mt-1">Target: 95%</p>
             </div>
 
-            <!-- Spoilage Rate -->
+            <!-- CO2 Total -->
             <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                <p class="text-sm font-medium text-gray-600">Spoilage Rate</p>
-                <p class="text-3xl font-bold text-gray-900 mt-1">1.6%</p>
-                <p class="text-xs text-gray-400 mt-1">Threshold: 2%</p>
+                <p class="text-sm font-medium text-gray-600">CO2 Total</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">34 kg</p>
+                <p class="text-xs text-gray-400 mt-1">Target: 30 kg</p>
             </div>
 
             <!-- Avg Delivery Time -->
@@ -530,20 +530,20 @@ const templates = {
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                 <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-600">Distance</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-1">120</p>
+                    <p class="text-sm font-medium text-gray-600">Total Distance</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">120 Km</p>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-600">Km / Stop</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-1">4.0</p>
+                    <p class="text-sm font-medium text-gray-600">Distance per Stop</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">4.0 Km</p>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-600">First-Attempt</p>
+                    <p class="text-sm font-medium text-gray-600">Success Rate</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">92 %</p>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-600">Spoilage Risk</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-1">1.6 %</p>
+                    <p class="text-sm font-medium text-gray-600">CO2 Total</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">34 kg</p>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                     <p class="text-sm font-medium text-gray-600">Cold-Chain Compliance</p>
