@@ -940,6 +940,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         updateOptimizationData(yesterdayData);
         updateOptimizeButton(true); // keep disabled
         currentToggleState = 'yesterday';
+        
+        // Reset statistics cards to original values
+        updateStatisticsCards(false);
+        
         console.log('✅ Optimize button remains disabled');
     });
 
@@ -954,6 +958,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         optimizeBtn.disabled = false;
         optimizeBtn.textContent = 'Optimize';
         currentToggleState = 'today';
+        
+        // Reset statistics cards to original values
+        updateStatisticsCards(false);
+        
         console.log('✅ Optimize button enabled');
     });
 
@@ -964,6 +972,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     updateToggleState(yesterdayBtn, todayBtn);
     updateOptimizationData(yesterdayData);
     updateOptimizeButton(true); // disabled
+    
+    // Initialize statistics cards with original values
+    updateStatisticsCards(false);
+    
     console.log('Initial state set to Yesterday');
     
     // Add click handler for optimize button
@@ -996,6 +1008,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             try {
                 console.log('🚀 Starting optimization process...');
                 isOptimized = true;
+                
+                // Update statistics cards with optimized values
+                updateStatisticsCards(true);
                 
                 // Ensure we have data to work with
                 if (!allRoutesData || allRoutesData.length === 0) {
@@ -3534,4 +3549,159 @@ function getDistrictName(routeName) {
         'D': 'West District'
     };
     return districts[routeName] || 'Unknown District';
+}
+
+// Function to update statistics cards with optimized values
+function updateStatisticsCards(isOptimized) {
+    console.log(`📊 Updating statistics cards, isOptimized: ${isOptimized}`);
+    
+    // Find all statistics cards
+    const statsContainer = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6.gap-4.mb-6');
+    if (!statsContainer) {
+        console.warn('❌ Statistics container not found');
+        return;
+    }
+    
+    const cards = statsContainer.querySelectorAll('.bg-white.border.border-gray-200.rounded-lg.p-4.shadow-sm');
+    if (cards.length === 0) {
+        console.warn('❌ Statistics cards not found');
+        return;
+    }
+    
+    console.log(`📊 Found ${cards.length} statistics cards`);
+    
+    if (isOptimized) {
+        // Update with optimized (better) values
+        console.log('🚀 Updating cards with optimized values...');
+        
+        // Card 1: Total Distance - reduce by 15%
+        const distanceCard = cards[0];
+        if (distanceCard) {
+            const distanceValue = distanceCard.querySelector('.text-3xl');
+            if (distanceValue) {
+                const currentDistance = 120;
+                const optimizedDistance = Math.round(currentDistance * 0.85); // 15% reduction
+                distanceValue.textContent = `${optimizedDistance} Km`;
+                console.log(`📊 Total Distance: ${currentDistance} → ${optimizedDistance} Km`);
+            }
+        }
+        
+        // Card 2: Distance per Stop - reduce by 20%
+        const distancePerStopCard = cards[1];
+        if (distancePerStopCard) {
+            const distancePerStopValue = distancePerStopCard.querySelector('.text-3xl');
+            if (distancePerStopValue) {
+                const currentDistancePerStop = 4.0;
+                const optimizedDistancePerStop = (currentDistancePerStop * 0.8).toFixed(1); // 20% reduction
+                distancePerStopValue.textContent = `${optimizedDistancePerStop} Km`;
+                console.log(`📊 Distance per Stop: ${currentDistancePerStop} → ${optimizedDistancePerStop} Km`);
+            }
+        }
+        
+        // Card 3: Success Rate - increase by 5%
+        const successRateCard = cards[2];
+        if (successRateCard) {
+            const successRateValue = successRateCard.querySelector('.text-3xl');
+            if (successRateValue) {
+                const currentSuccessRate = 92;
+                const optimizedSuccessRate = Math.min(100, currentSuccessRate + 5); // 5% increase, max 100%
+                successRateValue.textContent = `${optimizedSuccessRate} %`;
+                console.log(`📊 Success Rate: ${currentSuccessRate} → ${optimizedSuccessRate} %`);
+            }
+        }
+        
+        // Card 4: CO2 Total - reduce by 25%
+        const co2Card = cards[3];
+        if (co2Card) {
+            const co2Value = co2Card.querySelector('.text-3xl');
+            if (co2Value) {
+                const currentCO2 = 34;
+                const optimizedCO2 = Math.round(currentCO2 * 0.75); // 25% reduction
+                co2Value.textContent = `${optimizedCO2} kg`;
+                console.log(`📊 CO2 Total: ${currentCO2} → ${optimizedCO2} kg`);
+            }
+        }
+        
+        // Card 5: Cold-Chain Compliance - increase by 2%
+        const coldChainCard = cards[4];
+        if (coldChainCard) {
+            const coldChainValue = coldChainCard.querySelector('.text-3xl');
+            if (coldChainValue) {
+                const currentColdChain = 96.3;
+                const optimizedColdChain = Math.min(100, currentColdChain + 2).toFixed(1); // 2% increase, max 100%
+                coldChainValue.textContent = `${optimizedColdChain} %`;
+                console.log(`📊 Cold-Chain Compliance: ${currentColdChain} → ${optimizedColdChain} %`);
+            }
+        }
+        
+        // Card 6: Window Accuracy - increase by 3%
+        const windowAccuracyCard = cards[5];
+        if (windowAccuracyCard) {
+            const windowAccuracyValue = windowAccuracyCard.querySelector('.text-3xl');
+            if (windowAccuracyValue) {
+                const currentWindowAccuracy = 93.4;
+                const optimizedWindowAccuracy = Math.min(100, currentWindowAccuracy + 3).toFixed(1); // 3% increase, max 100%
+                windowAccuracyValue.textContent = `${optimizedWindowAccuracy} %`;
+                console.log(`📊 Window Accuracy: ${currentWindowAccuracy} → ${optimizedWindowAccuracy} %`);
+            }
+        }
+        
+        console.log('✅ All statistics cards updated with optimized values');
+        
+        // Add visual feedback - green glow effect
+        cards.forEach(card => {
+            card.classList.add('kpi-glow');
+            setTimeout(() => {
+                card.classList.remove('kpi-glow');
+            }, 2000);
+        });
+        
+    } else {
+        // Reset to original values
+        console.log('🔄 Resetting cards to original values...');
+        
+        // Card 1: Total Distance
+        const distanceCard = cards[0];
+        if (distanceCard) {
+            const distanceValue = distanceCard.querySelector('.text-3xl');
+            if (distanceValue) distanceValue.textContent = '120 Km';
+        }
+        
+        // Card 2: Distance per Stop
+        const distancePerStopCard = cards[1];
+        if (distancePerStopCard) {
+            const distancePerStopValue = distancePerStopCard.querySelector('.text-3xl');
+            if (distancePerStopValue) distancePerStopValue.textContent = '4.0 Km';
+        }
+        
+        // Card 3: Success Rate
+        const successRateCard = cards[2];
+        if (successRateCard) {
+            const successRateValue = successRateCard.querySelector('.text-3xl');
+            if (successRateValue) successRateValue.textContent = '92 %';
+        }
+        
+        // Card 4: CO2 Total
+        const co2Card = cards[3];
+        if (co2Card) {
+            const co2Value = co2Card.querySelector('.text-3xl');
+            if (co2Value) co2Value.textContent = '34 kg';
+        }
+        
+        // Card 5: Cold-Chain Compliance
+        const coldChainCard = cards[4];
+        if (coldChainCard) {
+            const coldChainValue = coldChainCard.querySelector('.text-3xl');
+            if (coldChainValue) coldChainValue.textContent = '96.3 %';
+        }
+        
+        // Card 6: Window Accuracy
+        const windowAccuracyCard = cards[5];
+        if (windowAccuracyCard) {
+            const windowAccuracyValue = windowAccuracyCard.querySelector('.text-3xl');
+            if (windowAccuracyValue) windowAccuracyValue.textContent = '93.4 %';
+        }
+        
+        console.log('✅ All statistics cards reset to original values');
+    }
 }
