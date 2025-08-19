@@ -1689,57 +1689,57 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     window.showPositionOnMap = function(routeName, positionIndex, lat, lng) {
         console.log(`📍 Showing position ${positionIndex + 1} for route ${routeName}`);
         console.log(`🌍 Coordinates: lat=${lat}, lng=${lng}`);
-        console.log(`🔍 Data types: lat=${typeof lat}, lng=${typeof lng}`);
         
         // Clear any existing position markers
         if (window.currentMarker) {
             map.removeLayer(window.currentMarker);
         }
         
-        // Create a new marker for the selected position
-        console.log(`🎯 Creating marker at [${lat}, ${lng}]`);
-        const positionMarker = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: 'position-marker',
-                html: `<div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">${positionIndex + 1}</div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
-            })
-        }).addTo(map);
-        console.log(`✅ Marker created and added to map`);
+        // Find the route layer and highlight the specific position marker
+        const routeLayer = routeLayers.find(layer => layer.id === routeName);
+        if (routeLayer && routeLayer.markers && routeLayer.markers[positionIndex]) {
+            // Reset all markers to normal style
+            routeLayer.markers.forEach(marker => {
+                if (marker.getElement) {
+                    const element = marker.getElement();
+                    if (element) {
+                        element.style.transform = 'scale(1)';
+                        element.style.boxShadow = '0 0 0 2px #ffffff';
+                    }
+                }
+            });
+            
+            // Highlight the selected position marker
+            const selectedMarker = routeLayer.markers[positionIndex];
+            if (selectedMarker.getElement) {
+                const element = selectedMarker.getElement();
+                if (element) {
+                    element.style.transform = 'scale(1.2)';
+                    element.style.boxShadow = '0 0 0 4px #3b82f6';
+                }
+            }
+            
+            // Center map on the selected position
+            const markerLatLng = selectedMarker.getLatLng();
+            map.setView(markerLatLng, 16);
+            
+            // Show popup for the selected position
+            const popupContent = `
+                <div class="text-center">
+                    <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
+                    <div class="text-sm text-gray-600">Route ${routeName}</div>
+                    <div class="text-xs text-gray-500 mt-1">Highlighted on map</div>
+                </div>
+            `;
+            selectedMarker.bindPopup(popupContent).openPopup();
+            
+            console.log(`✅ Position ${positionIndex + 1} highlighted on map for Route ${routeName}`);
+        } else {
+            console.warn(`❌ Route layer or marker not found for ${routeName} at position ${positionIndex}`);
+        }
         
-        // Store reference to current marker
-        window.currentMarker = positionMarker;
-        
-        // Center map on the selected position
-        map.setView([lat, lng], 16);
-        
-        // Add popup with position information
-        const routeData = generateRouteData(routeName);
-        const stop = routeData.stops[positionIndex];
-        positionMarker.bindPopup(`
-            <div class="text-center">
-                <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
-                <div class="text-sm text-gray-600">${stop.time} - ${stop.location}</div>
-                <div class="text-xs text-gray-500 mt-1">Route ${routeName} - ${getDistrictName(routeName)}</div>
-            </div>
-        `);
-        
-        // Highlight the route on the map and update timeline
-        console.log(`🔄 Calling setFocus for route: ${routeName}`);
-        setFocus(routeName);
-        
-        // Show popup automatically
-        positionMarker.openPopup();
-        
-        // Highlight the corresponding position on the map
-        highlightMapPosition(routeName, positionIndex);
-        
-        // Also highlight the corresponding position in Timeline
+        // Highlight the corresponding position in Timeline
         highlightTimelinePosition(positionIndex);
-        
-        console.log(`✅ Position ${positionIndex + 1} displayed on map for Route ${routeName}`);
-        console.log(`🎯 Timeline should now show Route ${routeName} with ${routeData.totalStops} stops`);
     };
     
     // Function to highlight position in Timeline
@@ -3048,7 +3048,27 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             
             // Add click event to show position in timeline
             positionMarker.on('click', () => {
-                showPositionOnMap(r.name, index, pt[0], pt[1]);
+                console.log(`📍 Marker clicked: Route ${r.name}, Position ${index + 1}`);
+                
+                // Open timeline for this route
+                const route = { name: r.name, id: r.name };
+                setFocus(r.name);
+                showTimelinePanel(route);
+                
+                // Highlight the specific position in timeline
+                setTimeout(() => {
+                    highlightTimelinePosition(index);
+                }, 100);
+                
+                // Show popup with position info
+                const popupContent = `
+                    <div class="text-center">
+                        <div class="font-bold text-lg">Position ${index + 1}</div>
+                        <div class="text-sm text-gray-600">Route ${r.name}</div>
+                        <div class="text-xs text-gray-500 mt-1">Click to view in timeline</div>
+                    </div>
+                `;
+                positionMarker.bindPopup(popupContent).openPopup();
             });
             
             // Add hover effect
