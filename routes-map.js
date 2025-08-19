@@ -243,10 +243,10 @@ function addRoutesToRoutesMap(allRoutesData) {
         // Blue ID at start/end on the line
         const startLatLng = L.latLng(routeData.path[0][0], routeData.path[0][1]);
         const iconHtml = `
-            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
-                <div style="color:#2563eb;font-weight:700;font-size:12px;">${getRouteLetter(routeData.id)}</div>
+            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
+                <div style="color:#ffffff;font-weight:700;font-size:12px;line-height:1;">${routeData.id}</div>
             </div>`;
-        const routeIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
+        const routeIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [28, 28], iconAnchor: [14, 14] });
         const startMarker = L.marker(startLatLng, { icon: routeIcon }).addTo(routesMap);
         routesPageLayers[index].markers.push(startMarker);
 
@@ -308,6 +308,8 @@ function getRouteLetter(id) {
     const lettersOnly = String(id).match(/[A-Za-z]/g);
     return lettersOnly && lettersOnly.length > 0 ? lettersOnly[0].toUpperCase() : 'R';
 }
+
+
 
 function setActiveRoute(polyline, routeData, allRoutesData) {
     // Reset all polylines to default style

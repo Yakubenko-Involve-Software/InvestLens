@@ -585,10 +585,10 @@ async function addRoutesToAIMap() {
 
         const startLatLng = L.latLng(path[0][0], path[0][1]);
         const idIconHtml = `
-            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
-                <div style="color:#2563eb;font-weight:700;font-size:12px;">${getRouteLetter(routeInfo.id)}</div>
+            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
+                <div style="color:#ffffff;font-weight:700;font-size:12px;line-height:1;">${routeInfo.id}</div>
             </div>`;
-        const idIcon = L.divIcon({ html: idIconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
+        const idIcon = L.divIcon({ html: idIconHtml, className: '', iconSize: [28,28], iconAnchor: [14,14] });
         const idMarker = L.marker(startLatLng, { icon: idIcon }).addTo(map);
 
         const vertices = (path.length > 1 && path[0][0] === path[path.length - 1][0] && path[0][1] === path[path.length - 1][1]) ? path.slice(0, -1) : path;
@@ -1974,10 +1974,10 @@ function drawRoutesLikeRoutesTabOnAI() {
         const polyline = L.polyline(path, { color, weight: 4, opacity: 0.9 }).addTo(map);
         const startLatLng = L.latLng(path[0][0], path[0][1]);
         const iconHtml = `
-            <div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#fff;border:2px solid #2563eb;">
-                <div style="color:#2563eb;font-weight:700;font-size:12px;">${getRouteLetter(r.id)}</div>
+            <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;background:#2563eb;border:2px solid #1d4ed8;box-shadow:0 0 0 2px #ffffff;">
+                <div style="color:#ffffff;font-weight:700;font-size:12px;line-height:1;">${r.id}</div>
             </div>`;
-        const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24,24], iconAnchor: [12,12] });
+        const idIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [28,28], iconAnchor: [14,14] });
         const idMarker = L.marker(startLatLng, { icon: idIcon }).addTo(map);
 
         const dots = (path[0][0] === path[path.length-1][0] && path[0][1] === path[path.length-1][1]) ? path.slice(0,-1) : path;
