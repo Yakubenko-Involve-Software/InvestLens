@@ -1777,25 +1777,28 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         
         // Reset all position markers to normal style
         routeLayer.markers.forEach(marker => {
-            if (marker instanceof L.Marker) {
-                const positionNumber = marker.getElement()?.querySelector('.position-number');
-                if (positionNumber) {
-                    positionNumber.classList.remove('highlighted');
+            if (marker.getElement) {
+                const element = marker.getElement();
+                if (element) {
+                    element.style.transform = 'scale(1)';
+                    element.style.boxShadow = '0 0 0 2px #ffffff';
                 }
             }
         });
         
         // Highlight the specific position marker
-        if (routeLayer.markers[positionIndex + 1]) { // +1 because first marker is the route name
-            const marker = routeLayer.markers[positionIndex + 1];
-            if (marker instanceof L.Marker) {
-                const positionNumber = marker.getElement()?.querySelector('.position-number');
-                if (positionNumber) {
-                    positionNumber.classList.add('highlighted');
+        if (routeLayer.markers[positionIndex]) {
+            const marker = routeLayer.markers[positionIndex];
+            if (marker.getElement) {
+                const element = marker.getElement();
+                if (element) {
+                    element.style.transform = 'scale(1.2)';
+                    element.style.boxShadow = '0 0 0 4px #3b82f6';
                     
                     // Reset after 3 seconds
                     setTimeout(() => {
-                        positionNumber.classList.remove('highlighted');
+                        element.style.transform = 'scale(1)';
+                        element.style.boxShadow = '0 0 0 2px #ffffff';
                     }, 3000);
                 }
             }
@@ -1841,13 +1844,35 @@ style.innerHTML = `
     border: none;
 }
 
-.position-marker div {
+.position-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2563eb;
+    border: 2px solid #1d4ed8;
+    box-shadow: 0 0 0 2px #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s ease;
 }
 
-.position-marker div:hover {
+.position-number {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+    user-select: none;
+}
+
+.position-dot:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 0 0 4px #ffffff, 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.position-dot.highlighted {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 4px #3b82f6;
 }
 `;
 document.head.appendChild(style);
@@ -3033,12 +3058,21 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             if (Math.abs(pt[0] - start[0]) < 1e-6 && Math.abs(pt[1] - start[1]) < 1e-6) return;
             
             // Create position marker with number
+            let markerText;
+            if (index === 0) {
+                markerText = "1"; // First position
+            } else if (index === pointsForDots.length - 1) {
+                markerText = r.name; // Last marker shows route ID (A, B, C, D)
+            } else {
+                markerText = (index + 1).toString(); // Position numbers (2, 3, 4, 5, 6, 7)
+            }
+            
             const positionMarker = L.marker(pt, {
                 icon: L.divIcon({
                     className: 'position-marker',
                     html: `
                         <div class="position-dot" data-route="${r.name}" data-index="${index}">
-                            <div class="position-number">${index + 1}</div>
+                            <div class="position-number">${markerText}</div>
                         </div>
                     `,
                     iconSize: [24, 24],
@@ -3063,7 +3097,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
                 // Show popup with position info
                 const popupContent = `
                     <div class="text-center">
-                        <div class="font-bold text-lg">Position ${index + 1}</div>
+                        <div class="font-bold text-lg">Position ${markerText}</div>
                         <div class="text-sm text-gray-600">Route ${r.name}</div>
                         <div class="text-xs text-gray-500 mt-1">Click to view in timeline</div>
                     </div>
