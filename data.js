@@ -94,14 +94,6 @@ stopsDataAll['C'] = [
     {id: 5, eta: "09:00", addr: "Alfama", lat: 38.712, lon: -9.130}
 ];
 
-stopsDataAll['D'] = [
-    {id: 1, eta: "09:30", addr: "Cascais", lat: 38.720, lon: -9.150},
-    {id: 2, eta: "09:45", addr: "Estoril", lat: 38.715, lon: -9.145},
-    {id: 3, eta: "10:00", addr: "Oeiras", lat: 38.710, lon: -9.140},
-    {id: 4, eta: "10:15", addr: "Paço de Arcos", lat: 38.705, lon: -9.135},
-    {id: 5, eta: "10:30", addr: "Cascais", lat: 38.720, lon: -9.150}
-];
-
 // Missed deliveries data
 const missedDeliveriesData = [
     { orderId: "12847", customer: "Maria Santos", courier: "Miguel Silva", scheduled: "14:30", missedBy: "2h 15m", reason: "Traffic delay", status: "Rescheduled" },

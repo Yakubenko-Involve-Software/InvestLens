@@ -735,6 +735,7 @@ async function setFocus(routeId) {
     // Highlight route on map
     highlightRouteOnMap(routeId);
 
+<<<<<<< HEAD
     // Only render timeline if it's not already being rendered for this route
     if (!window.currentTimelineRoute || window.currentTimelineRoute !== routeId) {
         console.log(`📋 Rendering timeline for route: ${routeId}`);
@@ -747,6 +748,10 @@ async function setFocus(routeId) {
     }
     
     console.log(`✅ Focus set to route ${routeId}`);
+=======
+    // Render timeline
+    renderTimeline(routeId);
+>>>>>>> parent of cdb66a9 (I31)
 }
 
 function highlightRouteOnMap(routeId) {
@@ -765,8 +770,12 @@ function highlightRouteOnMap(routeId) {
     // Highlight selected route
     const selectedLayer = routeLayers.find(layer => layer.id === routeId);
     if (selectedLayer) {
+<<<<<<< HEAD
         console.log(`✅ Found route layer for ${routeId}`);
         selectedLayer.polyline.setStyle({ weight: 6, opacity: 1 });
+=======
+        selectedLayer.polyline.setStyle({ weight: 4, opacity: 1 });
+>>>>>>> parent of cdb66a9 (I31)
         selectedLayer.markers.forEach(marker => {
             marker.setStyle({ opacity: 1 });
         });
@@ -1360,6 +1369,7 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     const timelineContent = document.getElementById('timeline-panel-content');
     const timelineClosePanel = document.getElementById('timeline-close-panel');
  
+<<<<<<< HEAD
         // Generate route data for Timeline based on stopsDataAll (like Routes tab)
     function generateRouteData(routeName) {
         console.log(`🔍 Generating route data for: ${routeName}`);
@@ -1592,6 +1602,26 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         console.log(`✅ Timeline rendered for Route ${route.name} with ${routeData.totalStops} stops`);
         console.log(`📋 Timeline content updated with ${routeData.stops.length} stop cards`);
         console.log(`🎯 Each stop card is clickable and will show position on map`);
+=======
+    function renderTimelineItems(route) {
+        if (!timelineContent) return;
+        const stops = (stopsData[route.id] || []).slice(0, 12);
+        timelineCourier.textContent = route.name || `Courier ${route.id}`;
+        timelineContent.innerHTML = stops.map((stop, idx) => {
+            const base = 'rounded-lg border p-3';
+            const accent = idx === 0 || idx === stops.length - 1 ? 'bg-blue-50 border-blue-200' : (stop.optimised ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200');
+            const badge = stop.optimised ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Optimised by AI</span>' : '';
+            const warn = stop.warning ? `<div class="text-xs text-amber-600 mt-1"><i class="ri-alert-line mr-1"></i>${stop.warning}</div>` : '';
+            const placeBadge = stop.type === 'warehouse' ? '<span class="ml-2 inline-flex items-center text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">Warehouse</span>' : '';
+            return `
+                <div class="${base} ${accent}">
+                    <div class="text-sm font-semibold text-gray-900">${stop.eta || stop.time || ''} ${stop.addr || stop.address || 'Stop'}</div>
+                    <div class="text-xs text-gray-500 mt-1 flex items-center">${placeBadge}${badge}</div>
+                    ${warn}
+                </div>
+            `;
+        }).join('');
+>>>>>>> parent of cdb66a9 (I31)
     }
  
     function showTimelinePanel(route) {
@@ -1603,6 +1633,7 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         resultsView.classList.add('hidden');
         timelineView.classList.remove('hidden');
         timelineView.classList.add('flex');
+<<<<<<< HEAD
         
         console.log(`✅ Timeline panel displayed for route: ${route.name}`);
     }
@@ -1686,6 +1717,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             }
         }
     });
+=======
+    }
+>>>>>>> parent of cdb66a9 (I31)
 
     function hideTimelinePanel() {
         if (!resultsView || !timelineView) return;
@@ -1703,11 +1737,21 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     if (timelineBtn) {
         timelineBtn.addEventListener('click', (e) => {
             e.preventDefault();
+<<<<<<< HEAD
             // Show timeline for the first available route (usually Route A)
             const firstRoute = { name: 'A', id: 'A' };
             window.currentTimelineRoute = 'A'; // Set current route
             setFocus(firstRoute.id);
             showTimelinePanel(firstRoute);
+=======
+            const firstRoute = allRoutes && allRoutes.length ? allRoutes[0] : null;
+            if (firstRoute) {
+                setFocus(firstRoute.id);
+                showTimelinePanel(firstRoute);
+            } else {
+                console.warn('No routes available to show timeline');
+            }
+>>>>>>> parent of cdb66a9 (I31)
         });
     }
     
@@ -3237,6 +3281,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const idMarker = L.marker([start[0], start[1]], { icon: idIcon }).addTo(map);
         const markers = [idMarker];
         
+<<<<<<< HEAD
         // Add click event to marker to switch timeline to this route
         idMarker.on('click', () => {
             const route = { name: r.name, id: r.name };
@@ -3299,6 +3344,15 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
                 accum = 0;
             }
             lastPt = pt;
+=======
+        // Add dots at vertices and midpoints
+        const vertices = naturalCoords.slice(0, -1);
+        const pointsForDots = [...vertices];
+        for (let i = 0; i < vertices.length; i++) {
+            const p1 = vertices[i];
+            const p2 = vertices[(i + 1) % vertices.length];
+            pointsForDots.push([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]);
+>>>>>>> parent of cdb66a9 (I31)
         }
 
         routeLayers.push({ polyline, markers, id: r.name, color });
@@ -3324,7 +3378,6 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     console.log('🎯 Internal route lines removed as requested; only perimeter routes are rendered');
     console.log('🎯 Position dots added along routes for timeline navigation');
     console.log('🎯 Route spacing optimized: All routes have uniform distance, route C is highest, route D is slightly lower than C');
-    console.log('🎯 Timeline updated with project styling - route selector in header, improved card design');
     console.log('🎯 Routes are now deterministic and will not change on refresh');
 }
 
@@ -3525,6 +3578,7 @@ function buildPerimeterPoints(rect, points, options) {
     
     return perimeter;
 }
+<<<<<<< HEAD
 
 // Helper function to get default route data if stopsDataAll is unavailable
 function getDefaultRouteData(routeName) {
@@ -3609,3 +3663,5 @@ function getDistrictName(routeName) {
     };
     return districts[routeName] || 'Unknown District';
 }
+=======
+>>>>>>> parent of cdb66a9 (I31)
