@@ -1423,8 +1423,8 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         // Make the courier header clickable with dropdown for route selection
         timelineCourier.innerHTML = `
             <div class="relative">
-                <button onclick="toggleRouteDropdown()" class="flex items-center space-x-2 text-base font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer" title="Click to select route">
-                    <span>${routeData.name}</span>
+                <button onclick="toggleRouteDropdown()" class="flex items-center space-x-2 text-lg font-bold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer" title="Click to select route">
+                    <span>Route ${routeData.name}</span>
                     <svg id="route-arrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
