@@ -16,6 +16,8 @@ function initRoutesMap(allRoutesData) {
 
     const mapElement = document.getElementById('routes-map');
     console.log('Map element:', mapElement);
+    console.log('Map element dimensions:', mapElement?.offsetWidth, 'x', mapElement?.offsetHeight);
+    console.log('Map element styles:', mapElement?.style.cssText);
     
     if (!mapElement) {
         console.error('Map element #routes-map not found.');
@@ -116,6 +118,9 @@ function initRoutesMap(allRoutesData) {
     window.routesMap = routesMap;
     
     console.log('=== Map initialization completed ===');
+    console.log('Final map object:', routesMap);
+    console.log('Map container:', routesMap.getContainer());
+    console.log('Map size:', routesMap.getSize());
 }
 
 function addRoutesToRoutesMap(allRoutesData) {

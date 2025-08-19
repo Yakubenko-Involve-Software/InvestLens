@@ -55,7 +55,7 @@ const templates = {
             <div class="flex gap-6" style="height: calc(100vh - 300px);">
             <!-- Left side - Map -->
             <div class="flex-1 bg-white shadow rounded-lg relative overflow-hidden">
-                <div id="routes-map" class="w-full h-full" style="min-height: 500px;"></div>
+                <div id="routes-map" class="w-full h-full" style="min-height: 500px; background: #f8fafc;"></div>
             </div>
             
             <!-- Right side - Table -->
