@@ -72,8 +72,8 @@ const templates = {
                                     <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="name">Courier <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                     <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="stops">Stops <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                     <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="km">Distance km <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
-                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="eta_last">ETA last</th>
-                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk</th>
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="eta_last">ETA last <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
+                                    <th class="py-2 px-3 text-left font-semibold cursor-pointer hover:text-gray-800" data-sort-key="risk">Risk <i class="ri-arrow-up-down-line ml-1 align-middle text-gray-400"></i></th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm">
@@ -623,11 +623,13 @@ const templates = {
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-1">
                             <span id="timeline-panel-courier" class="text-base font-semibold text-gray-900">Courier</span>
+                            <i class="ri-arrow-down-s-line text-gray-500"></i>
                         </div>
                         <button id="timeline-close-panel" class="p-2 rounded hover:bg-gray-100" title="Close"><i class="ri-close-line text-xl text-gray-600"></i></button>
                     </div>
-
+                    <button class="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 mb-3 self-start">Show All Days</button>
                     <div class="rounded-lg border border-blue-200 bg-blue-50/30 p-3">
+                        <div class="text-sm font-semibold text-blue-700 mb-3"><i class="ri-record-circle-line mr-1 align-middle"></i> Today (solid)</div>
                         <div id="timeline-panel-content" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
