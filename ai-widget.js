@@ -3182,10 +3182,7 @@ function getDefaultRouteData(routeName) {
                 { id: 2, eta: "08:15", addr: "North Delivery Point 1", lat: 38.730, lon: -9.155 },
                 { id: 3, eta: "08:30", addr: "North Delivery Point 2", lat: 38.735, lon: -9.160 },
                 { id: 4, eta: "08:45", addr: "North Delivery Point 3", lat: 38.740, lon: -9.165 },
-                { id: 5, eta: "09:00", addr: "North Delivery Point 4", lat: 38.745, lon: -9.170 },
-                { id: 6, eta: "09:15", addr: "North Delivery Point 5", lat: 38.750, lon: -9.175 },
-                { id: 7, eta: "09:30", addr: "North Delivery Point 6", lat: 38.755, lon: -9.180 },
-                { id: 8, eta: "09:45", addr: "North Warehouse", lat: 38.725, lon: -9.150 }
+                { id: 5, eta: "09:00", addr: "North Warehouse", lat: 38.725, lon: -9.150 }
             ] 
         },
         'B': { 
@@ -3195,10 +3192,7 @@ function getDefaultRouteData(routeName) {
                 { id: 2, eta: "09:15", addr: "East Delivery Point 1", lat: 38.715, lon: -9.135 },
                 { id: 3, eta: "09:30", addr: "East Delivery Point 2", lat: 38.710, lon: -9.130 },
                 { id: 4, eta: "09:45", addr: "East Delivery Point 3", lat: 38.705, lon: -9.125 },
-                { id: 5, eta: "10:00", addr: "East Delivery Point 4", lat: 38.700, lon: -9.120 },
-                { id: 6, eta: "10:15", addr: "East Delivery Point 5", lat: 38.695, lon: -9.115 },
-                { id: 7, eta: "10:30", addr: "East Delivery Point 6", lat: 38.690, lon: -9.110 },
-                { id: 8, eta: "10:45", addr: "East Warehouse", lat: 38.720, lon: -9.140 }
+                { id: 5, eta: "10:00", addr: "East Warehouse", lat: 38.720, lon: -9.140 }
             ] 
         },
         'C': { 
@@ -3208,10 +3202,7 @@ function getDefaultRouteData(routeName) {
                 { id: 2, eta: "10:15", addr: "South Delivery Point 1", lat: 38.695, lon: -9.155 },
                 { id: 3, eta: "10:30", addr: "South Delivery Point 2", lat: 38.690, lon: -9.160 },
                 { id: 4, eta: "10:45", addr: "South Delivery Point 3", lat: 38.685, lon: -9.165 },
-                { id: 5, eta: "11:00", addr: "South Delivery Point 4", lat: 38.680, lon: -9.170 },
-                { id: 6, eta: "11:15", addr: "South Delivery Point 5", lat: 38.675, lon: -9.175 },
-                { id: 7, eta: "11:30", addr: "South Delivery Point 6", lat: 38.670, lon: -9.180 },
-                { id: 8, eta: "11:45", addr: "South Warehouse", lat: 38.700, lon: -9.150 }
+                { id: 5, eta: "11:00", addr: "South Warehouse", lat: 38.700, lon: -9.150 }
             ] 
         },
         'D': { 
@@ -3221,10 +3212,7 @@ function getDefaultRouteData(routeName) {
                 { id: 2, eta: "11:15", addr: "West Delivery Point 1", lat: 38.725, lon: -9.175 },
                 { id: 3, eta: "11:30", addr: "West Delivery Point 2", lat: 38.730, lon: -9.180 },
                 { id: 4, eta: "11:45", addr: "West Delivery Point 3", lat: 38.735, lon: -9.185 },
-                { id: 5, eta: "12:00", addr: "West Delivery Point 4", lat: 38.740, lon: -9.190 },
-                { id: 6, eta: "12:15", addr: "West Delivery Point 5", lat: 38.745, lon: -9.195 },
-                { id: 7, eta: "12:30", addr: "West Delivery Point 6", lat: 38.750, lon: -9.200 },
-                { id: 8, eta: "12:45", addr: "West Warehouse", lat: 38.720, lon: -9.170 }
+                { id: 5, eta: "12:00", addr: "West Warehouse", lat: 38.720, lon: -9.170 }
             ] 
         }
     };
