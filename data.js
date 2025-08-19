@@ -70,7 +70,12 @@ stopsDataAll['A'] = [
     {id: 2, eta: "08:15", addr: "Entrecampos", lat: 38.748, lon: -9.148},
     {id: 3, eta: "08:30", addr: "Saldanha", lat: 38.735, lon: -9.145},
     {id: 4, eta: "08:45", addr: "Picoas", lat: 38.729, lon: -9.148},
-    {id: 5, eta: "09:00", addr: "Campo Grande", lat: 38.755, lon: -9.155}
+    {id: 5, eta: "09:00", addr: "Alameda", lat: 38.720, lon: -9.140},
+    {id: 6, eta: "09:15", addr: "Arroios", lat: 38.730, lon: -9.137},
+    {id: 7, eta: "09:30", addr: "Anjos", lat: 38.725, lon: -9.135},
+    {id: 8, eta: "09:45", addr: "Graça", lat: 38.717, lon: -9.131},
+    {id: 9, eta: "10:00", addr: "Alfama", lat: 38.712, lon: -9.130},
+    {id: 10, eta: "10:15", addr: "Campo Grande", lat: 38.755, lon: -9.155}
 ];
 
 stopsDataAll['B'] = [
