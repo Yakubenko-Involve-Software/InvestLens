@@ -534,13 +534,15 @@ async function addRoutesToAIMap() {
             const sLng = targetLngSpan / origLngSpan;
             scale = Math.max(0.25, Math.min(1.5, Math.min(sLat, sLng)));
             const c = rectCenter(rect);
-            const jitterLat = (Math.random() - 0.5) * rectLatSpan * 0.04;
-            const jitterLng = (Math.random() - 0.5) * rectLngSpan * 0.04;
+            // Use deterministic jitter based on route index for consistent results
+            const jitterLat = (Math.sin(i * 0.5) * 0.5) * rectLatSpan * 0.04;
+            const jitterLng = (Math.cos(i * 0.7) * 0.5) * rectLngSpan * 0.04;
             target = [c[0] + jitterLat, c[1] + jitterLng];
         } else {
             const anchor = landAnchors[anchorIndices[i % anchorIndices.length]];
-            const jitterLat = (Math.random() - 0.5) * 0.004;
-            const jitterLng = (Math.random() - 0.5) * 0.004;
+            // Use deterministic jitter based on route index for consistent results
+            const jitterLat = (Math.sin(i * 0.3) * 0.5) * 0.004;
+            const jitterLng = (Math.cos(i * 0.6) * 0.5) * 0.004;
             target = [anchor[0] + jitterLat, anchor[1] + jitterLng];
             scale = 0.18;
         }
@@ -1075,8 +1077,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                             const a=pts[i], b=pts[i+1];
                             out.push(a);
                             const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];
-                            const offLat=(b[1]-a[1])*0.12*(Math.random()-0.5)*0.002;
-                            const offLng=-(b[0]-a[0])*0.12*(Math.random()-0.5)*0.002;
+                            // Use deterministic offset based on point index for consistent results
+                            const offLat=(b[1]-a[1])*0.12*(Math.sin(i * 0.7) * 0.5)*0.002;
+                            const offLng=-(b[0]-a[0])*0.12*(Math.cos(i * 0.5) * 0.5)*0.002;
                             out.push([mid[0]+offLat, mid[1]+offLng]);
                         }
                         out.push(out[0]);
@@ -1098,8 +1101,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                             // If too few points, synthesize a small cluster inside the rect
                             if (pts.length < 6){
                                 for(let k=0;k<6-pts.length;k++){
-                                    const la = rect.minLat + (rect.maxLat-rect.minLat)*(0.2+0.6*Math.random());
-                                    const ln = rect.minLng + (rect.maxLng-rect.minLng)*(0.2+0.6*Math.random());
+                                    // Use deterministic positioning for consistent results
+                                    const la = rect.minLat + (rect.maxLat-rect.minLat)*(0.2+0.6*(k/(6-pts.length)));
+                                    const ln = rect.minLng + (rect.maxLng-rect.minLng)*(0.2+0.6*((k+0.5)/(6-pts.length)));
                                     pts.push([la,ln]);
                                 }
                             }
@@ -1200,8 +1204,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                     function randomWaypointsInRect(rect, count){
                         const out=[]; if (!rect) return out;
                         for (let i=0;i<count;i++){
-                            const tLat = Math.random()*0.7 + 0.15; // 15%-85% within rect
-                            const tLng = Math.random()*0.7 + 0.15;
+                            // Use deterministic values based on index for consistent results
+                            const tLat = (0.15 + 0.7 * (i / count)); // Distribute evenly 15%-85% within rect
+                            const tLng = (0.15 + 0.7 * ((i + 0.5) / count)); // Offset for variety
                             const la = rect.minLat + (rect.maxLat-rect.minLat)*tLat;
                             const ln = rect.minLng + (rect.maxLng-rect.minLng)*tLng;
                             out.push([la,ln]);
@@ -1213,7 +1218,7 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                         const results = [];
                         for (let i=0;i<4;i++){
                             const rect = rects[i];
-                            const seeds = randomWaypointsInRect(rect, 6 + Math.floor(Math.random()*3));
+                            const seeds = randomWaypointsInRect(rect, 7); // Fixed count for deterministic results
                             const loop = orderAsLoop(seeds);
                             let snapped = await osrmRouteLoopFromWaypoints(loop);
                             if (!snapped || snapped.length < 4) snapped = clampPathToRect(loop, rect, 8);
@@ -1656,7 +1661,7 @@ async function computeAndSnapOptimizedRoutes() {
         for (let i=0;i<pts.length-1;i++){
             const a=pts[i], b=pts[i+1];
             const segLen=haversineMeters(a,b);
-            let step=stepMinM + Math.random()*(stepMaxM-stepMinM);
+            let step=stepMinM + (stepMaxM-stepMinM) * 0.5; // Use fixed middle value for deterministic results
             const steps=Math.max(1, Math.floor(segLen/step));
             for (let s=0;s<steps;s++){ const t=s/steps; out.push([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]); }
         }
@@ -1982,7 +1987,7 @@ async function computeAndSnapOptimizedRoutes() {
             return 2 * R * Math.asin(Math.sqrt(h));
         };
         const out = [];
-        let phase = Math.random() * Math.PI * 2;
+        let phase = 0; // Fixed phase for deterministic results
         for (let i = 0; i < loopPts.length - 1; i++) {
             const a = loopPts[i];
             const b = loopPts[i+1];
@@ -1991,7 +1996,7 @@ async function computeAndSnapOptimizedRoutes() {
             const latScale = 111320;
             const lngScale = 111320 * cosLat;
             const segLenM = haversineMeters(a,b);
-            let step = stepMinM + Math.random() * (stepMaxM - stepMinM);
+            let step = stepMinM + (stepMaxM - stepMinM) * 0.5; // Fixed step for deterministic results
             const steps = Math.max(1, Math.round(segLenM / step));
             const dyM = (b[0]-a[0]) * latScale;
             const dxM = (b[1]-a[1]) * lngScale;
@@ -2002,7 +2007,7 @@ async function computeAndSnapOptimizedRoutes() {
             // convert to degrees
             const upLatDeg = upYM / latScale;
             const upLngDeg = upXM / lngScale;
-            const amp = wiggleMinM + Math.random() * (wiggleMaxM - wiggleMinM);
+            const amp = wiggleMinM + (wiggleMaxM - wiggleMinM) * 0.5; // Fixed amplitude for deterministic results
             for (let s = 0; s < steps; s++) {
                 const t = s / steps;
                 const baseLat = a[0] + (b[0]-a[0]) * t;
@@ -2010,7 +2015,7 @@ async function computeAndSnapOptimizedRoutes() {
                 const wiggle = Math.sin(phase + t * Math.PI * 2) * amp;
                 out.push([ baseLat + upLatDeg * wiggle, baseLng + upLngDeg * wiggle ]);
             }
-            phase += Math.random() * 0.8; // vary
+            phase += 0.4; // Fixed phase increment for deterministic results
         }
         out.push(out[0]);
         return out;
@@ -2083,7 +2088,8 @@ async function computeAndSnapOptimizedRoutes() {
             const midLng = (a[1] + b[1]) / 2;
             const perpLat = (b[1] - a[1]) * 0.3; // perpendicular offset
             const perpLng = -(b[0] - a[0]) * 0.3;
-            const curveMagnitude = (Math.random() - 0.5) * 0.0004; // random curve
+            // Use deterministic curve magnitude based on index for consistent results
+            const curveMagnitude = (Math.sin(i * 0.8) * 0.5) * 0.0004; // deterministic curve
             
             enhanced.push([
                 midLat + perpLat * curveMagnitude,
@@ -2102,9 +2108,9 @@ async function computeAndSnapOptimizedRoutes() {
         // Keep within previous 24-routes' overall area if available
         if (lastAIBounds) roadPath = clampPathToBounds(roadPath, lastAIBounds, 12);
         
-        // Small nudge for realism but don't move routes too far apart
-        const nudgeNorth = 40 + Math.random() * 30; // 40-70m north
-        const nudgeWest = 50 + Math.random() * 40;  // 50-90m west
+        // Small nudge for realism but don't move routes too far apart (deterministic)
+        const nudgeNorth = 55; // Fixed 55m north for deterministic results
+        const nudgeWest = 70;  // Fixed 70m west for deterministic results
         roadPath = shiftPathByMeters(roadPath, nudgeNorth, nudgeWest);
         
         if (lastAIBounds) roadPath = clampPathToBounds(roadPath, lastAIBounds, 12);
@@ -2435,7 +2441,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const spline = catmullRomClosed(points, 15);
         const smoothed = chaikinSmoothClosedLocal(spline, 2);
         
-        // Add natural variations and organic curves
+        // Add natural variations and organic curves (deterministic for stable routes)
         const out = [];
         for (let i = 0; i < smoothed.length; i++) {
             const p = smoothed[i];
@@ -2443,10 +2449,11 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             const latScale = 111320;
             const lngScale = 111320 * Math.cos(toRad(lat));
             
-            // Add natural curve variations (more pronounced for larger routes)
+            // Add deterministic curve variations for stable routes
             const curveVariation = 2.5; // Increased for 10x larger routes
-            const jLat = (Math.random() - 0.5) * (curveVariation / latScale);
-            const jLng = (Math.random() - 0.5) * (curveVariation / lngScale);
+            // Use deterministic values based on position and index for consistent results
+            const jLat = (Math.sin(i * 0.5) * 0.5) * (curveVariation / latScale);
+            const jLng = (Math.cos(i * 0.7) * 0.5) * (curveVariation / lngScale);
             
             out.push([lat + jLat, p[1] + jLng]);
         }
@@ -2526,10 +2533,14 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
         const dLat = (globalCenter[0] - routeCenter[0]) * shiftFactor;
         const dLng = (globalCenter[1] - routeCenter[1]) * shiftFactor;
         
-        // Additional upward shift for routes C and D (indices 2 and 3)
+        // Additional shifts for routes C and D (indices 2 and 3)
         let additionalLatShift = 0;
-        if (idx >= 2) {
-            additionalLatShift = 0.01; // Shift routes C and D much higher (north) on Y axis
+        if (idx === 2) {
+            // Route C: shift higher (north) on Y axis
+            additionalLatShift = 0.01;
+        } else if (idx === 3) {
+            // Route D: shift higher (north) but slightly lower than C
+            additionalLatShift = 0.01 - 0.003; // Higher than original but lower than C
         }
         
         if (allCoords.length > 0) {
@@ -2584,7 +2595,8 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
     console.log(`✅ Successfully rendered ${routeLayers.length} optimized routes on the map`);
     console.log('🎯 Routes created:', routeLayers.map(l => l.id));
     console.log('🎯 Internal route lines removed as requested; only perimeter routes are rendered');
-    console.log('🎯 Route spacing optimized: All routes have uniform distance, routes C and D are shifted higher on Y axis');
+    console.log('🎯 Route spacing optimized: All routes have uniform distance, route C is highest, route D is slightly lower than C');
+    console.log('🎯 Routes are now deterministic and will not change on refresh');
 }
 
 // Helper function to create different pentagon coordinates for fallback routes
