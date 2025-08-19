@@ -1695,45 +1695,65 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         
         // Find the route layer and highlight the specific position marker
         const routeLayer = routeLayers.find(layer => layer.id === routeName);
-        if (routeLayer && routeLayer.markers && routeLayer.markers[positionIndex]) {
-            // Reset all markers to normal style
-            routeLayer.markers.forEach(marker => {
-                if (marker.getElement) {
-                    const element = marker.getElement();
-                    if (element) {
-                        element.style.transform = 'scale(1)';
-                        element.style.boxShadow = '0 0 0 2px #ffffff';
-                    }
-                }
-            });
+        if (routeLayer && routeLayer.markers) {
+            // Find the marker with the correct position number
+            let selectedMarker = null;
+            let markerIndex = -1;
             
-            // Highlight the selected position marker
-            const selectedMarker = routeLayer.markers[positionIndex];
-            if (selectedMarker.getElement) {
-                const element = selectedMarker.getElement();
-                if (element) {
-                    element.style.transform = 'scale(1.2)';
-                    element.style.boxShadow = '0 0 0 4px #3b82f6';
+            // Skip the first marker (route ID) and search for position number
+            for (let i = 1; i < routeLayer.markers.length; i++) {
+                const marker = routeLayer.markers[i];
+                if (marker.getElement) {
+                    const positionNumber = marker.getElement().querySelector('.position-number');
+                    if (positionNumber && positionNumber.textContent === (positionIndex + 1).toString()) {
+                        selectedMarker = marker;
+                        markerIndex = i;
+                        break;
+                    }
                 }
             }
             
-            // Center map on the selected position
-            const markerLatLng = selectedMarker.getLatLng();
-            map.setView(markerLatLng, 16);
-            
-            // Show popup for the selected position
-            const popupContent = `
-                <div class="text-center">
-                    <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
-                    <div class="text-sm text-gray-600">Route ${routeName}</div>
-                    <div class="text-xs text-gray-500 mt-1">Highlighted on map</div>
-                </div>
-            `;
-            selectedMarker.bindPopup(popupContent).openPopup();
-            
-            console.log(`✅ Position ${positionIndex + 1} highlighted on map for Route ${routeName}`);
+            if (selectedMarker) {
+                // Reset all markers to normal style
+                routeLayer.markers.forEach(marker => {
+                    if (marker.getElement) {
+                        const element = marker.getElement();
+                        if (element) {
+                            element.style.transform = 'scale(1)';
+                            element.style.boxShadow = '0 0 0 2px #ffffff';
+                        }
+                    }
+                });
+                
+                // Highlight the selected position marker
+                if (selectedMarker.getElement) {
+                    const element = selectedMarker.getElement();
+                    if (element) {
+                        element.style.transform = 'scale(1.2)';
+                        element.style.boxShadow = '0 0 0 4px #3b82f6';
+                    }
+                }
+                
+                // Center map on the selected position
+                const markerLatLng = selectedMarker.getLatLng();
+                map.setView(markerLatLng, 16);
+                
+                // Show popup for the selected position
+                const popupContent = `
+                    <div class="text-center">
+                        <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
+                        <div class="text-sm text-gray-600">Route ${routeName}</div>
+                        <div class="text-xs text-gray-500 mt-1">Highlighted on map</div>
+                    </div>
+                `;
+                selectedMarker.bindPopup(popupContent).openPopup();
+                
+                console.log(`✅ Position ${positionIndex + 1} highlighted on map for Route ${routeName}`);
+            } else {
+                console.warn(`❌ Marker for position ${positionIndex + 1} not found in route ${routeName}`);
+            }
         } else {
-            console.warn(`❌ Route layer or marker not found for ${routeName} at position ${positionIndex}`);
+            console.warn(`❌ Route layer not found for ${routeName}`);
         }
         
         // Highlight the corresponding position in Timeline
@@ -1785,10 +1805,24 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         });
         
         // Highlight the specific position marker
-        if (routeLayer.markers[positionIndex]) {
-            const marker = routeLayer.markers[positionIndex];
+        // Find the marker with the correct position number
+        let selectedMarker = null;
+        
+        // Skip the first marker (route ID) and search for position number
+        for (let i = 1; i < routeLayer.markers.length; i++) {
+            const marker = routeLayer.markers[i];
             if (marker.getElement) {
-                const element = marker.getElement();
+                const positionNumber = marker.getElement().querySelector('.position-number');
+                if (positionNumber && positionNumber.textContent === (positionIndex + 1).toString()) {
+                    selectedMarker = marker;
+                    break;
+                }
+            }
+        }
+        
+        if (selectedMarker) {
+            if (selectedMarker.getElement) {
+                const element = selectedMarker.getElement();
                 if (element) {
                     element.style.transform = 'scale(1.2)';
                     element.style.boxShadow = '0 0 0 4px #3b82f6';
@@ -1800,6 +1834,8 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                     }, 3000);
                 }
             }
+        } else {
+            console.warn(`❌ Marker for position ${positionIndex + 1} not found in route ${routeName}`);
         }
         
         // Also highlight the route polyline
@@ -3081,7 +3117,7 @@ function renderOptimizedRoutesOnAI(mergedRoutes) {
             if (index === 0) {
                 markerText = r.name; // First marker shows route ID (A, B, C, D)
             } else {
-                markerText = index.toString(); // Position numbers (1, 2, 3, 4, 5, 6, 7)
+                markerText = (index).toString(); // Position numbers (1, 2, 3, 4, 5, 6, 7)
             }
             
             const positionMarker = L.marker(pt, {
