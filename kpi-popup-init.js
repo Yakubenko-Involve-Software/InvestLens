@@ -200,11 +200,11 @@ function initializeKPIPopups() {
                     </ul>
                 </div>
                 
-                <div style="background: #f9fafb; border-radius: 8px; padding: 16px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div style="border-radius: 8px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                         ${Object.entries(data.metrics).map(([key, value]) => `
-                            <div style="text-align: center;">
-                                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">${key}</div>
+                            <div style="background-color: #f9fafb; border-radius: 8px; padding: 12px; text-align: center; border: 1px solid #f3f4f6;">
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">${key}</div>
                                 <div style="font-size: 16px; font-weight: 600; color: #111827;">${value}</div>
                             </div>
                         `).join('')}
