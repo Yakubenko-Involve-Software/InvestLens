@@ -1748,13 +1748,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             `;
             
             const badge = badgeTypes[stop.index % badgeTypes.length];
-            const badgeHtml = `<span class="${badge.class} px-2 py-1 rounded cursor-pointer" onclick="showBadgePopup('${badge.id}', event, '${stop.location}', ${stop.index}, '${route.name}', ${spoilageRisk.toFixed(1)}, ${Math.round(distance)}, ${Math.round(avgDeliveryTime)}, ${Math.round(avgEfficiency)}, '${risk}')">${badge.text}</span>`;
+            const badgeHtml = `<span class="${badge.class} px-2 py-1 rounded">${badge.text}</span>`;
             
             // Generate risk percentage for the card
             const riskPercentage = Math.floor(Math.random() * 40) + 30; // 30-70% for demo
 
             return `
-                <div class="${base} cursor-pointer timeline-stop-card" onclick="showTimelineCardPopup('${stop.time}', '${stop.location}', '${stop.status}', '${stop.type}', ${stop.index + 1}, ${routeData.totalStops}, ${spoilageRisk.toFixed(1)}, ${Math.round(distance)}, ${Math.round(avgDeliveryTime)}, ${Math.round(avgEfficiency)}, '${risk}')">
+                <div class="${base} cursor-pointer timeline-stop-card" onclick="showBadgePopup('${badge.id}', event, '${stop.location}', ${stop.index}, '${route.name}', ${spoilageRisk.toFixed(1)}, ${Math.round(distance)}, ${Math.round(avgDeliveryTime)}, ${Math.round(avgEfficiency)}, '${risk}')">
                     ${riskBadge}
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
@@ -4489,57 +4489,57 @@ function updateStatisticsCards(isOptimized) {
 
 const badgePopupData = {
     'call-before-delivery': {
-        title: 'Call Before Delivery Warning',
+        title: 'Call before delivery warning',
         riskFactors: 'High traffic area, Limited parking availability, Historical delivery failures',
         recommendation: 'Call before delivery',
         analysis: 'Based on historical delivery data, traffic patterns, customer availability, and location-specific factors.',
-        applyAction: 'бейдж Call scheduled, Summary Calls +1',
-        kpiEffect: 'KPI не меняется'
+        applyAction: 'Badge Call scheduled, Summary Calls +1',
+        kpiEffect: 'KPI does not change'
     },
     'traffic-jam-risk': {
-        title: 'Traffic Jam Risk Warning',
+        title: 'Traffic jam risk warning',
         riskFactors: 'Peak traffic hours, Construction zones, Accident-prone areas, Limited alternative routes',
         recommendation: 'Move address to Tomorrow',
         analysis: 'Based on real-time traffic data, historical congestion patterns, and route optimization algorithms.',
-        applyAction: 'Перенести адрес в Tomorrow, -3 км, Success +0.4%',
-        kpiEffect: 'KPI / карта / Summary обновляются'
+        applyAction: 'Move address to Tomorrow, -3 km, Success +0.4%',
+        kpiEffect: 'KPI / map / Summary are updated'
     },
     'better-to-deliver': {
-        title: 'Better to Deliver Evening Warning',
+        title: 'Better to deliver evening warning',
         riskFactors: 'High customer satisfaction score, Flexible delivery window, Strategic location importance',
         recommendation: 'Move to 19:00, Warehouse → 20:15',
         analysis: 'Based on customer feedback analysis, delivery success rates, and business priority scoring.',
-        applyAction: 'Перенести на 19:00, Warehouse → 20:15, -2 км',
-        kpiEffect: 'KPI обнов; бейдж Rescheduled evening'
+        applyAction: 'Move to 19:00, Warehouse → 20:15, -2 km',
+        kpiEffect: 'KPI updated; badge Rescheduled evening'
     },
     'overloaded-courier': {
-        title: 'Overloaded Courier Warning',
+        title: 'Overloaded courier warning',
         riskFactors: 'High package count, Complex delivery requirements, Time pressure, Resource constraints',
         recommendation: 'Transfer stop to another courier',
         analysis: 'Based on courier workload analysis, delivery complexity assessment, and resource availability monitoring.',
-        applyAction: 'Передать стоп Courier M; у F minus, у M plus; Stops Re-routed +1, Idle -7 мин',
-        kpiEffect: 'KPI обоих курьеров и Summary корректируются'
+        applyAction: 'Transfer stop to Courier M; F minus, M plus; Stops Re-routed +1, Idle -7 min',
+        kpiEffect: 'KPI of both couriers and Summary are corrected'
     },
     'temp-spike-risk': {
-        title: 'Temperature Spike Risk (Cold) Warning',
+        title: 'Temperature spike risk (cold) warning',
         riskFactors: 'Temperature-sensitive items, Extended delivery time, Weather conditions, Insulation quality',
         recommendation: 'Add ice-pack or Earlier slot',
         analysis: 'Based on weather forecasts, historical temperature data, and cold chain integrity monitoring.',
-        applyAction: '«Add ice-pack» или «Earlier slot»; Spoilage Risk -0.3%',
-        kpiEffect: 'KPI и Summary Quality KPI'
+        applyAction: 'Add ice-pack or Earlier slot; Spoilage Risk -0.3%',
+        kpiEffect: 'KPI and Summary Quality KPI'
     },
     'optimised-by-ai': {
-        title: 'Optimised by AI Warning',
+        title: 'Optimised by AI warning',
         riskFactors: 'Route complexity, Multiple constraints, Dynamic conditions, Performance optimization',
         recommendation: 'Follow AI-optimized route and timing',
         analysis: 'Based on machine learning algorithms, real-time data analysis, and multi-objective optimization models.',
         applyAction: 'AI route optimization applied, Efficiency +15%, Time -20min',
-        kpiEffect: 'KPI route efficiency и Summary обновляются'
+        kpiEffect: 'KPI route efficiency and Summary are updated'
     }
 };
 
 function showBadgePopup(badgeId, event, location, stopIndex, routeName, spoilageRisk, distance, deliveryTime, efficiency, riskLevel) {
-    event.stopPropagation(); // Prevent card click event
+    event.stopPropagation(); // Prevent event bubbling
     
     const data = badgePopupData[badgeId];
     if (!data) return;
@@ -4609,44 +4609,44 @@ function showBadgePopup(badgeId, event, location, stopIndex, routeName, spoilage
         
         <div class="space-y-4">
             ${badgeId === 'call-before-delivery' ? `
-            <div class="bg-red-50 p-3 rounded-lg border border-red-200">
-                <div class="text-sm text-red-700 mb-1">Risk Level</div>
-                <div class="text-lg font-bold text-red-800">${riskPercentage}% Risk</div>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Risk Level</div>
+                <div class="text-lg font-bold text-gray-900">${riskPercentage}% Risk</div>
             </div>
             ` : ''}
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">Risk Factors</div>
+                <div class="text-sm text-gray-600 mb-1 font-semibold">Risk factors</div>
                 <div class="text-sm text-gray-900">${uniqueRiskFactors}</div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">AI Recommendation</div>
-                <div class="text-sm text-gray-900">${data.recommendation}</div>
+                <div class="text-sm text-gray-600 mb-1 font-semibold">AI recommendation</div>
+                <div class="text-sm text-gray-900">${uniqueRecommendation}</div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">Analysis Basis</div>
+                <div class="text-sm text-gray-600 mb-1 font-semibold">Analysis basis</div>
                 <div class="text-sm text-gray-900">${data.analysis}</div>
             </div>
             
-            <div class="bg-green-50 p-3 rounded-lg border border-green-200">
-                <div class="text-sm text-green-700 mb-1 font-semibold uppercase tracking-wide">Apply Action</div>
-                <div class="text-sm text-green-800">${data.applyAction}</div>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1 font-semibold">Apply action</div>
+                <div class="text-sm text-gray-900">${uniqueApplyAction}</div>
             </div>
             
-            <div class="bg-purple-50 p-3 rounded-lg border border-purple-200">
-                <div class="text-sm text-purple-700 mb-1 font-semibold uppercase tracking-wide">KPI Effect</div>
-                <div class="text-sm text-purple-800">${data.kpiEffect}</div>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1 font-semibold">KPI effect</div>
+                <div class="text-sm text-gray-900">${uniqueKpiEffect}</div>
             </div>
         </div>
         
         <div class="flex gap-3 mt-6">
-            <button onclick="hideBadgePopup()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                Apply
-            </button>
             <button onclick="hideBadgePopup()" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
                 Cancel
+            </button>
+            <button onclick="hideBadgePopup()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                Apply
             </button>
         </div>
     `;
