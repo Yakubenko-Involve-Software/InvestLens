@@ -1748,9 +1748,7 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             `;
             
             const badge = badgeTypes[stop.index % badgeTypes.length];
-            const isStart = stop.status === 'start';
-            const isEnd = stop.status === 'end';
-            const badgeHtml = !isStart && !isEnd ? `<span class="${badge.class} px-2 py-1 rounded cursor-pointer" onclick="showBadgePopup('${badge.id}', event)">${badge.text}</span>` : '';
+            const badgeHtml = `<span class="${badge.class} px-2 py-1 rounded cursor-pointer" onclick="showBadgePopup('${badge.id}', event)">${badge.text}</span>`;
 
             return `
                 <div class="${base} cursor-pointer timeline-stop-card" onclick="showTimelineCardPopup('${stop.time}', '${stop.location}', '${stop.status}', '${stop.type}', ${stop.index + 1}, ${routeData.totalStops}, ${spoilageRisk.toFixed(1)}, ${Math.round(distance)}, ${Math.round(avgDeliveryTime)}, ${Math.round(avgEfficiency)}, '${risk}')">
@@ -1959,60 +1957,24 @@ window.showTimelineCardPopup = function(time, location, status, type, position, 
         </div>
         
         <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Time</div>
-                    <div class="font-semibold text-gray-900">${time}</div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Location</div>
-                    <div class="font-semibold text-gray-900">${location}</div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Status</div>
-                    <div class="font-semibold text-gray-900">${statusText}</div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Type</div>
-                    <div class="font-semibold text-gray-900">${typeText}</div>
-                </div>
+            <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                <div class="text-sm text-red-700 font-medium mb-1">Risk Level</div>
+                <div class="text-lg font-bold text-red-800">55% Risk</div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1">Position</div>
-                <div class="font-semibold text-gray-900">${position} of ${totalStops}</div>
+                <div class="text-sm text-gray-600 font-medium mb-1">Risk Factors</div>
+                <div class="text-sm text-gray-900">High traffic area, Limited parking availability, Historical delivery failures</div>
+            </div>
+            
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div class="text-sm text-blue-700 font-medium mb-1">AI Recommendation</div>
+                <div class="text-sm font-semibold text-blue-800">Call before delivery</div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1">Risk Level</div>
-                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${riskColors[risk]}">
-                    ${risk}
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Spoilage Risk</div>
-                    <div class="font-semibold text-gray-900">${spoilageRisk}%</div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Distance</div>
-                    <div class="font-semibold text-gray-900">${distance}m</div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Avg Delivery Time</div>
-                    <div class="font-semibold text-gray-900">${deliveryTime}min</div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <div class="text-sm text-gray-600 mb-1">Avg Efficiency</div>
-                    <div class="font-semibold text-gray-900">${efficiency}%</div>
-                </div>
+                <div class="text-sm text-gray-600 font-medium mb-1">Analysis Basis</div>
+                <div class="text-sm text-gray-900">Based on historical delivery data, traffic patterns, customer availability, and location-specific factors.</div>
             </div>
         </div>
     `;
@@ -4524,7 +4486,7 @@ function updateStatisticsCards(isOptimized) {
 
 const badgePopupData = {
     'call-before-delivery': {
-        title: 'Call Before Delivery',
+        title: 'Additional Optimization Suggestion',
         riskFactors: 'High traffic area, Limited parking availability, Historical delivery failures',
         recommendation: 'Call before delivery',
         analysis: 'Based on historical delivery data, traffic patterns, customer availability, and location-specific factors.'
@@ -4631,29 +4593,25 @@ function showBadgePopup(badgeId, event) {
         </div>
         
         <div class="space-y-4">
-            <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1">Risk Level</div>
-                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
-                    risk === 'High' ? 'bg-red-100 text-red-800 border-red-200' : 
-                    risk === 'Med' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 
-                    'bg-green-100 text-green-800 border-green-200'
-                }">
-                    ${risk}
+            <div class="bg-red-100 p-3 rounded-lg border border-red-200">
+                <div class="text-sm text-red-800 mb-1 font-medium">Risk Indicator</div>
+                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white">
+                    55% Risk
                 </div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1">Risk Factors</div>
+                <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">Risk Factors</div>
                 <div class="text-sm text-gray-900">${data.riskFactors}</div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1">AI Recommendation</div>
+                <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">AI Recommendation</div>
                 <div class="text-sm text-gray-900">${data.recommendation}</div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1">Analysis Basis</div>
+                <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">Analysis Basis</div>
                 <div class="text-sm text-gray-900">${data.analysis}</div>
             </div>
         </div>
