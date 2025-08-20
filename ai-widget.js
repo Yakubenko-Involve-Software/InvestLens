@@ -1748,7 +1748,10 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             `;
             
             const badge = badgeTypes[stop.index % badgeTypes.length];
-            const badgeHtml = `<span class="${badge.class} px-2 py-1 rounded cursor-pointer" onclick="showBadgePopup('${badge.id}', event)">${badge.text}</span>`;
+            const badgeHtml = `<span class="${badge.class} px-2 py-1 rounded cursor-pointer" onclick="showBadgePopup('${badge.id}', event, '${stop.location}', ${stop.index}, '${route.name}', ${spoilageRisk.toFixed(1)}, ${Math.round(distance)}, ${Math.round(avgDeliveryTime)}, ${Math.round(avgEfficiency)}, '${risk}')">${badge.text}</span>`;
+            
+            // Generate risk percentage for the card
+            const riskPercentage = Math.floor(Math.random() * 40) + 30; // 30-70% for demo
 
             return `
                 <div class="${base} cursor-pointer timeline-stop-card" onclick="showTimelineCardPopup('${stop.time}', '${stop.location}', '${stop.status}', '${stop.type}', ${stop.index + 1}, ${routeData.totalStops}, ${spoilageRisk.toFixed(1)}, ${Math.round(distance)}, ${Math.round(avgDeliveryTime)}, ${Math.round(avgEfficiency)}, '${risk}')">
@@ -4486,44 +4489,56 @@ function updateStatisticsCards(isOptimized) {
 
 const badgePopupData = {
     'call-before-delivery': {
-        title: 'Additional Optimization Suggestion',
+        title: 'Call Before Delivery Warning',
         riskFactors: 'High traffic area, Limited parking availability, Historical delivery failures',
         recommendation: 'Call before delivery',
-        analysis: 'Based on historical delivery data, traffic patterns, customer availability, and location-specific factors.'
+        analysis: 'Based on historical delivery data, traffic patterns, customer availability, and location-specific factors.',
+        applyAction: 'бейдж Call scheduled, Summary Calls +1',
+        kpiEffect: 'KPI не меняется'
     },
     'traffic-jam-risk': {
-        title: 'Traffic Jam Risk',
+        title: 'Traffic Jam Risk Warning',
         riskFactors: 'Peak traffic hours, Construction zones, Accident-prone areas, Limited alternative routes',
-        recommendation: 'Use alternative route or adjust delivery time',
-        analysis: 'Based on real-time traffic data, historical congestion patterns, and route optimization algorithms.'
+        recommendation: 'Move address to Tomorrow',
+        analysis: 'Based on real-time traffic data, historical congestion patterns, and route optimization algorithms.',
+        applyAction: 'Перенести адрес в Tomorrow, -3 км, Success +0.4%',
+        kpiEffect: 'KPI / карта / Summary обновляются'
     },
     'better-to-deliver': {
-        title: 'Better to Deliver',
+        title: 'Better to Deliver Evening Warning',
         riskFactors: 'High customer satisfaction score, Flexible delivery window, Strategic location importance',
-        recommendation: 'Prioritize early delivery within window',
-        analysis: 'Based on customer feedback analysis, delivery success rates, and business priority scoring.'
+        recommendation: 'Move to 19:00, Warehouse → 20:15',
+        analysis: 'Based on customer feedback analysis, delivery success rates, and business priority scoring.',
+        applyAction: 'Перенести на 19:00, Warehouse → 20:15, -2 км',
+        kpiEffect: 'KPI обнов; бейдж Rescheduled evening'
     },
     'overloaded-courier': {
-        title: 'Overloaded Courier',
+        title: 'Overloaded Courier Warning',
         riskFactors: 'High package count, Complex delivery requirements, Time pressure, Resource constraints',
-        recommendation: 'Redistribute packages or add support',
-        analysis: 'Based on courier workload analysis, delivery complexity assessment, and resource availability monitoring.'
+        recommendation: 'Transfer stop to another courier',
+        analysis: 'Based on courier workload analysis, delivery complexity assessment, and resource availability monitoring.',
+        applyAction: 'Передать стоп Courier M; у F minus, у M plus; Stops Re-routed +1, Idle -7 мин',
+        kpiEffect: 'KPI обоих курьеров и Summary корректируются'
     },
     'temp-spike-risk': {
-        title: 'Temperature Spike Risk (Cold)',
+        title: 'Temperature Spike Risk (Cold) Warning',
         riskFactors: 'Temperature-sensitive items, Extended delivery time, Weather conditions, Insulation quality',
-        recommendation: 'Use enhanced cooling and monitor temperature',
-        analysis: 'Based on weather forecasts, historical temperature data, and cold chain integrity monitoring.'
+        recommendation: 'Add ice-pack or Earlier slot',
+        analysis: 'Based on weather forecasts, historical temperature data, and cold chain integrity monitoring.',
+        applyAction: '«Add ice-pack» или «Earlier slot»; Spoilage Risk -0.3%',
+        kpiEffect: 'KPI и Summary Quality KPI'
     },
     'optimised-by-ai': {
-        title: 'Optimised by AI',
+        title: 'Optimised by AI Warning',
         riskFactors: 'Route complexity, Multiple constraints, Dynamic conditions, Performance optimization',
         recommendation: 'Follow AI-optimized route and timing',
-        analysis: 'Based on machine learning algorithms, real-time data analysis, and multi-objective optimization models.'
+        analysis: 'Based on machine learning algorithms, real-time data analysis, and multi-objective optimization models.',
+        applyAction: 'AI route optimization applied, Efficiency +15%, Time -20min',
+        kpiEffect: 'KPI route efficiency и Summary обновляются'
     }
 };
 
-function showBadgePopup(badgeId, event) {
+function showBadgePopup(badgeId, event, location, stopIndex, routeName, spoilageRisk, distance, deliveryTime, efficiency, riskLevel) {
     event.stopPropagation(); // Prevent card click event
     
     const data = badgePopupData[badgeId];
@@ -4570,14 +4585,14 @@ function showBadgePopup(badgeId, event) {
         document.body.appendChild(popup);
     }
 
-    // Get location from the timeline card
-    const timelineCard = event.target.closest('.timeline-stop-card');
-    const locationElement = timelineCard?.querySelector('.text-sm.text-gray-600');
-    const location = locationElement?.textContent || 'Unknown location';
-
-    // Get risk level from the timeline card
-    const riskElement = timelineCard?.querySelector('.absolute.top-3.right-3 span');
-    const risk = riskElement?.textContent || 'Medium';
+    // Generate unique risk percentage based on card data and badge type
+    const riskPercentage = generateUniqueRiskLevel(badgeId, location, stopIndex, routeName, spoilageRisk, distance, deliveryTime, efficiency, riskLevel);
+    
+    // Generate unique data based on card specifics
+    const uniqueRiskFactors = generateUniqueRiskFactors(badgeId, location, stopIndex, routeName);
+    const uniqueRecommendation = generateUniqueRecommendation(badgeId, location, stopIndex, routeName);
+    const uniqueApplyAction = generateUniqueApplyAction(badgeId, location, stopIndex, routeName, spoilageRisk, distance, deliveryTime, efficiency);
+    const uniqueKpiEffect = generateUniqueKpiEffect(badgeId, location, stopIndex, routeName);
 
     popup.innerHTML = `
         <div class="flex justify-between items-start mb-4">
@@ -4593,16 +4608,16 @@ function showBadgePopup(badgeId, event) {
         </div>
         
         <div class="space-y-4">
-            <div class="bg-red-100 p-3 rounded-lg border border-red-200">
-                <div class="text-sm text-red-800 mb-1 font-medium">Risk Indicator</div>
-                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white">
-                    55% Risk
-                </div>
+            ${badgeId === 'call-before-delivery' ? `
+            <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                <div class="text-sm text-red-700 mb-1">Risk Level</div>
+                <div class="text-lg font-bold text-red-800">${riskPercentage}% Risk</div>
             </div>
+            ` : ''}
             
             <div class="bg-gray-50 p-3 rounded-lg">
                 <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">Risk Factors</div>
-                <div class="text-sm text-gray-900">${data.riskFactors}</div>
+                <div class="text-sm text-gray-900">${uniqueRiskFactors}</div>
             </div>
             
             <div class="bg-gray-50 p-3 rounded-lg">
@@ -4614,11 +4629,21 @@ function showBadgePopup(badgeId, event) {
                 <div class="text-sm text-gray-600 mb-1 font-semibold uppercase tracking-wide">Analysis Basis</div>
                 <div class="text-sm text-gray-900">${data.analysis}</div>
             </div>
+            
+            <div class="bg-green-50 p-3 rounded-lg border border-green-200">
+                <div class="text-sm text-green-700 mb-1 font-semibold uppercase tracking-wide">Apply Action</div>
+                <div class="text-sm text-green-800">${data.applyAction}</div>
+            </div>
+            
+            <div class="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                <div class="text-sm text-purple-700 mb-1 font-semibold uppercase tracking-wide">KPI Effect</div>
+                <div class="text-sm text-purple-800">${data.kpiEffect}</div>
+            </div>
         </div>
         
         <div class="flex gap-3 mt-6">
             <button onclick="hideBadgePopup()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                Apply Additional Suggestion
+                Apply
             </button>
             <button onclick="hideBadgePopup()" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
                 Cancel
@@ -4667,3 +4692,101 @@ window.hideTimelinePanel = hideTimelinePanel;
 
 // Separate initialization for elements that should always be available.
 function initPermanentElements() {}
+
+// Helper functions to generate unique data for each card
+function generateUniqueRiskFactors(badgeId, location, stopIndex, routeName) {
+    const baseFactors = badgePopupData[badgeId]?.riskFactors || '';
+    const locationSpecific = `${location} specific factors`;
+    const routeSpecific = `Route ${routeName} considerations`;
+    const stopSpecific = `Stop ${stopIndex + 1} specific risks`;
+    
+    return `${baseFactors}, ${locationSpecific}, ${routeSpecific}, ${stopSpecific}`;
+}
+
+function generateUniqueRecommendation(badgeId, location, stopIndex, routeName) {
+    const baseRecommendation = badgePopupData[badgeId]?.recommendation || '';
+    const locationSpecific = `for ${location}`;
+    const routeSpecific = `on Route ${routeName}`;
+    const stopSpecific = `at stop ${stopIndex + 1}`;
+    
+    return `${baseRecommendation} ${locationSpecific} ${routeSpecific} ${stopSpecific}`;
+}
+
+function generateUniqueApplyAction(badgeId, location, stopIndex, routeName, spoilageRisk, distance, deliveryTime, efficiency) {
+    const baseAction = badgePopupData[badgeId]?.applyAction || '';
+    const metrics = `Spoilage: ${spoilageRisk}%, Distance: ${distance}m, Time: ${deliveryTime}min, Efficiency: ${efficiency}%`;
+    const locationSpecific = `Location: ${location}`;
+    const routeSpecific = `Route: ${routeName}, Stop: ${stopIndex + 1}`;
+    
+    return `${baseAction} | ${locationSpecific} | ${routeSpecific} | ${metrics}`;
+}
+
+function generateUniqueKpiEffect(badgeId, location, stopIndex, routeName) {
+    const baseEffect = badgePopupData[badgeId]?.kpiEffect || '';
+    const locationSpecific = `${location} KPI`;
+    const routeSpecific = `Route ${routeName} metrics`;
+    const stopSpecific = `Stop ${stopIndex + 1} performance`;
+    
+    return `${baseEffect} | ${locationSpecific} | ${routeSpecific} | ${stopSpecific}`;
+}
+
+function generateUniqueRiskLevel(badgeId, location, stopIndex, routeName, spoilageRisk, distance, deliveryTime, efficiency, riskLevel) {
+    // Base risk by badge type with more variation (scaled to 0-56 range)
+    const badgeBaseRisk = {
+        'call-before-delivery': [35, 45],
+        'traffic-jam-risk': [42, 52],
+        'better-to-deliver': [20, 30],
+        'overloaded-courier': [45, 56],
+        'temp-spike-risk': [38, 48],
+        'optimised-by-ai': [5, 15]
+    };
+    
+    const baseRange = badgeBaseRisk[badgeId] || [45, 55];
+    let risk = baseRange[0] + Math.random() * (baseRange[1] - baseRange[0]);
+    
+    // Unique location-based adjustments (scaled down)
+    const locationRisk = {
+        'Campo Grande': [6, 10],
+        'Entrecampos': [4, 8],
+        'North Warehouse': [2, 5],
+        'East Warehouse': [3, 7],
+        'South Warehouse': [5, 9],
+        'West Warehouse': [3, 6]
+    };
+    const locRisk = locationRisk[location] || [0, 0];
+    risk += locRisk[0] + Math.random() * (locRisk[1] - locRisk[0]);
+    
+    // Route complexity adjustments (scaled down)
+    const routeRisk = {
+        'A': [3, 7],
+        'B': [5, 9],
+        'C': [6, 10],
+        'D': [4, 8]
+    };
+    const routeRiskValue = routeRisk[routeName] || [0, 0];
+    risk += routeRiskValue[0] + Math.random() * (routeRiskValue[1] - routeRiskValue[0]);
+    
+    // Stop position adjustments with more variation (scaled down)
+    if (stopIndex === 0) { // Start
+        risk += -4 + Math.random() * 2;
+    } else if (stopIndex >= 8) { // End
+        risk += -3 + Math.random() * 2;
+    } else { // Middle stops
+        risk += 4 + Math.random() * 4;
+    }
+    
+    // Metrics-based adjustments with randomness (scaled down)
+    if (spoilageRisk > 3) risk += 3 + Math.random() * 3;
+    if (distance > 1500) risk += 2 + Math.random() * 2;
+    if (deliveryTime > 30) risk += 3 + Math.random() * 3;
+    if (efficiency < 85) risk += 4 + Math.random() * 3;
+    
+    // Add some randomness based on card combination (scaled down)
+    const cardHash = `${badgeId}-${location}-${stopIndex}-${routeName}`.length;
+    risk += (cardHash % 4) + Math.random() * 2;
+    
+    // Ensure risk is within reasonable bounds and round to whole number
+    risk = Math.max(0, Math.min(56, risk));
+    
+    return Math.round(risk);
+}
