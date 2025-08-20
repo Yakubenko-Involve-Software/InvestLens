@@ -20,9 +20,10 @@ let currentTimelineRoute = null;
 // Badge types for timeline cards
 const badgeTypes = [
     { id: 'call-before-delivery', text: 'Call before delivery', class: 'bg-red-100 text-red-700 hover:bg-red-200' },
+    { id: 'call-scheduled', text: 'Call scheduled', class: 'bg-green-100 text-green-700 hover:bg-green-200' },
     { id: 'traffic-jam-risk', text: 'Traffic jam risk', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
     { id: 'better-to-deliver', text: 'Better to deliver', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
-    { id: 'overloaded-courier', text: 'Overloaded courier', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
+    { id: 'overloaded-courier', text: 'Overloaded courier', class: 'bg-yellow-100 text-yellow-700 hover:bg-red-200' },
     { id: 'temp-spike-risk', text: 'Temp spike risk (cold)', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
     { id: 'optimised-by-ai', text: 'Optimised by AI', class: 'bg-green-100 text-green-700 hover:bg-green-200' }
 ];
@@ -4490,11 +4491,11 @@ function updateStatisticsCards(isOptimized) {
 const badgePopupData = {
     'call-before-delivery': {
         title: 'Call before delivery warning',
-        riskFactors: 'High traffic area, Limited parking availability, Historical delivery failures',
-        recommendation: 'Call before delivery',
+        riskFactors: 'High traffic area, Limited parking availability, Historical delivery failures, Campo Grande specific factors, Route A considerations, Stop 1 specific risks',
+        recommendation: 'Call before delivery for Campo Grande on Route A at stop 1',
         analysis: 'Based on historical delivery data, traffic patterns, customer availability, and location-specific factors.',
-        applyAction: 'Badge Call scheduled, Summary Calls +1',
-        kpiEffect: 'KPI does not change'
+        applyAction: 'Badge Call scheduled, Summary Calls +1 | Location: Campo Grande | Route: A, Stop: 1 | Spoilage: 5%, Distance: 1768m, Time: 33min, Efficiency: 95%',
+        kpiEffect: 'KPI does not change | Campo Grande KPI | Route A metrics | Stop 1 performance'
     },
     'traffic-jam-risk': {
         title: 'Traffic jam risk warning',
@@ -4609,9 +4610,9 @@ function showBadgePopup(badgeId, event, location, stopIndex, routeName, spoilage
         
         <div class="space-y-4">
             ${badgeId === 'call-before-delivery' ? `
-            <div class="bg-gray-50 p-3 rounded-lg">
-                <div class="text-sm text-gray-600 mb-1">Risk Level</div>
-                <div class="text-lg font-bold text-gray-900">${riskPercentage}% Risk</div>
+            <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                <div class="text-sm text-red-700 mb-1">Risk Level</div>
+                <div class="text-lg font-bold text-red-800">${riskPercentage}% Risk</div>
             </div>
             ` : ''}
             
@@ -4645,7 +4646,7 @@ function showBadgePopup(badgeId, event, location, stopIndex, routeName, spoilage
             <button onclick="hideBadgePopup()" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
                 Cancel
             </button>
-            <button onclick="hideBadgePopup()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+            <button onclick="applyBadgeAction('${badgeId}', '${location}', ${stopIndex}, '${routeName}')" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                 Apply
             </button>
         </div>
@@ -4681,6 +4682,75 @@ window.hideBadgePopup = function() {
     if (overlay) {
         overlay.style.display = 'none';
     }
+};
+
+// Function to apply badge action (e.g., change "Call before delivery" to "Call scheduled")
+window.applyBadgeAction = function(badgeId, location, stopIndex, routeName) {
+    console.log(`🔄 Applying badge action: ${badgeId} for ${location} on Route ${routeName} at stop ${stopIndex + 1}`);
+    
+    // Handle specific badge actions
+    if (badgeId === 'call-before-delivery') {
+        // Find the timeline card and change the badge from "Call before delivery" to "Call scheduled"
+        const timelineCards = document.querySelectorAll('.timeline-stop-card');
+        let targetCard = null;
+        
+        // Find the card that matches our location, route, and stop index
+        for (let card of timelineCards) {
+            const cardLocation = card.querySelector('.text-sm.text-gray-600')?.textContent;
+            const cardBadge = card.querySelector('.bg-red-100.text-red-700, .bg-red-100.text-red-700.hover\\:bg-red-200');
+            
+            if (cardLocation === location && cardBadge && cardBadge.textContent === 'Call before delivery') {
+                targetCard = card;
+                break;
+            }
+        }
+        
+        if (targetCard) {
+            // Change the badge from "Call before delivery" to "Call scheduled"
+            const oldBadge = targetCard.querySelector('.bg-red-100.text-red-700');
+            if (oldBadge) {
+                // Add transition class for smooth animation
+                oldBadge.classList.add('badge-transition');
+                
+                // Change the badge appearance
+                oldBadge.className = 'bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded badge-transition badge-call-scheduled';
+                oldBadge.textContent = 'Call scheduled';
+                
+                // Add a subtle animation effect
+                oldBadge.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    oldBadge.style.transform = 'scale(1)';
+                }, 200);
+                
+                console.log(`✅ Badge changed from "Call before delivery" to "Call scheduled" for ${location}`);
+            }
+            
+            // Update the calls-scheduled counter in the KPI panel
+            const callsScheduledElement = document.getElementById('calls-scheduled');
+            if (callsScheduledElement) {
+                const currentValue = parseInt(callsScheduledElement.textContent) || 0;
+                const newValue = currentValue + 1;
+                
+                // Add animation class for the counter update
+                callsScheduledElement.classList.add('kpi-card-optimized');
+                
+                // Update the counter with animation
+                callsScheduledElement.textContent = newValue;
+                
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    callsScheduledElement.classList.remove('kpi-card-optimized');
+                }, 600);
+                
+                console.log(`📊 Calls scheduled counter updated to ${newValue}`);
+            }
+        } else {
+            console.warn(`⚠️ Could not find target card for ${location} on Route ${routeName}`);
+        }
+    }
+    
+    // Hide the popup after applying the action
+    hideBadgePopup();
 };
 
 // --- Timeline Rendering ---

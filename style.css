@@ -221,3 +221,21 @@
 .kpi-card.cursor-pointer {
     transition: all 0.2s ease;
 }
+
+/* Badge transition animations */
+.badge-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Call scheduled badge specific styles */
+.badge-call-scheduled {
+    background-color: #d1fae5 !important; /* emerald-100 */
+    color: #047857 !important; /* emerald-700 */
+    border: 1px solid #a7f3d0 !important; /* emerald-200 */
+}
+
+.badge-call-scheduled:hover {
+    background-color: #a7f3d0 !important; /* emerald-200 */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
