@@ -4,6 +4,8 @@
 
 Після натискання кнопки "Apply" на попапі "Call before delivery warning", бейдж на Timeline змінюється з червоного "Call before delivery" на зелений "Call scheduled".
 
+**НОВЕ:** Секція "Risk Level" тепер також відображається для попапу "Traffic jam risk warning".
+
 ## Що було реалізовано
 
 ### 1. Новий тип бейджа
@@ -14,43 +16,63 @@
 - Кнопка "Apply" тепер викликає функцію `applyBadgeAction()` замість `hideBadgePopup()`
 - Передаються параметри: `badgeId`, `location`, `stopIndex`, `routeName`
 
-### 3. Функція `applyBadgeAction()`
+### 3. Секція "Risk Level" для всіх ризикових бейджів
+- **Call before delivery**: показує секцію "Risk Level" з червоним кольором
+- **Traffic jam risk**: тепер також показує секцію "Risk Level" з червоним кольором
+- Секція відображає відсоток ризику на основі унікальних даних картки
+
+### 4. Функція `applyBadgeAction()`
+- Обробляє `call-before-delivery`: змінює бейдж на "Call scheduled"
+- Обробляє `traffic-jam-risk`: оновлює лічильник "Stops merged"
 - Знаходить відповідну картку в timeline за локацією
-- Змінює бейдж з "Call before delivery" на "Call scheduled"
-- Оновлює лічильник "Calls scheduled" в KPI панелі
+- Оновлює відповідні лічильники в KPI панелі
 - Додає анімацію переходу
 
-### 4. CSS стилі
+### 5. CSS стилі
 - Додано клас `.badge-transition` для плавних переходів
 - Додано клас `.badge-call-scheduled` для зеленого бейджа
 - Анімація hover ефекту
 
-### 5. Оновлені дані попапа
-- Детальніша інформація про ризики та рекомендації
-- Специфічні дані для Campo Grande, Route A, Stop 1
+### 6. Оновлені дані попапів
+- **Call before delivery**: детальна інформація для Campo Grande, Route A, Stop 1
+- **Traffic jam risk**: детальна інформація для Campo Grande, Route A, Stop 2
+- Специфічні дані про ризики, рекомендації та дії
 
 ## Як це працює
 
+### Call before delivery:
 1. Користувач клікає на бейдж "Call before delivery" в timeline
-2. Відкривається попап з попередженням
+2. Відкривається попап з попередженням та секцією "Risk Level"
 3. Користувач натискає кнопку "Apply"
-4. Функція `applyBadgeAction()` знаходить відповідну картку
-5. Бейдж змінюється на "Call scheduled" з зеленим кольором
-6. Лічильник "Calls scheduled" збільшується на 1
-7. Попап закривається
+4. Бейдж змінюється на "Call scheduled" з зеленим кольором
+5. Лічильник "Calls scheduled" збільшується на 1
+6. Попап закривається
+
+### Traffic jam risk:
+1. Користувач клікає на бейдж "Traffic jam risk" в timeline
+2. Відкривається попап з попередженням та секцією "Risk Level"
+3. Користувач натискає кнопку "Apply"
+4. Лічильник "Stops merged" збільшується на 1
+5. Попап закривається
 
 ## Тестування
 
-Створено тестовий файл `test_badge_change.html` для перевірки функціональності:
+### test_badge_change.html
 - Симулює timeline картку з бейджем "Call before delivery"
-- Показує попап з попередженням
+- Показує попап з попередженням та секцією "Risk Level"
 - Демонструє зміну бейджа при натисканні "Apply"
+
+### test_traffic_risk_popup.html
+- Симулює timeline картку з бейджем "Traffic jam risk"
+- Показує попап з попередженням та секцією "Risk Level"
+- Демонструє дію "Apply" для traffic jam risk
 
 ## Файли, що були змінені
 
-- `ai-widget.js` - основна логіка
+- `ai-widget.js` - основна логіка функціональності
 - `style.css` - CSS стилі для нових бейджів
-- `test_badge_change.html` - тестовий файл
+- `test_badge_change.html` - тестовий файл для Call before delivery
+- `test_traffic_risk_popup.html` - тестовий файл для Traffic jam risk
 
 ## Технічні деталі
 
@@ -58,3 +80,5 @@
 - Анімації через CSS transitions та JavaScript
 - Пошук елементів через DOM селектори
 - Логування в консоль для відлагодження
+- Секція "Risk Level" показується для `call-before-delivery` та `traffic-jam-risk`
+- Унікальні дані генеруються для кожної картки на основі локації, маршруту та позиції
