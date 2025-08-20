@@ -28,7 +28,6 @@ function initializeKPIPopups() {
     const popupData = [
         {
             title: 'Routes Optimised',
-            description: 'Delivery routes optimization',
             details: [
                 '• Analysis of the geographical distribution of orders',
                 '• Clustering of nearby delivery points',
@@ -42,7 +41,6 @@ function initializeKPIPopups() {
         },
         {
             title: 'Stops Merged',
-            description: 'Merging of delivery stops',
             details: [
                 '• Identification of closely located addresses',
                 '• Grouping of orders by district',
@@ -56,7 +54,6 @@ function initializeKPIPopups() {
         },
         {
             title: 'Calls Scheduled',
-            description: 'Scheduling of customer calls',
             details: [
                 '• Automatic call scheduling',
                 '• Optimization of communication time',
@@ -70,7 +67,6 @@ function initializeKPIPopups() {
         },
         {
             title: 'Time Saved',
-            description: 'Delivery time savings',
             details: [
                 '• Route optimization',
                 '• Reduction of downtime',
@@ -84,7 +80,6 @@ function initializeKPIPopups() {
         },
         {
             title: 'Success Rate',
-            description: 'Delivery success rate indicator',
             details: [
                 '• Improved delivery accuracy',
                 '• Reduction of routing errors',
@@ -98,7 +93,6 @@ function initializeKPIPopups() {
         },
         {
             title: 'Spoilage Risk',
-            description: 'Product spoilage risk',
             details: [
                 '• Optimization of temperature control',
                 '• Improved quality control',
@@ -112,7 +106,6 @@ function initializeKPIPopups() {
         },
         {
             title: 'Efficiency Gain',
-            description: 'Increase in efficiency',
             details: [
                 '• Optimization of delivery processes',
                 '• Improved resource utilization',
@@ -126,7 +119,6 @@ function initializeKPIPopups() {
         },
         {
             title: 'Cost Reduction',
-            description: 'Reduction of delivery costs',
             details: [
                 '• Route optimization',
                 '• Reduction of fuel costs',
@@ -200,18 +192,15 @@ function initializeKPIPopups() {
                     <div style="display: flex; align-items: center; margin-bottom: 16px;">
                         <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0;">${data.title}</h2>
                     </div>
-                    <p style="color: #6b7280; font-size: 16px; line-height: 1.5; margin: 0;">${data.description}</p>
                 </div>
                 
                 <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Optimization Details:</h3>
                     <ul style="color: #4b5563; line-height: 1.6; margin: 0; padding-left: 20px;">
                         ${data.details.map(detail => `<li style="margin-bottom: 8px;">${detail}</li>`).join('')}
                     </ul>
                 </div>
                 
                 <div style="background: #f9fafb; border-radius: 8px; padding: 16px;">
-                    <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Key Metrics:</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         ${Object.entries(data.metrics).map(([key, value]) => `
                             <div style="text-align: center;">
