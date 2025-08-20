@@ -4641,11 +4641,11 @@ const badgePopupData = {
     },
     'better-to-deliver': {
         title: 'Better to deliver evening warning',
-        riskFactors: 'High customer satisfaction score, Flexible delivery window, Strategic location importance',
-        recommendation: 'Move to 19:00, Warehouse → 20:15',
+        riskFactors: 'High customer satisfaction score, Flexible delivery window, Strategic location importance, Campo Grande specific factors, Route A considerations, Stop 1 specific risks',
+        recommendation: 'Move to 19:00, Warehouse → 20:15 for Campo Grande on Route A at stop 1',
         analysis: 'Based on customer feedback analysis, delivery success rates, and business priority scoring.',
-        applyAction: 'Move to 19:00, Warehouse → 20:15, -2 km',
-        kpiEffect: 'KPI updated; badge Rescheduled evening'
+        applyAction: 'Move to 19:00, Warehouse → 20:15, -2 km | Location: Campo Grande | Route: A, Stop: 1 | Spoilage: 3%, Distance: 1200m, Time: 25min, Efficiency: 98%',
+        kpiEffect: 'KPI updated; badge Rescheduled evening | Campo Grande KPI | Route A metrics | Stop 1 performance'
     },
     'overloaded-courier': {
         title: 'Overloaded courier warning',
@@ -4743,7 +4743,7 @@ function showBadgePopup(badgeId, event, location, stopIndex, routeName, spoilage
         </div>
         
         <div class="space-y-4">
-            ${badgeId === 'call-before-delivery' || badgeId === 'traffic-jam-risk' ? `
+            ${badgeId === 'call-before-delivery' || badgeId === 'traffic-jam-risk' || badgeId === 'better-to-deliver' ? `
             <div class="bg-red-50 p-3 rounded-lg border border-red-200">
                 <div class="text-sm text-red-700 mb-1">Risk Level</div>
                 <div class="text-lg font-bold text-red-800">${riskPercentage}% Risk</div>
@@ -4966,6 +4966,96 @@ window.applyBadgeAction = function(badgeId, location, stopIndex, routeName) {
         }
         
         console.log(`✅ Traffic jam risk action applied for ${location}`);
+    } else if (badgeId === 'better-to-deliver') {
+        console.log(`🔄 Handling better to deliver evening action for ${location} on Route ${routeName} at stop ${stopIndex + 1}`);
+        
+        // Find the timeline card that was clicked
+        const timelineCards = document.querySelectorAll('.timeline-stop-card');
+        let targetCard = null;
+        
+        // Find the card that matches our location, route, and stop index
+        for (let card of timelineCards) {
+            const cardLocation = card.querySelector('.text-sm.text-gray-600')?.textContent;
+            const cardBadge = card.querySelector('.bg-yellow-100.text-yellow-700, .bg-yellow-100.text-yellow-700.hover\\:bg-yellow-200');
+            
+            if (cardLocation === location && cardBadge && cardBadge.textContent === 'Better to deliver') {
+                targetCard = card;
+                break;
+            }
+        }
+        
+        if (targetCard) {
+            // Update the card for evening delivery
+            const timeElement = targetCard.querySelector('.text-lg.font-bold.text-gray-900');
+            if (timeElement) {
+                // Change time to evening (19:00)
+                timeElement.textContent = '19:00';
+                timeElement.classList.add('text-blue-600', 'font-bold');
+                
+
+            }
+            
+            // Update the badge to show evening delivery
+            const eveningBadge = targetCard.querySelector('.bg-yellow-100.text-yellow-700, .bg-yellow-100.text-yellow-700.hover\\:bg-yellow-200');
+            if (eveningBadge) {
+                eveningBadge.className = 'inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium';
+                eveningBadge.textContent = 'Evening delivery';
+            }
+            
+            // Add evening-specific styling
+            targetCard.classList.add('evening-delivery');
+            targetCard.style.borderLeft = '4px solid #3b82f6'; // blue-500
+            targetCard.style.background = 'linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)';
+            
+            // Add a subtle animation effect
+            targetCard.style.transform = 'scale(1.05)';
+            targetCard.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+            setTimeout(() => {
+                targetCard.style.transform = 'scale(1)';
+                targetCard.style.boxShadow = '';
+            }, 300);
+            
+            // Update warehouse time if it exists in the route
+            const warehouseCards = document.querySelectorAll('.timeline-stop-card');
+            warehouseCards.forEach(card => {
+                const cardType = card.querySelector('.inline-flex.items-center.text-xs.px-2.py-1.rounded-full.bg-gray-100.text-gray-700.font-medium');
+                if (cardType && cardType.textContent === 'Warehouse') {
+                    const warehouseTime = card.querySelector('.text-lg.font-bold.text-gray-900');
+                    if (warehouseTime) {
+                        warehouseTime.textContent = '20:15';
+                        warehouseTime.classList.add('text-blue-600', 'font-bold');
+                        
+
+                    }
+                }
+            });
+            
+            console.log(`✅ Card updated for evening delivery at 19:00, Warehouse at 20:15 for ${location}`);
+            
+            // Update the time-saved counter in the KPI panel
+            const timeSavedElement = document.getElementById('time-saved');
+            if (timeSavedElement) {
+                const currentValue = parseInt(timeSavedElement.textContent) || 0;
+                const newValue = currentValue + 2; // +2 minutes saved
+                
+                // Add animation class for the counter update
+                timeSavedElement.classList.add('kpi-card-optimized');
+                
+                // Update the counter with animation
+                timeSavedElement.textContent = `${newValue} min`;
+                
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    timeSavedElement.classList.remove('kpi-card-optimized');
+                }, 600);
+                
+                console.log(`📊 Time saved counter updated to ${newValue} min`);
+            }
+        } else {
+            console.warn(`⚠️ Could not find target card for ${location} on Route ${routeName}`);
+        }
+        
+        console.log(`✅ Better to deliver evening action applied for ${location}`);
     }
     
     // Hide the popup after applying the action

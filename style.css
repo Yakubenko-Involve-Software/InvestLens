@@ -298,3 +298,35 @@
     font-weight: 500;
     opacity: 0.8;
 }
+
+/* Evening delivery styles */
+.evening-delivery {
+    border-left: 4px solid #3b82f6 !important; /* blue-500 */
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%) !important;
+    position: relative;
+}
+
+/* Ensure time is visible and not overlapped */
+.evening-delivery .text-lg.font-bold.text-blue-600 {
+    position: relative;
+    z-index: 5;
+}
+
+
+
+
+
+
+
+/* Evening delivery badge */
+.badge-evening-delivery {
+    background-color: #dbeafe !important; /* blue-100 */
+    color: #1d4ed8 !important; /* blue-700 */
+    border: 1px solid #93c5fd !important; /* blue-300 */
+}
+
+.badge-evening-delivery:hover {
+    background-color: #93c5fd !important; /* blue-300 */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
