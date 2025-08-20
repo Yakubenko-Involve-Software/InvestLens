@@ -14,6 +14,18 @@ let lastAIKeyPoints = []; // sample of points used by the 24-route layout
 let map;
 let routeList, timelineList;
 let routeLayers = [];
+let currentRoute = null;
+let currentTimelineRoute = null;
+
+// Badge types for timeline cards
+const badgeTypes = [
+    { id: 'call-before-delivery', text: 'Call before delivery', class: 'bg-red-100 text-red-700 hover:bg-red-200' },
+    { id: 'traffic-jam-risk', text: 'Traffic jam risk', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
+    { id: 'better-to-deliver', text: 'Better to deliver', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
+    { id: 'overloaded-courier', text: 'Overloaded courier', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
+    { id: 'temp-spike-risk', text: 'Temp spike risk (cold)', class: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
+    { id: 'optimised-by-ai', text: 'Optimised by AI', class: 'bg-green-100 text-green-700 hover:bg-green-200' }
+];
 
 // Make map available globally
 window.aiMap = null;
@@ -105,6 +117,9 @@ async function initAI() {
             console.error('❌ Error in final initialization of KPI popups:', error);
         }
     }, 5000);
+    
+    // Initialize permanent elements like the timeline button
+    initPermanentElements();
     
     // Load data
     allRoutes = allRoutesData;
@@ -1498,65 +1513,99 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     const timelineContent = document.getElementById('timeline-panel-content');
     const timelineClosePanel = document.getElementById('timeline-close-panel');
  
+    // Delegated handler to ensure Timeline button always works
+    document.addEventListener('click', function(evt) {
+        const btn = evt.target.closest('#timeline-btn');
+        if (!btn) return;
+        evt.preventDefault();
+        try {
+            const firstRoute = { name: 'A', id: 'A' };
+            window.currentTimelineRoute = 'A';
+            setFocus(firstRoute.id);
+            showTimelinePanel(firstRoute);
+        } catch (err) {
+            console.error('Timeline open failed:', err);
+            // Fallback: just toggle views if rendering fails
+            if (resultsView && timelineView) {
+                resultsView.classList.add('hidden');
+                timelineView.classList.remove('hidden');
+                timelineView.classList.add('flex');
+            }
+        }
+    });
+ 
         // Generate route data for Timeline based on stopsDataAll (like Routes tab)
     function generateRouteData(routeName) {
         console.log(`🔍 Generating route data for: ${routeName}`);
-        // Get stops data from stopsDataAll (same as Routes tab)
-        const stops = stopsDataAll[routeName];
-        console.log(`📍 Found stops:`, stops);
         
-        if (!stops || stops.length === 0) {
-            console.warn(`No stops data found for route ${routeName}`);
+        // Check if stopsDataAll is available
+        if (typeof stopsDataAll === 'undefined') {
+            console.warn('stopsDataAll is not defined, using default data');
             return getDefaultRouteData(routeName);
         }
         
-        // Convert stops data to timeline format
-        const timelineStops = stops.map((stop, index) => {
-            const isFirst = index === 0;
-            const isLast = index === stops.length - 1;
+        // Get stops data from stopsDataAll (same as Routes tab)
+        const stops = stopsDataAll[routeName];
+        console.log(`📍 Found stops in stopsDataAll:`, stops);
+        
+        if (!stops || stops.length === 0) {
+            console.warn(`No stops data found for route ${routeName} in stopsDataAll, using default data`);
+            return getDefaultRouteData(routeName);
+        }
+        
+        try {
+            // Convert stops data to timeline format
+            const timelineStops = stops.map((stop, index) => {
+                const isFirst = index === 0;
+                const isLast = index === stops.length - 1;
+                
+                let type, status;
+                if (isFirst) {
+                    type = 'warehouse';
+                    status = 'start';
+                } else if (isLast) {
+                    type = 'warehouse';
+                    status = 'end';
+                } else {
+                    type = 'delivery';
+                    status = 'active';
+                }
+                
+                const timelineStop = {
+                    id: stop.id || index + 1,
+                    time: stop.eta || `08:${index * 15}:00`,
+                    location: stop.addr || `Stop ${index + 1}`,
+                    type: type,
+                    status: status,
+                    coordinates: [stop.lat || 38.725, stop.lon || -9.150],
+                    index: index,
+                    // Additional data from stopsDataAll
+                    originalData: stop
+                };
+                
+                console.log(`📍 Stop ${index + 1}: ${timelineStop.location} at [${timelineStop.coordinates[0]}, ${timelineStop.coordinates[1]}]`);
+                return timelineStop;
+            });
             
-            let type, status;
-            if (isFirst) {
-                type = 'warehouse';
-                status = 'start';
-            } else if (isLast) {
-                type = 'warehouse';
-                status = 'end';
-            } else {
-                type = 'delivery';
-                status = 'active';
-            }
+            // Calculate route statistics
+            const totalDistance = calculateRouteDistanceFromStops(stops);
+            const totalStops = stops.length;
             
-            const timelineStop = {
-                id: stop.id,
-                time: stop.eta,
-                location: stop.addr,
-                type: type,
-                status: status,
-                coordinates: [stop.lat, stop.lon],
-                index: index,
-                // Additional data from stopsDataAll
-                originalData: stop
+            const result = {
+                name: `Route ${routeName} - ${getDistrictName(routeName)}`,
+                stops: timelineStops,
+                totalDistance: totalDistance,
+                totalStops: totalStops,
+                originalStops: stops
             };
             
-            console.log(`📍 Stop ${index + 1}: ${stop.addr} at [${stop.lat}, ${stop.lon}]`);
-            return timelineStop;
-        });
-        
-        // Calculate route statistics
-        const totalDistance = calculateRouteDistanceFromStops(stops);
-        const totalStops = stops.length;
-        
-        const result = {
-            name: `Route ${routeName} - ${getDistrictName(routeName)}`,
-            stops: timelineStops,
-            totalDistance: totalDistance,
-            totalStops: totalStops,
-            originalStops: stops
-        };
-        
-        console.log(`✅ Generated route data:`, result);
-        return result;
+            console.log(`✅ Generated route data:`, result);
+            return result;
+        } catch (error) {
+            console.error('Error processing stopsDataAll:', error);
+            console.log('Falling back to default data');
+            return getDefaultRouteData(routeName);
+        }
     }
 
     function renderTimelineItems(route) {
@@ -1701,6 +1750,11 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             const onClickHandler = `showPositionOnMap('${route.name}', ${stop.index}, ${stop.coordinates[0]}, ${stop.coordinates[1]})`;
             console.log(`🔗 Click handler for position ${stop.index + 1}: ${onClickHandler}`);
             
+            const badge = badgeTypes[stop.index % badgeTypes.length];
+            const isStart = stop.status === 'start';
+            const isEnd = stop.status === 'end';
+            const badgeHtml = !isStart && !isEnd ? `<span class="${badge.class} px-2 py-1 rounded cursor-pointer" onclick="showBadgePopup('${badge.id}', event)">${badge.text}</span>` : '';
+
             return `
                 <div class="${base} cursor-pointer timeline-stop-card" onclick="${onClickHandler}">
                     ${riskBadge}
@@ -1714,8 +1768,11 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                                 <span class="text-sm font-medium text-gray-700">${statusText}</span>
                                 ${typeBadge}
                             </div>
-                            <div class="text-xs text-gray-600 mt-2">
+                            <div class="flex flex-wrap gap-2 items-center text-xs mt-2">
                                 <span class="bg-gray-100 px-2 py-1 rounded text-gray-700">Position: ${stop.index + 1}/${routeData.totalStops}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 items-center text-xs mt-2">
+                                ${badgeHtml}
                             </div>
                             ${metricsInfo}
                         </div>
@@ -1821,9 +1878,8 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     if (timelineBtn) {
         timelineBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            // Show timeline for the first available route (usually Route A)
-            const firstRoute = { name: 'A', id: 'A' };
-            window.currentTimelineRoute = 'A'; // Set current route
+            const firstRoute = { name: 'A', id: 'A' }; // Default to Route A
+            window.currentTimelineRoute = 'A';
             setFocus(firstRoute.id);
             showTimelinePanel(firstRoute);
         });
@@ -4405,3 +4461,98 @@ function updateStatisticsCards(isOptimized) {
         }, 100);
     }
 }
+
+// --- Badge Popup Functionality ---
+
+const badgePopupData = {
+    'call-before-delivery': {
+        title: 'Call Before Delivery',
+        content: 'This customer has requested a phone call prior to delivery. Please contact them at least 30 minutes before arrival to confirm availability.'
+    },
+    'traffic-jam-risk': {
+        title: 'Traffic Jam Risk',
+        content: 'There is a high risk of traffic congestion on this route. Consider an alternative path or allow for extra delivery time.'
+    },
+    'better-to-deliver': {
+        title: 'Better to Deliver',
+        content: 'This delivery is prioritized. Aim to complete it as early as possible within the delivery window to improve customer satisfaction.'
+    },
+    'overloaded-courier': {
+        title: 'Overloaded Courier',
+        content: 'This courier has a high number of packages. Please ensure they have enough time and resources to complete all deliveries successfully.'
+    },
+    'temp-spike-risk': {
+        title: 'Temperature Spike Risk (Cold)',
+        content: 'The items in this delivery are temperature-sensitive. Monitor the cold chain closely to prevent spoilage due to temperature fluctuations.'
+    },
+    'optimised-by-ai': {
+        title: 'Optimised by AI',
+        content: 'This route has been optimized by the AI system for maximum efficiency, considering traffic, delivery windows, and courier load.'
+    }
+};
+
+function showBadgePopup(badgeId, event) {
+    event.stopPropagation(); // Prevent card click event
+    
+    const data = badgePopupData[badgeId];
+    if (!data) return;
+
+    let popup = document.getElementById('badge-popup');
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'badge-popup';
+        popup.style.cssText = `
+            position: fixed;
+            z-index: 10001;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 16px;
+            max-width: 300px;
+            display: none;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            opacity: 0;
+            transform: scale(0.95);
+        `;
+        document.body.appendChild(popup);
+    }
+
+    popup.innerHTML = `
+        <div style="font-weight: 600; color: #111827; margin-bottom: 8px;">${data.title}</div>
+        <div style="font-size: 14px; color: #4b5563;">${data.content}</div>
+    `;
+
+    const rect = event.target.getBoundingClientRect();
+    popup.style.display = 'block';
+    popup.style.left = `${rect.left}px`;
+    popup.style.top = `${rect.bottom + 5}px`;
+
+    setTimeout(() => {
+        popup.style.opacity = '1';
+        popup.style.transform = 'scale(1)';
+    }, 10);
+
+    const closePopup = () => {
+        popup.style.opacity = '0';
+        popup.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 200);
+        document.removeEventListener('click', closePopup);
+    };
+
+    setTimeout(() => {
+        document.addEventListener('click', closePopup, { once: true });
+    }, 0);
+}
+
+// --- Timeline Rendering ---
+
+// Make these functions globally available for debugging.
+window.setFocus = setFocus;
+window.showTimelinePanel = showTimelinePanel;
+window.hideTimelinePanel = hideTimelinePanel;
+
+// Separate initialization for elements that should always be available.
+function initPermanentElements() {}
