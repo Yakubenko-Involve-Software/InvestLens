@@ -144,7 +144,7 @@ async function initAI() {
         // Add test button for debugging
         const testButton = document.createElement('button');
         testButton.textContent = 'Test Popup';
-        testButton.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:blue;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;';
+        testButton.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:blue;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;display:none;';
         testButton.onclick = () => {
             console.log('🧪 Manual test of popup functionality...');
             console.log('🔍 Current state:');
@@ -3866,146 +3866,114 @@ function showKPIPopup(cardIndex) {
     const popupData = [
         {
             title: 'Routes Optimised',
-            icon: '🚛',
-            description: 'Оптимізація маршрутів доставки',
+            description: 'Delivery routes optimization',
             details: [
-                '• Аналіз географічного розподілу замовлень',
-                '• Кластеризація близьких точок доставки',
-                '• Об\'єднання суміжних маршрутів',
-                '• Зменшення загальної довжини маршрутів',
-                '• Оптимізація послідовності зупинок',
-                '• Врахування часу доставки та пріоритетів'
+                '• Analysis of the geographical distribution of orders',
+                '• Clustering of nearby delivery points',
+                '• Merging of adjacent routes'
             ],
             metrics: {
-                'До оптимізації': '15 маршрутів',
-                'Після оптимізації': '8 маршрутів',
-                'Економія': '7 маршрутів (47%)'
+                'Before optimization': '15 routes',
+                'After optimization': '8 routes',
+                'Savings': '7 routes (47%)'
             }
         },
         {
             title: 'Stops Merged',
-            icon: '📍',
-            description: 'Об\'єднання зупинок доставки',
+            description: 'Merging of delivery stops',
             details: [
-                '• Ідентифікація близько розташованих адрес',
-                '• Групування замовлень по районах',
-                '• Оптимізація логістичних хабів',
-                '• Зменшення кількості зупинок',
-                '• Покращення ефективності маршрутів',
-                '• Економія часу та палива'
+                '• Identification of closely located addresses',
+                '• Grouping of orders by district',
+                '• Optimization of logistics hubs'
             ],
             metrics: {
-                'До оптимізації': '7 зупинок',
-                'Після оптимізації': '3 зупинки',
-                'Економія': '4 зупинки (57%)'
+                'Before optimization': '7 stops',
+                'After optimization': '3 stops',
+                'Savings': '4 stops (57%)'
             }
         },
         {
             title: 'Calls Scheduled',
-            icon: '📞',
-            description: 'Планування дзвінків клієнтам',
+            description: 'Scheduling of customer calls',
             details: [
-                '• Автоматичне планування дзвінків',
-                '• Оптимізація часу спілкування',
-                '• Пріоритизація клієнтів',
-                '• Зменшення ручної роботи',
-                '• Покращення обслуговування',
-                '• Ефективне управління ресурсами'
+                '• Automatic call scheduling',
+                '• Optimization of communication time',
+                '• Customer prioritization'
             ],
             metrics: {
-                'До оптимізації': '2 дзвінки',
-                'Після оптимізації': '0 дзвінків',
-                'Економія': '2 дзвінки (100%)'
+                'Before optimization': '2 calls',
+                'After optimization': '0 calls',
+                'Savings': '2 calls (100%)'
             }
         },
         {
             title: 'Time Saved',
-            icon: '⏰',
-            description: 'Економія часу доставки',
+            description: 'Delivery time savings',
             details: [
-                '• Оптимізація маршрутів',
-                '• Зменшення простоїв',
-                '• Покращення планування',
-                '• Ефективне використання транспорту',
-                '• Зменшення затримок',
-                '• Покращення продуктивності'
+                '• Route optimization',
+                '• Reduction of downtime',
+                '• Improved planning'
             ],
             metrics: {
-                'До оптимізації': '42 хвилини',
-                'Після оптимізації': '58 хвилин',
-                'Економія': '16 хвилин (38%)'
+                'Before optimization': '42 minutes',
+                'After optimization': '58 minutes',
+                'Savings': '16 minutes (38%)'
             }
         },
         {
             title: 'Success Rate',
-            icon: '✅',
-            description: 'Показник успішності доставки',
+            description: 'Delivery success rate indicator',
             details: [
-                '• Покращення точності доставки',
-                '• Зменшення помилок маршрутизації',
-                '• Оптимізація часу доставки',
-                '• Покращення якості обслуговування',
-                '• Зменшення скарг клієнтів',
-                '• Підвищення репутації компанії'
+                '• Improved delivery accuracy',
+                '• Reduction of routing errors',
+                '• Optimization of delivery time'
             ],
             metrics: {
-                'До оптимізації': '+7.2%',
-                'Після оптимізації': '+9.8%',
-                'Покращення': '+2.6% (36%)'
+                'Before optimization': '+7.2%',
+                'After optimization': '+9.8%',
+                'Improvement': '+2.6% (36%)'
             }
         },
         {
             title: 'Spoilage Risk',
-            icon: '⚠️',
-            description: 'Ризик псування продукції',
+            description: 'Product spoilage risk',
             details: [
-                '• Оптимізація температурного режиму',
-                '• Покращення контролю якості',
-                '• Зменшення часу транспортування',
-                '• Покращення логістики',
-                '• Зменшення втрат продукції',
-                '• Підвищення стандартів безпеки'
+                '• Optimization of temperature control',
+                '• Improved quality control',
+                '• Reduction of transportation time'
             ],
             metrics: {
-                'До оптимізації': '-0.8%',
-                'Після оптимізації': '-2.1%',
-                'Покращення': '-1.3% (163%)'
+                'Before optimization': '-0.8%',
+                'After optimization': '-2.1%',
+                'Improvement': '-1.3% (163%)'
             }
         },
         {
             title: 'Efficiency Gain',
-            icon: '📈',
-            description: 'Підвищення ефективності',
+            description: 'Increase in efficiency',
             details: [
-                '• Оптимізація процесів доставки',
-                '• Покращення використання ресурсів',
-                '• Зменшення витрат',
-                '• Підвищення продуктивності',
-                '• Покращення якості обслуговування',
-                '• Збільшення прибутковості'
+                '• Optimization of delivery processes',
+                '• Improved resource utilization',
+                '• Cost reduction'
             ],
             metrics: {
-                'До оптимізації': '15%',
-                'Після оптимізації': '24%',
-                'Покращення': '+9% (60%)'
+                'Before optimization': '15%',
+                'After optimization': '24%',
+                'Improvement': '+9% (60%)'
             }
         },
         {
             title: 'Cost Reduction',
-            icon: '💰',
-            description: 'Зменшення витрат на доставку',
+            description: 'Reduction of delivery costs',
             details: [
-                '• Оптимізація маршрутів',
-                '• Зменшення витрат на паливо',
-                '• Покращення використання транспорту',
-                '• Зменшення простоїв',
-                '• Покращення планування',
-                '• Зменшення операційних витрат'
+                '• Route optimization',
+                '• Reduction of fuel costs',
+                '• Improved vehicle utilization'
             ],
             metrics: {
-                'До оптимізації': '€2,340',
-                'Після оптимізації': '€3,420',
-                'Економія': '€1,080 (46%)'
+                'Before optimization': '€2,340',
+                'After optimization': '€3,420',
+                'Savings': '€1,080 (46%)'
             }
         }
     ];
@@ -4042,21 +4010,20 @@ function showKPIPopup(cardIndex) {
     contentWrapper.innerHTML = `
         <div style="margin-bottom: 20px; padding-right: 40px;">
             <div style="display: flex; align-items: center; margin-bottom: 16px;">
-                <span style="font-size: 32px; margin-right: 16px;">${data.icon}</span>
                 <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0;">${data.title}</h2>
             </div>
             <p style="color: #6b7280; font-size: 16px; line-height: 1.5; margin: 0;">${data.description}</p>
         </div>
         
         <div style="margin-bottom: 24px;">
-            <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Деталі оптимізації:</h3>
+            <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Optimization Details:</h3>
             <ul style="color: #4b5563; line-height: 1.6; margin: 0; padding-left: 20px;">
                 ${data.details.map(detail => `<li style="margin-bottom: 8px;">${detail}</li>`).join('')}
             </ul>
         </div>
         
         <div style="background: #f9fafb; border-radius: 8px; padding: 16px;">
-            <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Ключові показники:</h3>
+            <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Key Metrics:</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                 ${Object.entries(data.metrics).map(([key, value]) => `
                     <div style="text-align: center;">
