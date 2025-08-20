@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test KPI Popups</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <h1 class="text-2xl font-bold mb-6">Test KPI Popups</h1>
+    
+    <div class="bg-white shadow rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Optimization Results</h3>
+        
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="routes-optimised">
+                <p class="text-sm font-medium text-gray-700">Routes Optimised</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">8 %</p>
+            </div>
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="stops-merged">
+                <p class="text-sm font-medium text-gray-700">Stops Merged</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">3</p>
+            </div>
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="calls-scheduled">
+                <p class="text-sm font-medium text-gray-700">Calls Scheduled</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">0</p>
+            </div>
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="time-saved">
+                <p class="text-sm font-medium text-gray-700">Time Saved</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">58 min</p>
+            </div>
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="success-rate">
+                <p class="text-sm font-medium text-gray-700">Success Rate</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">+9.8 %</p>
+            </div>
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="spoilage-risk">
+                <p class="text-sm font-medium text-gray-700">Spoilage Risk</p>
+                <p class="text-2xl font-bold text-red-600 mt-1">-2.1 %</p>
+            </div>
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="efficiency-gain">
+                <p class="text-sm font-medium text-gray-700">Efficiency Gain</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">24 %</p>
+            </div>
+            <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="cost-reduction">
+                <p class="text-sm font-medium text-gray-700">Cost Reduction</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">€3,420</p>
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <button onclick="testPopup()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                Test Popup Manually
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Simple popup test
+        function testPopup() {
+            console.log('Testing popup...');
+            
+            // Create popup container
+            const popupContainer = document.createElement('div');
+            popupContainer.id = 'test-popup';
+            popupContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            // Create popup content
+            const popupContent = document.createElement('div');
+            popupContent.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                position: relative;
+            `;
+            
+            popupContent.innerHTML = `
+                <button onclick="closeTestPopup()" style="position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+                <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 16px;">Test Popup</h2>
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.5;">This is a test popup to verify the popup functionality works.</p>
+            `;
+            
+            popupContainer.appendChild(popupContent);
+            document.body.appendChild(popupContainer);
+            
+            // Close on background click
+            popupContainer.onclick = (e) => {
+                if (e.target === popupContainer) {
+                    closeTestPopup();
+                }
+            };
+        }
+        
+        function closeTestPopup() {
+            const popup = document.getElementById('test-popup');
+            if (popup) {
+                popup.remove();
+            }
+        }
+        
+        // Initialize click handlers for KPI cards
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing KPI card handlers...');
+            
+            const cards = document.querySelectorAll('.kpi-card');
+            console.log(`Found ${cards.length} KPI cards`);
+            
+            cards.forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    console.log(`Card ${index} clicked`);
+                    showPopup(index);
+                });
+            });
+        });
+        
+        function showPopup(index) {
+            const popupData = [
+                { title: 'Routes Optimised', description: 'Оптимізація маршрутів доставки' },
+                { title: 'Stops Merged', description: 'Об\'єднання зупинок доставки' },
+                { title: 'Calls Scheduled', description: 'Планування дзвінків клієнтам' },
+                { title: 'Time Saved', description: 'Економія часу доставки' },
+                { title: 'Success Rate', description: 'Показник успішності доставки' },
+                { title: 'Spoilage Risk', description: 'Ризик псування продукції' },
+                { title: 'Efficiency Gain', description: 'Підвищення ефективності' },
+                { title: 'Cost Reduction', description: 'Зменшення витрат на доставку' }
+            ];
+            
+            const data = popupData[index];
+            
+            // Create popup
+            const popupContainer = document.createElement('div');
+            popupContainer.id = 'kpi-popup';
+            popupContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            const popupContent = document.createElement('div');
+            popupContent.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                max-width: 500px;
+                width: 90%;
+                position: relative;
+            `;
+            
+            popupContent.innerHTML = `
+                <button onclick="document.getElementById('kpi-popup').remove()" style="position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+                <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 16px;">${data.title}</h2>
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.5;">${data.description}</p>
+            `;
+            
+            popupContainer.appendChild(popupContent);
+            document.body.appendChild(popupContainer);
+            
+            // Close on background click
+            popupContainer.onclick = (e) => {
+                if (e.target === popupContainer) {
+                    popupContainer.remove();
+                }
+            };
+        }
+    </script>
+</body>
+</html>

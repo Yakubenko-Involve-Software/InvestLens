@@ -175,3 +175,49 @@
 .kpi-value-highlight.kpi-flash {
     animation: kpi-value-flash 800ms ease-out 1;
 }
+
+/* KPI Popup Styles */
+#kpi-popup-container {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.kpi-popup-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-popup-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);
+}
+
+.kpi-popup-close {
+    transition: all 0.2s ease;
+    border-radius: 50%;
+}
+
+.kpi-popup-close:hover {
+    background-color: #fee2e2 !important;
+    color: #dc2626 !important;
+    transform: scale(1.1);
+}
+
+/* KPI Card hover effect for clickable cards */
+.kpi-card.cursor-pointer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: #3b82f6;
+}
+
+.kpi-card.cursor-pointer {
+    transition: all 0.2s ease;
+}

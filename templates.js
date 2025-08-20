@@ -572,37 +572,37 @@ const templates = {
                         <button id="toggle-today" class="flex-1 py-2 px-3 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800 transition-colors">Today</button>
                     </div>
                     <div class="grid grid-cols-2 gap-3 mb-6 flex-grow">
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="routes-optimised">
                             <p class="text-sm font-medium text-gray-700">Routes Optimised</p>
-                            <p id="routes-optimised" class="text-2xl font-bold text-blue-600 mt-1">15 %</p>
+                            <p id="routes-optimised" class="text-2xl font-bold text-blue-600 mt-1">8 %</p>
                         </div>
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="stops-merged">
                             <p class="text-sm font-medium text-gray-700">Stops Merged</p>
-                            <p id="stops-merged" class="text-2xl font-bold text-gray-900 mt-1">7</p>
+                            <p id="stops-merged" class="text-2xl font-bold text-gray-900 mt-1">3</p>
                         </div>
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="calls-scheduled">
                             <p class="text-sm font-medium text-gray-700">Calls Scheduled</p>
-                            <p id="calls-scheduled" class="text-2xl font-bold text-gray-900 mt-1">2</p>
+                            <p id="calls-scheduled" class="text-2xl font-bold text-gray-900 mt-1">0</p>
                         </div>
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="time-saved">
                             <p class="text-sm font-medium text-gray-700">Time Saved</p>
-                            <p id="time-saved" class="text-2xl font-bold text-green-600 mt-1">42 min</p>
+                            <p id="time-saved" class="text-2xl font-bold text-green-600 mt-1">58 min</p>
                         </div>
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="success-rate">
                             <p class="text-sm font-medium text-gray-700">Success Rate</p>
-                            <p id="success-rate" class="text-2xl font-bold text-green-600 mt-1">+7.2 %</p>
+                            <p id="success-rate" class="text-2xl font-bold text-green-600 mt-1">+9.8 %</p>
                         </div>
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="spoilage-risk">
                             <p class="text-sm font-medium text-gray-700">Spoilage Risk</p>
-                            <p id="spoilage-risk" class="text-2xl font-bold text-green-600 mt-1">-0.8 %</p>
+                            <p id="spoilage-risk" class="text-2xl font-bold text-red-600 mt-1">-2.1 %</p>
                         </div>
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="efficiency-gain">
                             <p class="text-sm font-medium text-gray-700">Efficiency Gain</p>
-                            <p id="efficiency-gain" class="text-2xl font-bold text-blue-600 mt-1">15 %</p>
+                            <p id="efficiency-gain" class="text-2xl font-bold text-blue-600 mt-1">24 %</p>
                         </div>
-                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="kpi-card p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" data-kpi="cost-reduction">
                             <p class="text-sm font-medium text-gray-700">Cost Reduction</p>
-                            <p id="cost-reduction" class="text-2xl font-bold text-green-600 mt-1">€2,340</p>
+                            <p id="cost-reduction" class="text-2xl font-bold text-green-600 mt-1">€3,420</p>
                         </div>
                     </div>
                     <!-- Optional inline timeline (kept hidden) -->

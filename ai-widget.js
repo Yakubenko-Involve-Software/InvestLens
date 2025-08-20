@@ -18,6 +18,34 @@ let routeLayers = [];
 // Make map available globally
 window.aiMap = null;
 
+// Function to reinitialize KPI popups when content changes
+function reinitializeKPIPopups() {
+    console.log('🔄 Reinitializing KPI popups...');
+    setTimeout(() => {
+        try {
+            initKPIPopups();
+        } catch (error) {
+            console.error('❌ Error reinitializing KPI popups:', error);
+        }
+    }, 500);
+}
+
+// Test function for debugging popups
+window.testKPIPopup = function(index = 0) {
+    console.log('🧪 Testing KPI popup...');
+    try {
+        showKPIPopup(index);
+        console.log('✅ Popup should be visible');
+    } catch (error) {
+        console.error('❌ Error showing popup:', error);
+    }
+};
+
+// Make functions globally available for debugging (will be set after functions are defined)
+window.initKPIPopups = null;
+window.showKPIPopup = null;
+window.hideKPIPopup = null;
+
 async function initAI() {
     console.log('=== Initializing AI Widget ===');
     console.log('🔍 AI Widget DOM elements:', {
@@ -48,19 +76,86 @@ async function initAI() {
         initToggleButtons();
     }, 200);
     
+    // Initialize KPI popups after a longer delay to ensure all content is loaded
+    setTimeout(() => {
+        console.log('🔍 Initializing KPI popups after content load...');
+        try {
+            initKPIPopups();
+        } catch (error) {
+            console.error('❌ Error initializing KPI popups:', error);
+        }
+    }, 1500);
+    
+    // Also try to initialize popups when the AI widget content is loaded
+    setTimeout(() => {
+        console.log('🔄 Re-initializing KPI popups after extended delay...');
+        try {
+            initKPIPopups();
+        } catch (error) {
+            console.error('❌ Error re-initializing KPI popups:', error);
+        }
+    }, 3000);
+    
+    // Final attempt to initialize popups
+    setTimeout(() => {
+        console.log('🔄 Final attempt to initialize KPI popups...');
+        try {
+            initKPIPopups();
+        } catch (error) {
+            console.error('❌ Error in final initialization of KPI popups:', error);
+        }
+    }, 5000);
+    
     // Load data
     allRoutes = allRoutesData;
     stopsData = stopsDataAll;
     
     // Initialize table/sorting only if elements exist
     if (routeList) {
-    initAISorting();
-    renderRouteTable();
+        initAISorting();
+        renderRouteTable();
     } else {
         console.log('AI widget: skipping route table rendering (routeList not found).');
     }
     
     console.log('=== AI Widget initialization completed ===');
+    
+    // Final check for KPI popups after everything is loaded
+    setTimeout(() => {
+        console.log('🔍 Final check for KPI popups...');
+        const popupContainer = document.getElementById('kpi-popup-container');
+        const kpiCards = document.querySelectorAll('.kpi-card');
+        console.log('🔍 Final state:', {
+            popupContainer: !!popupContainer,
+            kpiCardsCount: kpiCards.length,
+            popupContainerHTML: popupContainer ? popupContainer.outerHTML.substring(0, 100) + '...' : 'Not found'
+        });
+        
+        // If popups still not working, try to reinitialize
+        if (!popupContainer) {
+            console.log('🔄 Popup container not found, trying to reinitialize...');
+            try {
+                initKPIPopups();
+            } catch (error) {
+                console.error('❌ Error reinitializing KPI popups:', error);
+            }
+        }
+        
+        // Add test button for debugging
+        const testButton = document.createElement('button');
+        testButton.textContent = 'Test Popup';
+        testButton.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:blue;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;';
+        testButton.onclick = () => {
+            console.log('🧪 Manual test of popup functionality...');
+            console.log('🔍 Current state:');
+            console.log('🔍 Popup container:', document.getElementById('kpi-popup-container'));
+            console.log('🔍 KPI cards:', document.querySelectorAll('.kpi-card').length);
+            console.log('🔍 Trying to show popup...');
+            showKPIPopup(0);
+        };
+        document.body.appendChild(testButton);
+        
+    }, 3000);
 }
 
 function renderRouteTable() {
@@ -951,6 +1046,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         // Reset statistics cards to original values
         updateStatisticsCards(false);
         
+        // Reinitialize KPI popups after content update
+        reinitializeKPIPopups();
+        
         console.log('✅ Optimize button remains disabled');
     });
 
@@ -965,6 +1063,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         optimizeBtn.disabled = false;
         optimizeBtn.textContent = 'Optimize';
         currentToggleState = 'today';
+        
+        // Reinitialize KPI popups after content update
+        reinitializeKPIPopups();
         
         // Reset statistics cards to original values
         updateStatisticsCards(false);
@@ -985,6 +1086,14 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     setTimeout(() => {
         console.log('⏰ Delayed initialization of statistics cards...');
         updateStatisticsCards(false);
+        
+        // Initialize KPI popups after statistics cards
+        console.log('🔍 Initializing KPI popups after statistics cards...');
+        try {
+            initKPIPopups();
+        } catch (error) {
+            console.error('❌ Error initializing KPI popups in toggle handler:', error);
+        }
     }, 1000);
     
     console.log('Initial state set to Yesterday');
@@ -1030,6 +1139,9 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                         });
                         updateStatisticsCards(true);
                         console.log('✅ updateStatisticsCards(true) completed');
+                        
+                        // Reinitialize KPI popups after optimization
+                        reinitializeKPIPopups();
                 
                 // Ensure we have data to work with
                 if (!allRoutesData || allRoutesData.length === 0) {
@@ -3570,6 +3682,456 @@ function getDistrictName(routeName) {
     return districts[routeName] || 'Unknown District';
 }
 
+// Function to initialize KPI popup functionality
+function initKPIPopups() {
+    console.log('🔍 Initializing KPI popups...');
+    
+    try {
+        // Check if popup already exists
+        const existingPopup = document.getElementById('kpi-popup-container');
+        if (existingPopup) {
+            console.log('⚠️ Popup container already exists, removing old one...');
+            existingPopup.remove();
+        }
+        
+        // Create popup container
+        const popupContainer = document.createElement('div');
+        popupContainer.id = 'kpi-popup-container';
+        popupContainer.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        // Create popup content
+        const popupContent = document.createElement('div');
+        popupContent.className = 'kpi-popup-content';
+        popupContent.style.cssText = `
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        `;
+        
+        // Create close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'kpi-popup-close';
+        closeButton.innerHTML = '&times;';
+        closeButton.style.cssText = `
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        closeButton.onclick = () => hideKPIPopup();
+        
+        popupContent.appendChild(closeButton);
+        popupContainer.appendChild(popupContent);
+        document.body.appendChild(popupContainer);
+        
+        console.log('✅ Popup container created and added to DOM');
+        
+        // Add click event listeners to KPI cards - specifically in the Optimization Results section
+        const resultsView = document.getElementById('results-view');
+        let kpiCards = [];
+        
+        if (resultsView) {
+            kpiCards = resultsView.querySelectorAll('.kpi-card');
+            console.log(`🔍 Found ${kpiCards.length} KPI cards in results-view`);
+        }
+        
+        if (kpiCards.length === 0) {
+            // Try broader search
+            kpiCards = document.querySelectorAll('#results-view .kpi-card');
+            console.log(`🔍 Found ${kpiCards.length} KPI cards with broader search`);
+        }
+        
+        if (kpiCards.length === 0) {
+            // Try to find cards by data-kpi attribute
+            kpiCards = document.querySelectorAll('[data-kpi]');
+            console.log(`🔍 Found ${kpiCards.length} KPI cards with data-kpi attribute`);
+        }
+        
+        if (kpiCards.length === 0) {
+            console.warn('⚠️ No KPI cards found! DOM state:', {
+                resultsView: !!document.getElementById('results-view'),
+                allKpiCards: document.querySelectorAll('.kpi-card').length,
+                dataKpiCards: document.querySelectorAll('[data-kpi]').length
+            });
+            return;
+        }
+        
+        // Add click handlers to all KPI cards
+        kpiCards.forEach((card, index) => {
+            const cardTitle = card.querySelector('.text-sm')?.textContent || 'Unknown';
+            console.log(`🔗 Adding click handler to KPI card ${index}: ${cardTitle}`);
+            
+            // Make sure card looks clickable
+            card.style.cursor = 'pointer';
+            
+            // Remove any existing handlers
+            if (card._clickHandler) {
+                card.removeEventListener('click', card._clickHandler);
+                card._clickHandler = null;
+            }
+            
+            // Create and add new click handler
+            card._clickHandler = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`🖱️ KPI card clicked! Index: ${index}, Title: ${cardTitle}`);
+                console.log('Event target:', e.target);
+                console.log('Current target:', e.currentTarget);
+                
+                try {
+                    showKPIPopup(index);
+                } catch (error) {
+                    console.error('❌ Error showing popup:', error);
+                }
+            };
+            
+            // Add the click handler
+            card.addEventListener('click', card._clickHandler);
+            
+            // Also add as onclick for redundancy
+            card.onclick = card._clickHandler;
+            
+            console.log(`✅ Click handler added to KPI card ${index}: ${cardTitle}`);
+        });
+        
+        // Also add click handlers to cards with data-kpi attribute as additional fallback
+        const dataKpiCards = document.querySelectorAll('[data-kpi]');
+        if (dataKpiCards.length > 0) {
+            console.log(`🔍 Found ${dataKpiCards.length} additional KPI cards with data-kpi attribute`);
+            dataKpiCards.forEach((card, index) => {
+                if (!card.classList.contains('kpi-card')) {
+                    console.log(`🔗 Adding click handler to additional KPI card ${index}`);
+                    card.style.cursor = 'pointer';
+                    card.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log(`🖱️ Additional KPI card ${index} clicked!`);
+                        showKPIPopup(index);
+                    };
+                }
+            });
+        }
+        
+        console.log('✅ KPI popups initialized');
+        
+    } catch (error) {
+        console.error('❌ Error initializing KPI popups:', error);
+        console.error('❌ Error stack:', error.stack);
+    }
+}
+
+// Function to show KPI popup
+function showKPIPopup(cardIndex) {
+    console.log(`🔍 Showing popup for KPI card ${cardIndex}`);
+    
+    const popupContainer = document.getElementById('kpi-popup-container');
+    if (!popupContainer) {
+        console.error('❌ Popup container not found!');
+        return;
+    }
+    
+    const popupContent = popupContainer.querySelector('div');
+    if (!popupContent) {
+        console.error('❌ Popup content not found!');
+        return;
+    }
+    
+    console.log('✅ Popup elements found, proceeding with content creation...');
+    
+    // Define popup content for each KPI
+    const popupData = [
+        {
+            title: 'Routes Optimised',
+            icon: '🚛',
+            description: 'Оптимізація маршрутів доставки',
+            details: [
+                '• Аналіз географічного розподілу замовлень',
+                '• Кластеризація близьких точок доставки',
+                '• Об\'єднання суміжних маршрутів',
+                '• Зменшення загальної довжини маршрутів',
+                '• Оптимізація послідовності зупинок',
+                '• Врахування часу доставки та пріоритетів'
+            ],
+            metrics: {
+                'До оптимізації': '15 маршрутів',
+                'Після оптимізації': '8 маршрутів',
+                'Економія': '7 маршрутів (47%)'
+            }
+        },
+        {
+            title: 'Stops Merged',
+            icon: '📍',
+            description: 'Об\'єднання зупинок доставки',
+            details: [
+                '• Ідентифікація близько розташованих адрес',
+                '• Групування замовлень по районах',
+                '• Оптимізація логістичних хабів',
+                '• Зменшення кількості зупинок',
+                '• Покращення ефективності маршрутів',
+                '• Економія часу та палива'
+            ],
+            metrics: {
+                'До оптимізації': '7 зупинок',
+                'Після оптимізації': '3 зупинки',
+                'Економія': '4 зупинки (57%)'
+            }
+        },
+        {
+            title: 'Calls Scheduled',
+            icon: '📞',
+            description: 'Планування дзвінків клієнтам',
+            details: [
+                '• Автоматичне планування дзвінків',
+                '• Оптимізація часу спілкування',
+                '• Пріоритизація клієнтів',
+                '• Зменшення ручної роботи',
+                '• Покращення обслуговування',
+                '• Ефективне управління ресурсами'
+            ],
+            metrics: {
+                'До оптимізації': '2 дзвінки',
+                'Після оптимізації': '0 дзвінків',
+                'Економія': '2 дзвінки (100%)'
+            }
+        },
+        {
+            title: 'Time Saved',
+            icon: '⏰',
+            description: 'Економія часу доставки',
+            details: [
+                '• Оптимізація маршрутів',
+                '• Зменшення простоїв',
+                '• Покращення планування',
+                '• Ефективне використання транспорту',
+                '• Зменшення затримок',
+                '• Покращення продуктивності'
+            ],
+            metrics: {
+                'До оптимізації': '42 хвилини',
+                'Після оптимізації': '58 хвилин',
+                'Економія': '16 хвилин (38%)'
+            }
+        },
+        {
+            title: 'Success Rate',
+            icon: '✅',
+            description: 'Показник успішності доставки',
+            details: [
+                '• Покращення точності доставки',
+                '• Зменшення помилок маршрутизації',
+                '• Оптимізація часу доставки',
+                '• Покращення якості обслуговування',
+                '• Зменшення скарг клієнтів',
+                '• Підвищення репутації компанії'
+            ],
+            metrics: {
+                'До оптимізації': '+7.2%',
+                'Після оптимізації': '+9.8%',
+                'Покращення': '+2.6% (36%)'
+            }
+        },
+        {
+            title: 'Spoilage Risk',
+            icon: '⚠️',
+            description: 'Ризик псування продукції',
+            details: [
+                '• Оптимізація температурного режиму',
+                '• Покращення контролю якості',
+                '• Зменшення часу транспортування',
+                '• Покращення логістики',
+                '• Зменшення втрат продукції',
+                '• Підвищення стандартів безпеки'
+            ],
+            metrics: {
+                'До оптимізації': '-0.8%',
+                'Після оптимізації': '-2.1%',
+                'Покращення': '-1.3% (163%)'
+            }
+        },
+        {
+            title: 'Efficiency Gain',
+            icon: '📈',
+            description: 'Підвищення ефективності',
+            details: [
+                '• Оптимізація процесів доставки',
+                '• Покращення використання ресурсів',
+                '• Зменшення витрат',
+                '• Підвищення продуктивності',
+                '• Покращення якості обслуговування',
+                '• Збільшення прибутковості'
+            ],
+            metrics: {
+                'До оптимізації': '15%',
+                'Після оптимізації': '24%',
+                'Покращення': '+9% (60%)'
+            }
+        },
+        {
+            title: 'Cost Reduction',
+            icon: '💰',
+            description: 'Зменшення витрат на доставку',
+            details: [
+                '• Оптимізація маршрутів',
+                '• Зменшення витрат на паливо',
+                '• Покращення використання транспорту',
+                '• Зменшення простоїв',
+                '• Покращення планування',
+                '• Зменшення операційних витрат'
+            ],
+            metrics: {
+                'До оптимізації': '€2,340',
+                'Після оптимізації': '€3,420',
+                'Економія': '€1,080 (46%)'
+            }
+        }
+    ];
+    
+    const data = popupData[cardIndex];
+    
+    // Clear existing content
+    popupContent.innerHTML = '';
+    
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'kpi-popup-close';
+    closeButton.innerHTML = '&times;';
+    closeButton.style.cssText = `
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #6b7280;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    `;
+    closeButton.onclick = () => hideKPIPopup();
+    
+    // Create content wrapper
+    const contentWrapper = document.createElement('div');
+    contentWrapper.innerHTML = `
+        <div style="margin-bottom: 20px; padding-right: 40px;">
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <span style="font-size: 32px; margin-right: 16px;">${data.icon}</span>
+                <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0;">${data.title}</h2>
+            </div>
+            <p style="color: #6b7280; font-size: 16px; line-height: 1.5; margin: 0;">${data.description}</p>
+        </div>
+        
+        <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Деталі оптимізації:</h3>
+            <ul style="color: #4b5563; line-height: 1.6; margin: 0; padding-left: 20px;">
+                ${data.details.map(detail => `<li style="margin-bottom: 8px;">${detail}</li>`).join('')}
+            </ul>
+        </div>
+        
+        <div style="background: #f9fafb; border-radius: 8px; padding: 16px;">
+            <h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 12px;">Ключові показники:</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                ${Object.entries(data.metrics).map(([key, value]) => `
+                    <div style="text-align: center;">
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">${key}</div>
+                        <div style="font-size: 16px; font-weight: 600; color: #111827;">${value}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    // Add content and close button to popup
+    popupContent.appendChild(contentWrapper);
+    popupContent.appendChild(closeButton);
+    
+    // Show popup with animation
+    popupContainer.style.display = 'flex';
+    popupContainer.style.opacity = '0';
+    popupContent.style.transform = 'scale(0.8)';
+    
+    // Animate in
+    setTimeout(() => {
+        popupContainer.style.opacity = '1';
+        popupContent.style.transform = 'scale(1)';
+        popupContainer.style.transition = 'opacity 0.3s ease';
+        popupContent.style.transition = 'transform 0.3s ease';
+    }, 10);
+    
+    popupContainer.onclick = (e) => {
+        if (e.target === popupContainer) {
+            hideKPIPopup();
+        }
+    };
+    
+    // Add keyboard handler for Escape key
+    window.kpiKeyHandler = (e) => {
+        if (e.key === 'Escape') {
+            hideKPIPopup();
+        }
+    };
+    document.addEventListener('keydown', window.kpiKeyHandler);
+}
+
+// Function to hide KPI popup
+function hideKPIPopup() {
+    const popupContainer = document.getElementById('kpi-popup-container');
+    const popupContent = popupContainer.querySelector('.kpi-popup-content');
+    
+    if (!popupContainer) return;
+    
+    // Remove keyboard handler
+    document.removeEventListener('keydown', window.kpiKeyHandler);
+    
+    // Animate out
+    popupContainer.style.opacity = '0';
+    if (popupContent) {
+        popupContent.style.transform = 'scale(0.8)';
+    }
+    
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        popupContainer.style.display = 'none';
+        // Reset for next time
+        popupContainer.style.opacity = '1';
+        if (popupContent) {
+            popupContent.style.transform = 'scale(1)';
+        }
+    }, 300);
+}
+
+// Make functions globally available after they are defined
+window.initKPIPopups = initKPIPopups;
+window.showKPIPopup = showKPIPopup;
+window.hideKPIPopup = hideKPIPopup;
+
 // Function to update statistics cards with optimized values
 // Note: After optimization, some values should be smaller (better), others should be larger (better)
 // - Smaller is better: Total Distance, Distance per Stop, CO2 Total
@@ -3621,6 +4183,16 @@ function updateStatisticsCards(isOptimized) {
     if (isOptimized) {
         // Update with optimized (better) values
         console.log('🚀 Updating cards with optimized values...');
+        
+        // Re-initialize popups after updating cards
+        setTimeout(() => {
+            console.log('🔍 Re-initializing popups after updating cards...');
+            try {
+                initKPIPopups();
+            } catch (error) {
+                console.error('❌ Error re-initializing popups after update:', error);
+            }
+        }, 100);
         
         // Card 1: Total Distance - reduce by 15% (smaller is better)
         const distanceCard = cards[0];
@@ -3865,5 +4437,15 @@ function updateStatisticsCards(isOptimized) {
         }
         
         console.log('✅ All statistics cards reset to original values');
+        
+        // Re-initialize popups after resetting cards
+        setTimeout(() => {
+            console.log('🔍 Re-initializing popups after resetting cards...');
+            try {
+                initKPIPopups();
+            } catch (error) {
+                console.error('❌ Error re-initializing popups after reset:', error);
+            }
+        }, 100);
     }
 }
