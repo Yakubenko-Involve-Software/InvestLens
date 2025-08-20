@@ -1747,16 +1747,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 </div>
             `;
             
-            const onClickHandler = `showPositionOnMap('${route.name}', ${stop.index}, ${stop.coordinates[0]}, ${stop.coordinates[1]})`;
-            console.log(`🔗 Click handler for position ${stop.index + 1}: ${onClickHandler}`);
-            
             const badge = badgeTypes[stop.index % badgeTypes.length];
             const isStart = stop.status === 'start';
             const isEnd = stop.status === 'end';
             const badgeHtml = !isStart && !isEnd ? `<span class="${badge.class} px-2 py-1 rounded cursor-pointer" onclick="showBadgePopup('${badge.id}', event)">${badge.text}</span>` : '';
 
             return `
-                <div class="${base} cursor-pointer timeline-stop-card" onclick="${onClickHandler}">
+                <div class="${base} cursor-pointer timeline-stop-card" onclick="showTimelineCardPopup('${stop.time}', '${stop.location}', '${stop.status}', '${stop.type}', ${stop.index + 1}, ${routeData.totalStops}, ${spoilageRisk.toFixed(1)}, ${Math.round(distance)}, ${Math.round(avgDeliveryTime)}, ${Math.round(avgEfficiency)}, '${risk}')">
                     ${riskBadge}
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
@@ -1885,118 +1882,179 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         });
     }
     
-    // Function to show position on map when Timeline position is clicked
-    window.showPositionOnMap = function(routeName, positionIndex, lat, lng) {
-        console.log(`📍 Showing position ${positionIndex + 1} for route ${routeName}`);
-        console.log(`🌍 Coordinates: lat=${lat}, lng=${lng}`);
-        
-        // Clear any existing position markers
-        if (window.currentMarker) {
-            map.removeLayer(window.currentMarker);
-        }
-        
-        // Find the route layer and highlight the specific position marker
-        const routeLayer = routeLayers.find(layer => layer.id === routeName);
-        console.log(`🔍 Looking for route layer: ${routeName}`);
-        console.log(`🔍 Available route layers:`, routeLayers.map(l => l.id));
-        
-        if (routeLayer && routeLayer.markers) {
-            console.log(`🔍 Found route layer with ${routeLayer.markers.length} markers`);
-            
-            // Find the marker with the correct position number
-            let selectedMarker = null;
-            let markerIndex = -1;
-            
-            // Log all markers to debug
-            routeLayer.markers.forEach((marker, idx) => {
-                if (marker.getElement) {
-                    const positionNumber = marker.getElement().querySelector('.position-number');
-                    console.log(`🔍 Marker ${idx}:`, positionNumber ? positionNumber.textContent : 'No position number');
-                }
-            });
-            
-            // Skip the first marker (route ID) and search for position number
-            for (let i = 1; i < routeLayer.markers.length; i++) {
-                const marker = routeLayer.markers[i];
-                if (marker.getElement) {
-                    const positionNumber = marker.getElement().querySelector('.position-number');
-                    console.log(`🔍 Checking marker ${i}: ${positionNumber ? positionNumber.textContent : 'No position number'} vs ${(positionIndex + 1).toString()}`);
-                    if (positionNumber && positionNumber.textContent === (positionIndex + 1).toString()) {
-                        selectedMarker = marker;
-                        markerIndex = i;
-                        console.log(`✅ Found matching marker at index ${i}`);
-                        break;
-                    }
-                }
-            }
-            
-            if (selectedMarker) {
-                console.log(`🎯 Highlighting marker at index ${markerIndex}`);
-                
-                // Reset all markers to normal style
-                routeLayer.markers.forEach(marker => {
-                    if (marker.getElement) {
-                        const element = marker.getElement();
-                        if (element) {
-                            element.style.transform = 'scale(1)';
-                            element.style.boxShadow = '0 0 0 2px #ffffff';
-                        }
-                    }
-                });
-                
-                // Highlight the selected position marker
-                if (selectedMarker.getElement) {
-                    const element = selectedMarker.getElement();
-                    if (element) {
-                        element.style.transform = 'scale(1.2)';
-                        element.style.boxShadow = '0 0 0 4px #3b82f6';
-                    }
-                }
-                
-                // Center map on the selected position with smooth animation
-                const markerLatLng = selectedMarker.getLatLng();
-                console.log(`🗺️ Centering map on:`, markerLatLng);
-                map.flyTo(markerLatLng, 16, {
-                    duration: 1.0,
-                    easeLinearity: 0.25
-                });
-                
-                // Show popup for the selected position
-                const popupContent = `
-                    <div class="text-center">
-                        <div class="font-bold text-lg">Position ${positionIndex + 1}</div>
-                        <div class="text-sm text-gray-600">Route ${routeName}</div>
-                        <div class="text-xs text-gray-500 mt-1">Highlighted on map</div>
-                    </div>
-                `;
-                selectedMarker.bindPopup(popupContent).openPopup();
-                
-                console.log(`✅ Position ${positionIndex + 1} highlighted on map for Route ${routeName}`);
-            } else {
-                console.warn(`❌ Marker for position ${positionIndex + 1} not found in route ${routeName}`);
-                console.warn(`❌ Available markers:`, routeLayer.markers.length);
-                
-                // Fallback: center map on the provided coordinates
-                console.log(`🔄 Fallback: centering map on provided coordinates [${lat}, ${lng}]`);
-                map.flyTo([lat, lng], 16, {
-                    duration: 1.0,
-                    easeLinearity: 0.25
-                });
-            }
-        } else {
-            console.warn(`❌ Route layer not found for ${routeName}`);
-            
-            // Fallback: center map on the provided coordinates
-            console.log(`🔄 Fallback: centering map on provided coordinates [${lat}, ${lng}]`);
-            map.flyTo([lat, lng], 16, {
-                duration: 1.0,
-                easeLinearity: 0.25
-            });
-        }
-        
-        // Highlight the corresponding position in Timeline
-        highlightTimelinePosition(positionIndex);
+    // Function to show popup when Timeline card is clicked
+window.showTimelineCardPopup = function(time, location, status, type, position, totalStops, spoilageRisk, distance, deliveryTime, efficiency, risk) {
+    console.log(`📋 Showing popup for timeline card: ${location}`);
+    
+    // Ensure overlay exists
+    let overlay = document.getElementById('timeline-card-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'timeline-card-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 10000;
+            display: none;
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    // Create popup if it doesn't exist
+    let popup = document.getElementById('timeline-card-popup');
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'timeline-card-popup';
+        popup.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            z-index: 10001;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 24px;
+            max-width: 480px;
+            width: 92%;
+            display: none;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            opacity: 0;
+        `;
+        document.body.appendChild(popup);
+    }
+
+    // Format status text
+    let statusText;
+    if (status === 'start') {
+        statusText = 'Start Point';
+    } else if (status === 'end') {
+        statusText = 'End Point';
+    } else {
+        statusText = 'Delivery Stop';
+    }
+
+    // Format type text
+    const typeText = type === 'warehouse' ? 'Warehouse' : 'Delivery';
+
+    // Risk color mapping
+    const riskColors = {
+        'High': 'bg-red-100 text-red-800 border-red-200',
+        'Med': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        'Low': 'bg-green-100 text-green-800 border-green-200'
     };
+
+    popup.innerHTML = `
+        <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Timeline Stop Details</h3>
+            <button onclick="hideTimelineCardPopup()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Time</div>
+                    <div class="font-semibold text-gray-900">${time}</div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Location</div>
+                    <div class="font-semibold text-gray-900">${location}</div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Status</div>
+                    <div class="font-semibold text-gray-900">${statusText}</div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Type</div>
+                    <div class="font-semibold text-gray-900">${typeText}</div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Position</div>
+                <div class="font-semibold text-gray-900">${position} of ${totalStops}</div>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Risk Level</div>
+                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${riskColors[risk]}">
+                    ${risk}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Spoilage Risk</div>
+                    <div class="font-semibold text-gray-900">${spoilageRisk}%</div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Distance</div>
+                    <div class="font-semibold text-gray-900">${distance}m</div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Avg Delivery Time</div>
+                    <div class="font-semibold text-gray-900">${deliveryTime}min</div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-sm text-gray-600 mb-1">Avg Efficiency</div>
+                    <div class="font-semibold text-gray-900">${efficiency}%</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Show popup with animation
+    overlay.style.display = 'block';
+    popup.style.display = 'block';
+    setTimeout(() => {
+        popup.style.opacity = '1';
+        popup.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+
+    // Close on overlay click and Escape
+    overlay.onclick = hideTimelineCardPopup;
+    const onKeyDown = (e) => {
+        if (e.key === 'Escape') hideTimelineCardPopup();
+    };
+    document.addEventListener('keydown', onKeyDown, { once: true });
+};
+
+// Function to hide timeline card popup
+window.hideTimelineCardPopup = function() {
+    const popup = document.getElementById('timeline-card-popup');
+    const overlay = document.getElementById('timeline-card-overlay');
+    if (popup) {
+        popup.style.opacity = '0';
+        popup.style.transform = 'translate(-50%, -50%) scale(0.95)';
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 200);
+    }
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+};
+
+// Function to show position on map when Timeline position is clicked (DISABLED)
+window.showPositionOnMap = function(routeName, positionIndex, lat, lng) {
+    console.log(`📍 Timeline card clicked for position ${positionIndex + 1} on route ${routeName} - map movement disabled`);
+    // Map movement functionality has been disabled
+    // Only popups are shown now when clicking on timeline cards
+};
     
     // Function to highlight position in Timeline
     function highlightTimelinePosition(positionIndex) {
@@ -4467,27 +4525,39 @@ function updateStatisticsCards(isOptimized) {
 const badgePopupData = {
     'call-before-delivery': {
         title: 'Call Before Delivery',
-        content: 'This customer has requested a phone call prior to delivery. Please contact them at least 30 minutes before arrival to confirm availability.'
+        riskFactors: 'High traffic area, Limited parking availability, Historical delivery failures',
+        recommendation: 'Call before delivery',
+        analysis: 'Based on historical delivery data, traffic patterns, customer availability, and location-specific factors.'
     },
     'traffic-jam-risk': {
         title: 'Traffic Jam Risk',
-        content: 'There is a high risk of traffic congestion on this route. Consider an alternative path or allow for extra delivery time.'
+        riskFactors: 'Peak traffic hours, Construction zones, Accident-prone areas, Limited alternative routes',
+        recommendation: 'Use alternative route or adjust delivery time',
+        analysis: 'Based on real-time traffic data, historical congestion patterns, and route optimization algorithms.'
     },
     'better-to-deliver': {
         title: 'Better to Deliver',
-        content: 'This delivery is prioritized. Aim to complete it as early as possible within the delivery window to improve customer satisfaction.'
+        riskFactors: 'High customer satisfaction score, Flexible delivery window, Strategic location importance',
+        recommendation: 'Prioritize early delivery within window',
+        analysis: 'Based on customer feedback analysis, delivery success rates, and business priority scoring.'
     },
     'overloaded-courier': {
         title: 'Overloaded Courier',
-        content: 'This courier has a high number of packages. Please ensure they have enough time and resources to complete all deliveries successfully.'
+        riskFactors: 'High package count, Complex delivery requirements, Time pressure, Resource constraints',
+        recommendation: 'Redistribute packages or add support',
+        analysis: 'Based on courier workload analysis, delivery complexity assessment, and resource availability monitoring.'
     },
     'temp-spike-risk': {
         title: 'Temperature Spike Risk (Cold)',
-        content: 'The items in this delivery are temperature-sensitive. Monitor the cold chain closely to prevent spoilage due to temperature fluctuations.'
+        riskFactors: 'Temperature-sensitive items, Extended delivery time, Weather conditions, Insulation quality',
+        recommendation: 'Use enhanced cooling and monitor temperature',
+        analysis: 'Based on weather forecasts, historical temperature data, and cold chain integrity monitoring.'
     },
     'optimised-by-ai': {
         title: 'Optimised by AI',
-        content: 'This route has been optimized by the AI system for maximum efficiency, considering traffic, delivery windows, and courier load.'
+        riskFactors: 'Route complexity, Multiple constraints, Dynamic conditions, Performance optimization',
+        recommendation: 'Follow AI-optimized route and timing',
+        analysis: 'Based on machine learning algorithms, real-time data analysis, and multi-objective optimization models.'
     }
 };
 
@@ -4497,55 +4567,138 @@ function showBadgePopup(badgeId, event) {
     const data = badgePopupData[badgeId];
     if (!data) return;
 
+    // Create overlay if it doesn't exist
+    let overlay = document.getElementById('badge-popup-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'badge-popup-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 10000;
+            display: none;
+        `;
+        document.body.appendChild(overlay);
+    }
+
     let popup = document.getElementById('badge-popup');
     if (!popup) {
         popup = document.createElement('div');
         popup.id = 'badge-popup';
         popup.style.cssText = `
             position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
             z-index: 10001;
             background-color: white;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 16px;
-            max-width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 24px;
+            max-width: 480px;
+            width: 92%;
             display: none;
             transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
             opacity: 0;
-            transform: scale(0.95);
         `;
         document.body.appendChild(popup);
     }
 
+    // Get location from the timeline card
+    const timelineCard = event.target.closest('.timeline-stop-card');
+    const locationElement = timelineCard?.querySelector('.text-sm.text-gray-600');
+    const location = locationElement?.textContent || 'Unknown location';
+
+    // Get risk level from the timeline card
+    const riskElement = timelineCard?.querySelector('.absolute.top-3.right-3 span');
+    const risk = riskElement?.textContent || 'Medium';
+
     popup.innerHTML = `
-        <div style="font-weight: 600; color: #111827; margin-bottom: 8px;">${data.title}</div>
-        <div style="font-size: 14px; color: #4b5563;">${data.content}</div>
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="text-lg font-bold text-gray-900">${data.title}</h3>
+                <div class="text-sm text-gray-600 mt-1">${location}</div>
+            </div>
+            <button onclick="hideBadgePopup()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="space-y-4">
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Risk Level</div>
+                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
+                    risk === 'High' ? 'bg-red-100 text-red-800 border-red-200' : 
+                    risk === 'Med' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 
+                    'bg-green-100 text-green-800 border-green-200'
+                }">
+                    ${risk}
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Risk Factors</div>
+                <div class="text-sm text-gray-900">${data.riskFactors}</div>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">AI Recommendation</div>
+                <div class="text-sm text-gray-900">${data.recommendation}</div>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Analysis Basis</div>
+                <div class="text-sm text-gray-900">${data.analysis}</div>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 mt-6">
+            <button onclick="hideBadgePopup()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                Apply Additional Suggestion
+            </button>
+            <button onclick="hideBadgePopup()" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                Cancel
+            </button>
+        </div>
     `;
 
-    const rect = event.target.getBoundingClientRect();
+    // Show popup with animation
+    overlay.style.display = 'block';
     popup.style.display = 'block';
-    popup.style.left = `${rect.left}px`;
-    popup.style.top = `${rect.bottom + 5}px`;
-
     setTimeout(() => {
         popup.style.opacity = '1';
-        popup.style.transform = 'scale(1)';
+        popup.style.transform = 'translate(-50%, -50%) scale(1)';
     }, 10);
 
-    const closePopup = () => {
+    // Close on overlay click and Escape
+    overlay.onclick = hideBadgePopup;
+    const onKeyDown = (e) => {
+        if (e.key === 'Escape') hideBadgePopup();
+    };
+    document.addEventListener('keydown', onKeyDown, { once: true });
+}
+
+// Function to hide badge popup
+window.hideBadgePopup = function() {
+    const popup = document.getElementById('badge-popup');
+    const overlay = document.getElementById('badge-popup-overlay');
+    if (popup) {
         popup.style.opacity = '0';
-        popup.style.transform = 'scale(0.95)';
+        popup.style.transform = 'translate(-50%, -50%) scale(0.95)';
         setTimeout(() => {
             popup.style.display = 'none';
         }, 200);
-        document.removeEventListener('click', closePopup);
-    };
-
-    setTimeout(() => {
-        document.addEventListener('click', closePopup, { once: true });
-    }, 0);
-}
+    }
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+};
 
 // --- Timeline Rendering ---
 
