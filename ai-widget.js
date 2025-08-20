@@ -1780,11 +1780,145 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             `;
         }).join('');
         
-        timelineContent.innerHTML = summaryHtml + stopsHtml;
+        // Add Tomorrow section with some sample cards
+        const tomorrowHtml = `
+            <div class="mt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Tomorrow</h3>
+                    <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">${getTomorrowStopsCount()} stops</span>
+                </div>
+                <div id="tomorrow-stops" class="space-y-3">
+                    ${generateTomorrowStops()}
+                </div>
+            </div>
+        `;
         
-        console.log(`✅ Timeline rendered for Route ${route.name} with ${routeData.totalStops} stops`);
+        timelineContent.innerHTML = summaryHtml + stopsHtml + tomorrowHtml;
+        
+        console.log(`✅ Timeline rendered for Route ${route.name} with ${routeData.totalStops} stops + Tomorrow section`);
     }
  
+    // Helper functions for Tomorrow section
+    function getTomorrowStopsCount() {
+        // Get count from global tomorrow stops array or return default
+        return window.tomorrowStops ? window.tomorrowStops.length : 3;
+    }
+    
+    function generateTomorrowStops() {
+        // Generate sample tomorrow stops or use existing ones
+        const tomorrowStops = window.tomorrowStops || [
+            {
+                time: '09:00',
+                location: 'North Warehouse',
+                status: 'warehouse',
+                type: 'warehouse',
+                index: 0
+            },
+            {
+                time: '10:30',
+                location: 'Entrecampos',
+                status: 'delivery',
+                type: 'delivery',
+                index: 1
+            },
+            {
+                time: '12:00',
+                location: 'South Warehouse',
+                status: 'warehouse',
+                type: 'warehouse',
+                index: 2
+            }
+        ];
+        
+        return tomorrowStops.map((stop, idx) => {
+            const base = 'bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow duration-200 relative';
+            
+            // Calculate additional metrics
+            const spoilageRisk = Math.random() * 5 + 1;
+            const distance = Math.random() * 2000 + 500;
+            const avgDeliveryTime = Math.random() * 30 + 15;
+            const avgEfficiency = Math.random() * 20 + 80;
+            const risk = Math.random() > 0.7 ? 'High' : Math.random() > 0.4 ? 'Med' : 'Low';
+            
+            // Risk color mapping
+            const riskColors = {
+                'High': 'bg-red-100 text-red-800 border-red-200',
+                'Med': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                'Low': 'bg-green-100 text-green-800 border-green-200'
+            };
+            
+            // Status text
+            let statusText;
+            if (stop.status === 'warehouse') {
+                statusText = 'Warehouse Stop';
+            } else {
+                statusText = 'Delivery Stop';
+            }
+            
+            // Type badge
+            const typeBadge = stop.type === 'warehouse' ? 
+                '<span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 font-medium">Warehouse</span>' : 
+                '<span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 font-medium">Delivery</span>';
+            
+            // Risk badge
+            const riskBadge = `<div class="absolute top-3 right-3">
+                <span class="inline-flex items-center text-xs px-2 py-1 rounded-full border ${riskColors[risk]} font-medium">
+                    ${risk}
+                </span>
+            </div>`;
+            
+            // Additional metrics info
+            const metricsInfo = `
+                <div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+                    <div class="bg-gray-50 px-3 py-2 rounded">
+                        <div class="text-gray-500 mb-1">Spoilage Risk</div>
+                        <div class="font-semibold text-gray-900">${spoilageRisk.toFixed(1)}%</div>
+                    </div>
+                    <div class="bg-gray-50 px-3 py-2 rounded">
+                        <div class="text-gray-500 mb-1">Distance</div>
+                        <div class="font-semibold text-gray-900">${Math.round(distance)}m</div>
+                    </div>
+                    <div class="bg-gray-50 px-3 py-2 rounded">
+                        <div class="text-gray-500 mb-1">Avg Delivery Time</div>
+                        <div class="font-semibold text-gray-900">${Math.round(avgDeliveryTime)}min</div>
+                    </div>
+                    <div class="bg-gray-50 px-3 py-2 rounded">
+                        <div class="text-gray-500 mb-1">Avg Efficiency</div>
+                        <div class="font-semibold text-gray-900">${Math.round(avgEfficiency)}%</div>
+                    </div>
+                </div>
+            `;
+            
+            // Tomorrow badge
+            const tomorrowBadge = '<span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">Tomorrow</span>';
+            
+            return `
+                <div class="${base} tomorrow-stop-card" data-stop-id="tomorrow-${stop.index}">
+                    ${riskBadge}
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="mb-2">
+                                <div class="text-lg font-bold text-gray-900">${stop.time}</div>
+                                <div class="text-sm text-gray-600">${stop.location}</div>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-sm font-medium text-gray-700">${statusText}</span>
+                                ${typeBadge}
+                            </div>
+                            <div class="flex flex-wrap gap-2 items-center text-xs mt-2">
+                                <span class="bg-gray-100 px-2 py-1 rounded text-gray-700">Position: ${stop.index + 1}/${tomorrowStops.length}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 items-center text-xs mt-2">
+                                ${tomorrowBadge}
+                            </div>
+                            ${metricsInfo}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
     function showTimelinePanel(route) {
         if (!resultsView || !timelineView) return;
         renderTimelineItems(route);
@@ -4750,27 +4884,85 @@ window.applyBadgeAction = function(badgeId, location, stopIndex, routeName) {
     } else if (badgeId === 'traffic-jam-risk') {
         console.log(`🔄 Handling traffic jam risk action for ${location} on Route ${routeName} at stop ${stopIndex + 1}`);
         
-        // For traffic jam risk, we could implement logic to move the stop to tomorrow
-        // or update route information. For now, we'll just log the action.
+        // Find the timeline card that was clicked
+        const timelineCards = document.querySelectorAll('.timeline-stop-card');
+        let targetCard = null;
         
-        // Update the stops-merged counter in the KPI panel (as an example)
-        const stopsMergedElement = document.getElementById('stops-merged');
-        if (stopsMergedElement) {
-            const currentValue = parseInt(stopsMergedElement.textContent) || 0;
-            const newValue = currentValue + 1;
+        // Find the card that matches our location, route, and stop index
+        for (let card of timelineCards) {
+            const cardLocation = card.querySelector('.text-sm.text-gray-600')?.textContent;
+            const cardBadge = card.querySelector('.bg-yellow-100.text-yellow-700, .bg-yellow-100.text-yellow-700.hover\\:bg-yellow-200');
             
-            // Add animation class for the counter update
-            stopsMergedElement.classList.add('kpi-card-optimized');
+            if (cardLocation === location && cardBadge && cardBadge.textContent === 'Traffic jam risk') {
+                targetCard = card;
+                break;
+            }
+        }
+        
+        if (targetCard) {
+            // Clone the card and move it to Tomorrow section
+            const clonedCard = targetCard.cloneNode(true);
             
-            // Update the counter with animation
-            stopsMergedElement.textContent = newValue;
+            // Update the cloned card for tomorrow
+            const tomorrowBadge = clonedCard.querySelector('.bg-yellow-100.text-yellow-700, .bg-yellow-100.text-yellow-700.hover\\:bg-yellow-200');
+            if (tomorrowBadge) {
+                tomorrowBadge.className = 'inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium';
+                tomorrowBadge.textContent = 'Tomorrow';
+            }
             
-            // Remove animation class after animation completes
+            // Add tomorrow-specific styling
+            clonedCard.classList.add('tomorrow-stop-card');
+            clonedCard.classList.add('moved-to-tomorrow');
+            
+            // Add a subtle animation effect
+            clonedCard.style.transform = 'scale(1.05)';
+            clonedCard.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
             setTimeout(() => {
-                stopsMergedElement.classList.remove('kpi-card-optimized');
-            }, 600);
+                clonedCard.style.transform = 'scale(1)';
+                clonedCard.style.boxShadow = '';
+            }, 300);
             
-            console.log(`📊 Stops merged counter updated to ${newValue}`);
+            // Add to Tomorrow section
+            const tomorrowStopsContainer = document.getElementById('tomorrow-stops');
+            if (tomorrowStopsContainer) {
+                tomorrowStopsContainer.appendChild(clonedCard);
+                
+                // Update tomorrow stops count
+                const tomorrowCountElement = document.querySelector('.text-sm.text-gray-500.bg-gray-100.px-2.py-1.rounded');
+                if (tomorrowCountElement) {
+                    const currentCount = parseInt(tomorrowCountElement.textContent) || 0;
+                    tomorrowCountElement.textContent = `${currentCount + 1} stops`;
+                }
+                
+                console.log(`✅ Card moved to Tomorrow section for ${location}`);
+            }
+            
+            // Hide the original card (or mark it as moved)
+            targetCard.style.opacity = '0.5';
+            targetCard.style.pointerEvents = 'none';
+            targetCard.title = 'Moved to Tomorrow';
+            
+            // Update the stops-merged counter in the KPI panel
+            const stopsMergedElement = document.getElementById('stops-merged');
+            if (stopsMergedElement) {
+                const currentValue = parseInt(stopsMergedElement.textContent) || 0;
+                const newValue = currentValue + 1;
+                
+                // Add animation class for the counter update
+                stopsMergedElement.classList.add('kpi-card-optimized');
+                
+                // Update the counter with animation
+                stopsMergedElement.textContent = newValue;
+                
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    stopsMergedElement.classList.remove('kpi-card-optimized');
+                }, 600);
+                
+                console.log(`📊 Stops merged counter updated to ${newValue}`);
+            }
+        } else {
+            console.warn(`⚠️ Could not find target card for ${location} on Route ${routeName}`);
         }
         
         console.log(`✅ Traffic jam risk action applied for ${location}`);
