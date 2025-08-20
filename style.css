@@ -100,18 +100,78 @@
     transform: scale(1.1);
 }
 
-/* Position highlighting animation */
-.position-number.highlighted {
-    animation: position-highlight 1.5s ease-in-out infinite;
+/* KPI Card with Optimization Pill */
+.kpi-card {
+    position: relative;
 }
 
-@keyframes position-highlight {
-    0%, 100% { 
+.kpi-optimization-pill {
+    display: inline-block !important;
+    font-size: 0.75rem !important; /* Менший розмір шрифту */
+    font-weight: 400 !important; /* Тонший шрифт */
+    padding: 0px 8px !important; /* Мінімальний padding по вертикалі, більший по горизонталі */
+    border-radius: 4px !important; /* Менший border-radius */
+    margin-left: 6px !important; /* Менший margin */
+    vertical-align: middle !important; /* Вирівнювання по центру з основним текстом */
+    transition: all 0.3s ease !important;
+    /* Light green background with dark green text */
+    color: #047857 !important;
+    background-color: #d1fae5 !important;
+    border: 1px solid #a7f3d0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* KPI Card Optimization Animation */
+.kpi-card-optimized {
+    animation: kpi-optimize-pulse 0.6s ease-in-out;
+}
+
+@keyframes kpi-optimize-pulse {
+    0% {
         transform: scale(1);
-        background: #2563eb;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
-    50% { 
-        transform: scale(1.3);
-        background: #fbbf24;
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
     }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Highlight for optimized KPI values */
+.kpi-value-highlight {
+    color: #065f46; /* emerald-900 */
+    background-color: #ecfdf5; /* emerald-50 */
+    border-radius: 6px;
+    padding: 2px 6px;
+    box-shadow: inset 0 0 0 2px #d1fae5; /* emerald-100 */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 1.875rem; /* text-3xl - основний розмір */
+    font-weight: 700; /* font-bold - основний жирний шрифт */
+}
+
+/* Main KPI value styling */
+.kpi-main-value {
+    font-size: 1.875rem !important; /* text-3xl */
+    font-weight: 700 !important; /* font-bold */
+    color: #111827 !important; /* text-gray-900 */
+}
+
+/* Ensure main KPI values are large and bold */
+.text-3xl {
+    font-size: 1.875rem !important; /* text-3xl */
+    font-weight: 700 !important; /* font-bold */
+    color: #111827 !important; /* text-gray-900 */
+}
+
+@keyframes kpi-value-flash {
+    0% { background-color: #bbf7d0; }
+    100% { background-color: #ecfdf5; }
+}
+
+.kpi-value-highlight.kpi-flash {
+    animation: kpi-value-flash 800ms ease-out 1;
 }

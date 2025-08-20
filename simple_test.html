@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple KPI Test</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .test-card {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Простий тест KPI стилів</h1>
+    
+    <div class="test-card">
+        <h3>Тест 1: Основне значення + пілюля</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">
+            <span class="kpi-main-value">102 Km</span>
+            <span class="kpi-optimization-pill">-18 Km</span>
+        </p>
+    </div>
+    
+    <div class="test-card">
+        <h3>Тест 2: Тільки основне значення</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">
+            <span class="kpi-main-value">97 %</span>
+        </p>
+    </div>
+    
+    <div class="test-card">
+        <h3>Тест 3: Тільки пілюля</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">
+            <span class="kpi-optimization-pill">+5 %</span>
+        </p>
+    </div>
+    
+    <div class="test-card">
+        <h3>Тест 4: Звичайний текст</h3>
+        <p class="text-3xl font-bold text-gray-900 mt-1">120 Km</p>
+    </div>
+    
+    <div class="test-card">
+        <h3>Тест 5: Динамічне додавання</h3>
+        <p id="dynamic-test" class="text-3xl font-bold text-gray-900 mt-1">120 Km</p>
+        <button class="test-button" onclick="addPill()">Додати пілюлю</button>
+        <button class="test-button" onclick="removePill()">Прибрати пілюлю</button>
+    </div>
+    
+    <script>
+        function addPill() {
+            const element = document.getElementById('dynamic-test');
+            element.innerHTML = '<span class="kpi-main-value">102 Km</span><span class="kpi-optimization-pill">-18 Km</span>';
+        }
+        
+        function removePill() {
+            const element = document.getElementById('dynamic-test');
+            element.textContent = '120 Km';
+        }
+        
+        // Log available styles
+        console.log('🔍 Checking available styles...');
+        console.log('kpi-main-value:', document.querySelector('.kpi-main-value'));
+        console.log('kpi-optimization-pill:', document.querySelector('.kpi-optimization-pill'));
+        console.log('text-3xl:', document.querySelector('.text-3xl'));
+    </script>
+</body>
+</html>

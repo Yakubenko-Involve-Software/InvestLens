@@ -1,3 +1,5 @@
+console.log('🚀 AI Widget loading...');
+
 // State
 let allRoutes = [];
 let filteredRoutes = [];
@@ -18,6 +20,11 @@ window.aiMap = null;
 
 async function initAI() {
     console.log('=== Initializing AI Widget ===');
+    console.log('🔍 AI Widget DOM elements:', {
+        routeList: !!routeList,
+        timelineList: !!timelineList,
+        map: !!map
+    });
     
     // DOM elements initialization
     routeList = document.getElementById('route-list')?.querySelector('tbody');
@@ -974,7 +981,11 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
     updateOptimizeButton(true); // disabled
     
     // Initialize statistics cards with original values
-    updateStatisticsCards(false);
+    // Add delay to ensure DOM is ready
+    setTimeout(() => {
+        console.log('⏰ Delayed initialization of statistics cards...');
+        updateStatisticsCards(false);
+    }, 1000);
     
     console.log('Initial state set to Yesterday');
     
@@ -1009,8 +1020,16 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 console.log('🚀 Starting optimization process...');
                 isOptimized = true;
                 
-                // Update statistics cards with optimized values
-                updateStatisticsCards(true);
+                                        // Update statistics cards with optimized values
+                        // Note: Some values become smaller (better), others become larger (better)
+                        console.log('🔄 Calling updateStatisticsCards(true)...');
+                        console.log('🔍 Current DOM state:', {
+                            body: !!document.body,
+                            statsContainer: !!document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6.gap-4.mb-6'),
+                            kpiCards: document.querySelectorAll('.kpi-card').length
+                        });
+                        updateStatisticsCards(true);
+                        console.log('✅ updateStatisticsCards(true) completed');
                 
                 // Ensure we have data to work with
                 if (!allRoutesData || allRoutesData.length === 0) {
@@ -1292,16 +1311,16 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                     renderOptimizedRoutesOnAI(computedResult);
                 }
 
-            // Update KPIs with sample improved numbers
+            // Update KPIs with sample improved numbers (better values after optimization)
             const updates = {
-                'routes-optimised': '18 %',
-                'stops-merged': '9',
-                'calls-scheduled': '1',
-                'time-saved': '54 min',
-                'success-rate': '+8.1 %',
-                'spoilage-risk': '-1.1 %',
-                'efficiency-gain': '18 %',
-                'cost-reduction': '€2,940'
+                'routes-optimised': '8 %',   // Reduced from 15% - better optimization
+                'stops-merged': '3',         // Reduced from 7 - fewer stops needed
+                'calls-scheduled': '0',      // Reduced from 2 - no calls needed
+                'time-saved': '58 min',      // Increased from 42 min - more time saved
+                'success-rate': '+9.8 %',    // Increased from +7.2% - better success
+                'spoilage-risk': '-2.1 %',   // Reduced from -0.8% - less spoilage risk
+                'efficiency-gain': '24 %',   // Increased from 15% - better efficiency
+                'cost-reduction': '€3,420'   // Increased from €2,340 - more cost saved
             };
             Object.entries(updates).forEach(([id, value]) => {
                 const el = document.getElementById(id);
@@ -3552,108 +3571,221 @@ function getDistrictName(routeName) {
 }
 
 // Function to update statistics cards with optimized values
+// Note: After optimization, some values should be smaller (better), others should be larger (better)
+// - Smaller is better: Total Distance, Distance per Stop, CO2 Total
+// - Larger is better: Success Rate, Cold-Chain Compliance, Window Accuracy
 function updateStatisticsCards(isOptimized) {
     console.log(`📊 Updating statistics cards, isOptimized: ${isOptimized}`);
+    console.log('🔍 Function called from:', new Error().stack);
     
     // Find all statistics cards
-    const statsContainer = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6.gap-4.mb-6');
+    let statsContainer = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6.gap-4.mb-6');
+    
+    // Try alternative selectors if the first one doesn't work
+    if (!statsContainer) {
+        statsContainer = document.querySelector('.grid.grid-cols-2');
+        console.log('🔍 Trying alternative selector .grid.grid-cols-2');
+    }
+    
+    if (!statsContainer) {
+        statsContainer = document.querySelector('[class*="grid-cols-6"]');
+        console.log('🔍 Trying alternative selector [class*="grid-cols-6"]');
+    }
+    
     if (!statsContainer) {
         console.warn('❌ Statistics container not found');
+        console.log('🔍 Available containers:', document.querySelectorAll('.grid'));
+        console.log('🔍 All elements with grid class:', document.querySelectorAll('[class*="grid"]'));
+        console.log('🔍 All elements with grid-cols-6:', document.querySelectorAll('[class*="grid-cols-6"]'));
         return;
     }
     
-    const cards = statsContainer.querySelectorAll('.bg-white.border.border-gray-200.rounded-lg.p-4.shadow-sm');
+    let cards = statsContainer.querySelectorAll('.kpi-card');
+    
+    // If no kpi-card elements found, try to find cards by their structure
+    if (cards.length === 0) {
+        cards = statsContainer.querySelectorAll('.bg-white.border.border-gray-200.rounded-lg.p-4.shadow-sm');
+        console.log('🔍 Trying alternative card selector');
+    }
+    
     if (cards.length === 0) {
         console.warn('❌ Statistics cards not found');
+        console.log('🔍 Container HTML:', statsContainer.innerHTML);
+        console.log('🔍 All elements in container:', statsContainer.querySelectorAll('*'));
         return;
     }
     
     console.log(`📊 Found ${cards.length} statistics cards`);
+    console.log('🔍 First card:', cards[0]);
     
     if (isOptimized) {
         // Update with optimized (better) values
         console.log('🚀 Updating cards with optimized values...');
         
-        // Card 1: Total Distance - reduce by 15%
+        // Card 1: Total Distance - reduce by 15% (smaller is better)
         const distanceCard = cards[0];
         if (distanceCard) {
             const distanceValue = distanceCard.querySelector('.text-3xl');
             if (distanceValue) {
                 const currentDistance = 120;
                 const optimizedDistance = Math.round(currentDistance * 0.85); // 15% reduction
-                distanceValue.textContent = `${optimizedDistance} Km`;
-                console.log(`📊 Total Distance: ${currentDistance} → ${optimizedDistance} Km`);
+                const optimizationAmount = currentDistance - optimizedDistance;
+                distanceValue.innerHTML = `<span class="kpi-main-value">${optimizedDistance} Km</span>`;
+                
+                // Remove existing pill if any
+                const existingPill = distanceCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+                
+                // Create new pill next to the value
+                const pill = document.createElement('span');
+                pill.className = 'kpi-optimization-pill';
+                pill.textContent = `-${optimizationAmount} Km`;
+                
+                // Insert pill after the value
+                distanceValue.appendChild(pill);
+                
+                console.log(`📊 Total Distance: ${currentDistance} → ${optimizedDistance} Km (saved ${optimizationAmount} Km)`);
             }
         }
         
-        // Card 2: Distance per Stop - reduce by 20%
+        // Card 2: Distance per Stop - reduce by 20% (smaller is better)
         const distancePerStopCard = cards[1];
         if (distancePerStopCard) {
             const distancePerStopValue = distancePerStopCard.querySelector('.text-3xl');
             if (distancePerStopValue) {
                 const currentDistancePerStop = 4.0;
                 const optimizedDistancePerStop = (currentDistancePerStop * 0.8).toFixed(1); // 20% reduction
-                distancePerStopValue.textContent = `${optimizedDistancePerStop} Km`;
-                console.log(`📊 Distance per Stop: ${currentDistancePerStop} → ${optimizedDistancePerStop} Km`);
+                const optimizationAmount = (currentDistancePerStop - optimizedDistancePerStop).toFixed(1);
+                distancePerStopValue.innerHTML = `<span class="kpi-main-value">${optimizedDistancePerStop} Km</span>`;
+                
+                // Remove existing pill if any
+                const existingPill = distancePerStopCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+                
+                // Create new pill next to the value
+                const pill = document.createElement('span');
+                pill.textContent = `-${optimizationAmount} Km`;
+                pill.className = 'kpi-optimization-pill';
+                
+                // Insert pill after the value
+                distancePerStopValue.appendChild(pill);
+                
+                console.log(`📊 Distance per Stop: ${currentDistancePerStop} → ${optimizedDistancePerStop} Km (saved ${optimizationAmount} Km)`);
             }
         }
         
-        // Card 3: Success Rate - increase by 5%
+        // Card 3: Success Rate - increase by 5% (larger is better)
         const successRateCard = cards[2];
         if (successRateCard) {
             const successRateValue = successRateCard.querySelector('.text-3xl');
             if (successRateValue) {
                 const currentSuccessRate = 92;
                 const optimizedSuccessRate = Math.min(100, currentSuccessRate + 5); // 5% increase, max 100%
-                successRateValue.textContent = `${optimizedSuccessRate} %`;
-                console.log(`📊 Success Rate: ${currentSuccessRate} → ${optimizedSuccessRate} %`);
+                const optimizationAmount = optimizedSuccessRate - currentSuccessRate;
+                successRateValue.innerHTML = `<span class="kpi-main-value">${optimizedSuccessRate} %</span>`;
+                
+                // Remove existing pill if any
+                const existingPill = successRateCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+                
+                // Create new pill next to the value
+                const pill = document.createElement('span');
+                pill.textContent = `+${optimizationAmount} %`;
+                pill.className = 'kpi-optimization-pill';
+                
+                // Insert pill after the value
+                successRateValue.appendChild(pill);
+                
+                console.log(`📊 Success Rate: ${currentSuccessRate} → ${optimizedSuccessRate} % (improved +${optimizationAmount} %)`);
             }
         }
         
-        // Card 4: CO2 Total - reduce by 25%
+        // Card 4: CO2 Total - reduce by 25% (smaller is better)
         const co2Card = cards[3];
         if (co2Card) {
             const co2Value = co2Card.querySelector('.text-3xl');
             if (co2Value) {
                 const currentCO2 = 34;
                 const optimizedCO2 = Math.round(currentCO2 * 0.75); // 25% reduction
-                co2Value.textContent = `${optimizedCO2} kg`;
-                console.log(`📊 CO2 Total: ${currentCO2} → ${optimizedCO2} kg`);
+                const optimizationAmount = currentCO2 - optimizedCO2;
+                co2Value.innerHTML = `<span class="kpi-main-value">${optimizedCO2} kg</span>`;
+                
+                // Remove existing pill if any
+                const existingPill = co2Card.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+                
+                // Create new pill next to the value
+                const pill = document.createElement('span');
+                pill.textContent = `-${optimizationAmount} kg`;
+                pill.className = 'kpi-optimization-pill';
+                
+                // Insert pill after the value
+                co2Value.appendChild(pill);
+                
+                console.log(`📊 CO2 Total: ${currentCO2} → ${optimizedCO2} kg (saved ${optimizationAmount} kg)`);
             }
         }
         
-        // Card 5: Cold-Chain Compliance - increase by 2%
+        // Card 5: Cold-Chain Compliance - increase by 2% (larger is better)
         const coldChainCard = cards[4];
         if (coldChainCard) {
             const coldChainValue = coldChainCard.querySelector('.text-3xl');
             if (coldChainValue) {
                 const currentColdChain = 96.3;
                 const optimizedColdChain = Math.min(100, currentColdChain + 2).toFixed(1); // 2% increase, max 100%
-                coldChainValue.textContent = `${optimizedColdChain} %`;
-                console.log(`📊 Cold-Chain Compliance: ${currentColdChain} → ${optimizedColdChain} %`);
+                const optimizationAmount = (optimizedColdChain - currentColdChain).toFixed(1);
+                coldChainValue.innerHTML = `<span class="kpi-main-value">${optimizedColdChain} %</span>`;
+                
+                // Remove existing pill if any
+                const existingPill = coldChainCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+                
+                // Create new pill next to the value
+                const pill = document.createElement('span');
+                pill.textContent = `+${optimizationAmount} %`;
+                pill.className = 'kpi-optimization-pill';
+                
+                // Insert pill after the value
+                coldChainValue.appendChild(pill);
+                
+                console.log(`📊 Cold-Chain Compliance: ${currentColdChain} → ${optimizedColdChain} % (improved +${optimizationAmount} %)`);
             }
         }
         
-        // Card 6: Window Accuracy - increase by 3%
+        // Card 6: Window Accuracy - increase by 3% (larger is better)
         const windowAccuracyCard = cards[5];
         if (windowAccuracyCard) {
             const windowAccuracyValue = windowAccuracyCard.querySelector('.text-3xl');
             if (windowAccuracyValue) {
                 const currentWindowAccuracy = 93.4;
                 const optimizedWindowAccuracy = Math.min(100, currentWindowAccuracy + 3).toFixed(1); // 3% increase, max 100%
-                windowAccuracyValue.textContent = `${optimizedWindowAccuracy} %`;
-                console.log(`📊 Window Accuracy: ${currentWindowAccuracy} → ${optimizedWindowAccuracy} %`);
+                const optimizationAmount = (optimizedWindowAccuracy - currentWindowAccuracy).toFixed(1);
+                windowAccuracyValue.innerHTML = `<span class="kpi-main-value">${optimizedWindowAccuracy} %</span>`;
+                
+                // Remove existing pill if any
+                const existingPill = windowAccuracyCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+                
+                // Create new pill next to the value
+                const pill = document.createElement('span');
+                pill.textContent = `+${optimizationAmount} %`;
+                pill.className = 'kpi-optimization-pill';
+                
+                // Insert pill after the value
+                windowAccuracyValue.appendChild(pill);
+                
+                console.log(`📊 Window Accuracy: ${currentWindowAccuracy} → ${optimizedWindowAccuracy} % (improved +${optimizationAmount} %)`);
             }
         }
         
         console.log('✅ All statistics cards updated with optimized values');
         
-        // Add visual feedback - green glow effect
+        // Add visual feedback - optimization animation
         cards.forEach(card => {
-            card.classList.add('kpi-glow');
+            card.classList.add('kpi-card-optimized');
             setTimeout(() => {
-                card.classList.remove('kpi-glow');
-            }, 2000);
+                card.classList.remove('kpi-card-optimized');
+            }, 600);
         });
         
     } else {
@@ -3664,42 +3796,72 @@ function updateStatisticsCards(isOptimized) {
         const distanceCard = cards[0];
         if (distanceCard) {
             const distanceValue = distanceCard.querySelector('.text-3xl');
-            if (distanceValue) distanceValue.textContent = '120 Km';
+            if (distanceValue) {
+                distanceValue.textContent = '120 Km';
+                // Remove optimization pill
+                const existingPill = distanceCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+            }
         }
         
         // Card 2: Distance per Stop
         const distancePerStopCard = cards[1];
         if (distancePerStopCard) {
             const distancePerStopValue = distancePerStopCard.querySelector('.text-3xl');
-            if (distancePerStopValue) distancePerStopValue.textContent = '4.0 Km';
+            if (distancePerStopValue) {
+                distancePerStopValue.textContent = '4.0 Km';
+                // Remove optimization pill
+                const existingPill = distancePerStopCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+            }
         }
         
         // Card 3: Success Rate
         const successRateCard = cards[2];
         if (successRateCard) {
             const successRateValue = successRateCard.querySelector('.text-3xl');
-            if (successRateValue) successRateValue.textContent = '92 %';
+            if (successRateValue) {
+                successRateValue.textContent = '92 %';
+                // Remove optimization pill
+                const existingPill = successRateCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+            }
         }
         
         // Card 4: CO2 Total
         const co2Card = cards[3];
         if (co2Card) {
             const co2Value = co2Card.querySelector('.text-3xl');
-            if (co2Value) co2Value.textContent = '34 kg';
+            if (co2Value) {
+                co2Value.textContent = '34 kg';
+                // Remove optimization pill
+                const existingPill = co2Card.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+            }
         }
         
         // Card 5: Cold-Chain Compliance
         const coldChainCard = cards[4];
         if (coldChainCard) {
             const coldChainValue = coldChainCard.querySelector('.text-3xl');
-            if (coldChainValue) coldChainValue.textContent = '96.3 %';
+            if (coldChainValue) {
+                coldChainValue.textContent = '96.3 %';
+                // Remove optimization pill
+                const existingPill = coldChainCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+            }
         }
         
         // Card 6: Window Accuracy
         const windowAccuracyCard = cards[5];
         if (windowAccuracyCard) {
             const windowAccuracyValue = windowAccuracyCard.querySelector('.text-3xl');
-            if (windowAccuracyValue) windowAccuracyValue.textContent = '93.4 %';
+            if (windowAccuracyValue) {
+                windowAccuracyValue.textContent = '93.4 %';
+                // Remove optimization pill
+                const existingPill = windowAccuracyCard.querySelector('.kpi-optimization-pill');
+                if (existingPill) existingPill.remove();
+            }
         }
         
         console.log('✅ All statistics cards reset to original values');

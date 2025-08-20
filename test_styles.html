@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Card Styling Test</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f3f4f6;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #111827;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+        }
+        
+        .test-section h3 {
+            color: #374151;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">Тест стилів KPI карток</h1>
+        
+        <div class="test-section">
+            <h3>1. Основні значення (великі та жирні)</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Total Distance</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">102 Km</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Distance per Stop</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">3.2 Km</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Success Rate</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">97 %</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">CO2 Total</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">26 kg</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Cold-Chain Compliance</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">98.3 %</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Window Accuracy</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">96.4 %</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. З оптимізаційними пілюлями (різниці менші та тонші)</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Total Distance</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">102 Km<span class="kpi-optimization-pill">-18 Km</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Distance per Stop</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">3.2 Km<span class="kpi-optimization-pill">-0.8 Km</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Success Rate</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">97 %<span class="kpi-optimization-pill">+5 %</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">CO2 Total</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">26 kg<span class="kpi-optimization-pill">-8 kg</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Cold-Chain Compliance</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">98.3 %<span class="kpi-optimization-pill">+2.0 %</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Window Accuracy</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">96.4 %<span class="kpi-optimization-pill">+3.0 %</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. З виділенням оптимізованих значень</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Total Distance</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1"><span class="kpi-main-value">102 Km</span><span class="kpi-optimization-pill">-18 Km</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Distance per Stop</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1"><span class="kpi-main-value">3.2 Km</span><span class="kpi-optimization-pill">-0.8 Km</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Success Rate</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1"><span class="kpi-main-value">97 %</span><span class="kpi-optimization-pill">+5 %</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">CO2 Total</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1"><span class="kpi-main-value">26 kg</span><span class="kpi-optimization-pill">-8 kg</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Cold-Chain Compliance</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1"><span class="kpi-main-value">98.3 %</span><span class="kpi-optimization-pill">+2.0 %</span></p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p class="text-sm text-gray-600 mb-1">Window Accuracy</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1"><span class="kpi-main-value">96.4 %</span><span class="kpi-optimization-pill">+3.0 %</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Порівняння розмірів</h3>
+            <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                <h4 class="font-semibold mb-4">Розміри шрифтів:</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><strong>Основне значення:</strong> <span class="text-3xl font-bold text-gray-900">102 Km</span> (великий та жирний)</li>
+                    <li><strong>Різниця:</strong> <span class="kpi-optimization-pill">-18 Km</span> (менший та тонший)</li>
+                </ul>
+                <div class="mt-4 p-4 bg-gray-50 rounded">
+                    <p class="text-sm text-gray-600">Тепер різниці значень (як "-18 Km", "-0.8 Km", "+5 %" тощо) мають менший розмір шрифта та тонший шрифт, а основні значення залишаються великими та жирними.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

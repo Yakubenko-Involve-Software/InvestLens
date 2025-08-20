@@ -529,27 +529,27 @@ const templates = {
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm kpi-card">
                     <p class="text-sm font-medium text-gray-600">Total Distance</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">120 Km</p>
                 </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm kpi-card">
                     <p class="text-sm font-medium text-gray-600">Distance per Stop</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">4.0 Km</p>
                 </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm kpi-card">
                     <p class="text-sm font-medium text-gray-600">Success Rate</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">92 %</p>
                 </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm kpi-card">
                     <p class="text-sm font-medium text-gray-600">CO2 Total</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">34 kg</p>
                 </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm kpi-card">
                     <p class="text-sm font-medium text-gray-600">Cold-Chain Compliance</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">96.3 %</p>
                 </div>
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm kpi-card">
                     <p class="text-sm font-medium text-gray-600">Window Accuracy</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">93.4 %</p>
                 </div>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal KPI Test</title>
+    <style>
+        /* Inline styles for testing */
+        .kpi-optimization-pill {
+            display: inline-block !important;
+            font-size: 0.75rem !important;
+            font-weight: 400 !important;
+            padding: 2px 6px !important;
+            border-radius: 4px !important;
+            margin-left: 6px !important;
+            color: #047857 !important;
+            background-color: #d1fae5 !important;
+            border: 1px solid #a7f3d0 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .kpi-main-value {
+            font-size: 1.875rem !important;
+            font-weight: 700 !important;
+            color: #111827 !important;
+        }
+        
+        .text-3xl {
+            font-size: 1.875rem !important;
+            font-weight: 700 !important;
+            color: #111827 !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>Мінімальний тест KPI</h1>
+    
+    <div style="margin: 20px; padding: 20px; border: 1px solid #ccc;">
+        <h3>Тест стилів:</h3>
+        <p>
+            <span class="kpi-main-value">102 Km</span>
+            <span class="kpi-optimization-pill">-18 Km</span>
+        </p>
+        <p>
+            <span class="text-3xl">97 %</span>
+            <span class="kpi-optimization-pill">+5 %</span>
+        </p>
+    </div>
+    
+    <button onclick="testDynamic()">Тест динамічного додавання</button>
+    <div id="dynamic-result" style="margin: 20px; padding: 20px; border: 1px solid #ccc;"></div>
+    
+    <script>
+        function testDynamic() {
+            const result = document.getElementById('dynamic-result');
+            result.innerHTML = `
+                <h3>Динамічно додано:</h3>
+                <p>
+                    <span class="kpi-main-value">26 kg</span>
+                    <span class="kpi-optimization-pill">-8 kg</span>
+                </p>
+            `;
+        }
+    </script>
+</body>
+</html>
