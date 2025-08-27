@@ -1136,47 +1136,84 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         }
         console.log('Optimize button clicked');
         
-        // Create a simple loading popup overlay
+        // Create an enhanced loading popup overlay
         const overlay = document.createElement('div');
         overlay.id = 'optimize-overlay';
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;z-index:2000;';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(4px);';
         overlay.innerHTML = `
-            <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center">
-                <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-                <p class="text-sm font-medium text-gray-700">Optimizing routes...</p>
+            <div class="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 transform transition-all duration-300 scale-100">
+                <!-- Enhanced AI Star Animation -->
+                <div class="relative mb-6">
+                    <svg class="w-16 h-16 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L13.5 8.5L20 9L14.5 13.5L16 20L12 16.5L8 20L9.5 13.5L4 9L10.5 8.5L12 2Z" stroke-width="1.5" class="text-blue-600"/>
+                    </svg>
+                    <div class="absolute inset-0 w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+                
+                <!-- Main Title -->
+                <h3 class="text-xl font-bold text-gray-800 mb-2">AI Route Optimization</h3>
+                
+                <!-- Progress Steps -->
+                <div class="w-full space-y-3 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm text-gray-600">Analyzing route data...</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
+                        <span class="text-sm text-gray-600">Clustering delivery points...</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+                        <span class="text-sm text-gray-600">Calculating optimal paths...</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse" style="animation-delay: 1.5s;"></div>
+                        <span class="text-sm text-gray-600">Generating optimized routes...</span>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full animate-pulse" style="width: 85%; animation: progress 2s ease-in-out infinite;"></div>
+                </div>
+                
+                <!-- Status Text -->
+                <p class="text-sm font-medium text-gray-700 text-center">Processing 24 routes into 4 optimized paths...</p>
+                
+                <!-- Estimated Time -->
+                <p class="text-xs text-gray-500 mt-2">Estimated time: 3-5 seconds</p>
             </div>`;
+        
+        // Add custom CSS for progress animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes progress {
+                0% { width: 0%; }
+                50% { width: 85%; }
+                100% { width: 100%; }
+            }
+        `;
+        document.head.appendChild(style);
+        
         document.body.appendChild(overlay);
         
-        // Show feedback on button
+        // Show enhanced feedback on button
         const originalHTML = optimizeBtn.innerHTML;
         optimizeBtn.innerHTML = `
             <svg class="w-5 h-5 animate-spin" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                <path d="M12 2L13.5 8.5L20 9L14.5 13.5L16 20L12 16.5L8 20L9.5 13.5L4 9L10.5 8.5L12 2Z" stroke-width="1.5"/>
             </svg>
             Optimizing...
         `;
         optimizeBtn.disabled = true;
-        optimizeBtn.className = 'w-full py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed transition-colors flex items-center justify-center gap-2';
+        optimizeBtn.className = 'w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 animate-pulse shadow-lg';
         
         // Start optimization: cluster 24 routes into 4 (A,B,C,D) and delay final reveal 5–10s
         (async () => {
             try {
                 console.log('🚀 Starting optimization process...');
                 isOptimized = true;
-                
-                                        // Update statistics cards with optimized values
-                        // Note: Some values become smaller (better), others become larger (better)
-                        console.log('🔄 Calling updateStatisticsCards(true)...');
-                        console.log('🔍 Current DOM state:', {
-                            body: !!document.body,
-                            statsContainer: !!document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6.gap-4.mb-6'),
-                            kpiCards: document.querySelectorAll('.kpi-card').length
-                        });
-                        updateStatisticsCards(true);
-                        console.log('✅ updateStatisticsCards(true) completed');
-                        
-                        // Reinitialize KPI popups after optimization
-                        reinitializeKPIPopups();
                 
                 // Ensure we have data to work with
                 if (!allRoutesData || allRoutesData.length === 0) {
@@ -1458,21 +1495,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                     renderOptimizedRoutesOnAI(computedResult);
                 }
 
-            // Update KPIs with sample improved numbers (better values after optimization)
-            const updates = {
-                'routes-optimised': '8 %',   // Reduced from 15% - better optimization
-                'stops-merged': '3',         // Reduced from 7 - fewer stops needed
-                'calls-scheduled': '0',      // Reduced from 2 - no calls needed
-                'time-saved': '58 min',      // Increased from 42 min - more time saved
-                'success-rate': '+9.8 %',    // Increased from +7.2% - better success
-                'spoilage-risk': '-2.1 %',   // Reduced from -0.8% - less spoilage risk
-                'efficiency-gain': '24 %',   // Increased from 15% - better efficiency
-                'cost-reduction': '€3,420'   // Increased from €2,340 - more cost saved
-            };
-            Object.entries(updates).forEach(([id, value]) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = value;
-            });
+            // Update statistics cards with optimized values AFTER optimization completes
+            console.log('🔄 Updating KPI cards with optimized values...');
+            updateStatisticsCards(true);
+            console.log('✅ KPI cards updated successfully');
+            
+            // Reinitialize KPI popups after optimization
+            reinitializeKPIPopups();
             
             // Remove loading popup (if still present)
             const ov = document.getElementById('optimize-overlay');
@@ -1513,6 +1542,11 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 } catch (renderError) {
                     console.error('❌ Even fallback rendering failed:', renderError);
                 }
+                
+                // Update KPI cards even in case of error (with fallback values)
+                console.log('🔄 Updating KPI cards with fallback values due to optimization error...');
+                updateStatisticsCards(true);
+                console.log('✅ KPI cards updated with fallback values');
                 
                 // Reset button state
                 optimizeBtn.innerHTML = `
