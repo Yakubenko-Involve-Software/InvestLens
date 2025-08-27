@@ -613,7 +613,12 @@ const templates = {
                         </div>
                     </div>
                     <div class="space-y-3 mt-auto">
-                        <button id="optimize-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">Optimize</button>
+                        <button id="optimize-btn" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L13.5 8.5L20 9L14.5 13.5L16 20L12 16.5L8 20L9.5 13.5L4 9L10.5 8.5L12 2Z" stroke-width="1.5"/>
+                            </svg>
+                            Optimize
+                        </button>
                         <button id="timeline-btn" class="w-full border border-blue-600 text-blue-600 px-4 py-3 rounded-lg font-normal hover:bg-blue-50 transition">Timeline</button>
                     </div>
                 </div>

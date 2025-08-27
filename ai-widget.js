@@ -1038,13 +1038,29 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
 
     function updateOptimizeButton(isDefault) {
         // We always keep Optimize inactive by default and only enable when user decides
-            optimizeBtn.className = 'w-full py-3 px-4 bg-gray-300 text-gray-600 font-semibold rounded-lg cursor-not-allowed';
+        if (isDefault) {
+            optimizeBtn.className = 'w-full py-3 px-4 bg-gray-300 text-gray-600 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2';
             optimizeBtn.style.opacity = '1';
             optimizeBtn.disabled = true;
-            optimizeBtn.textContent = 'Optimize';
+            optimizeBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L13.5 8.5L20 9L14.5 13.5L16 20L12 16.5L8 20L9.5 13.5L4 9L10.5 8.5L12 2Z" stroke-width="1.5"/>
+                </svg>
+                Optimize
+            `;
             optimizeBtn.style.animation = 'none';
             optimizeBtn.style.boxShadow = 'none';
             optimizeBtn.classList.remove('animate-pulse', 'shadow-lg');
+        } else {
+            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2';
+            optimizeBtn.disabled = false;
+            optimizeBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L13.5 8.5L20 9L14.5 13.5L16 20L12 16.5L8 20L9.5 13.5L4 9L10.5 8.5L12 2Z" stroke-width="1.5"/>
+                </svg>
+                Optimize
+            `;
+        }
     }
 
     // Event listeners
@@ -1075,9 +1091,7 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         updateToggleState(todayBtn, yesterdayBtn);
         updateOptimizationData(todayData);
         // Enable Optimize when user selects Today
-        optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors';
-        optimizeBtn.disabled = false;
-        optimizeBtn.textContent = 'Optimize';
+        updateOptimizeButton(false);
         currentToggleState = 'today';
         
         // Reinitialize KPI popups after content update
@@ -1134,10 +1148,15 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
         document.body.appendChild(overlay);
         
         // Show feedback on button
-        const originalText = optimizeBtn.textContent;
-        optimizeBtn.textContent = 'Optimizing...';
+        const originalHTML = optimizeBtn.innerHTML;
+        optimizeBtn.innerHTML = `
+            <svg class="w-5 h-5 animate-spin" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            Optimizing...
+        `;
         optimizeBtn.disabled = true;
-        optimizeBtn.className = 'w-full py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed transition-colors';
+        optimizeBtn.className = 'w-full py-3 px-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed transition-colors flex items-center justify-center gap-2';
         
         // Start optimization: cluster 24 routes into 4 (A,B,C,D) and delay final reveal 5–10s
         (async () => {
@@ -1459,12 +1478,17 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
             const ov = document.getElementById('optimize-overlay');
             if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
             
-            optimizeBtn.textContent = 'Optimization Complete!';
-            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg transition-colors';
+            optimizeBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                Optimization Complete!
+            `;
+            optimizeBtn.className = 'w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2';
             
             // Reset after 2 seconds
             setTimeout(() => {
-                optimizeBtn.textContent = originalText;
+                optimizeBtn.innerHTML = originalHTML;
                 // Restore state depending on current toggle
                 if (currentToggleState === 'tomorrow') {
                     updateOptimizeButton(true); // Disabled gray for Tomorrow
@@ -1491,8 +1515,13 @@ function setupToggleFunctionality(yesterdayBtn, todayBtn, optimizeBtn) {
                 }
                 
                 // Reset button state
-                optimizeBtn.textContent = 'Optimization Failed';
-                optimizeBtn.className = 'w-full py-3 px-4 bg-red-600 text-white font-semibold rounded-lg transition-colors';
+                optimizeBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                    Optimization Failed
+                `;
+                optimizeBtn.className = 'w-full py-3 px-4 bg-red-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2';
                 optimizeBtn.disabled = false;
                 
                 setTimeout(() => {
